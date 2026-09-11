@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LOJA — NEON RAIDERS</title>
+<link rel="stylesheet" href="loja.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  /* ── BANNER DA loja (topo do hangar) ── */
+  .vanguard-banner {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 16px 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.1s, filter 0.2s;
+    overflow: hidden;
+  }
+  .vanguard-banner:active { transform: scale(0.98); }
+
+  /* Estado DESTRAVADO — nave já comprada */
+  .vanguard-banner.destravada {
+    background: linear-gradient(135deg, rgba(64,218,242,0.14), rgba(207,84,201,0.14));
+    border: 1.5px solid #40daf2;
+    box-shadow: 0 0 20px rgba(64,218,242,0.25);
+  }
+
+  /* Estado TRAVADO — nave ainda não comprada */
+  .vanguard-banner.bloqueada {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    filter: grayscale(60%) brightness(0.65);
+  }
+
+  .vanguard-banner-icone {
+    flex: 0 0 auto;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.3);
+  }
+  .vanguard-banner-texto { flex: 1; min-width: 0; }
+  .vanguard-banner-titulo {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px; font-weight: 900; letter-spacing: 2px;
+    color: #fff;
+  }
+  .vanguard-banner.destravada .vanguard-banner-titulo {
+    background: linear-gradient(90deg, #40daf2, #cf54c9);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .vanguard-banner-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 1px; color: #ffffff77;
+    margin-top: 2px;
+  }
+  .vanguard-banner-seta {
+    flex: 0 0 auto;
+    font-size: 16px;
+    color: #ffffff55;
+  }
+  .vanguard-banner.destravada .vanguard-banner-seta { color: #40daf2; }
+  
+   html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#video-fundo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -2;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: -1;
+}
+  
+</style>
+</head>
+<body>
+  
+  <img src="af0d119a6f6474135b4241a396b94ac5.jpg" id="video-fundo">
+  
+<div id="authGateLoja" style="position:fixed;inset:0;z-index:99998;background:#050510;display:flex;align-items:center;justify-content:center;">
+  <div style="width:28px;height:28px;border:3px solid rgba(0,255,255,0.15);border-top-color:#00ffff;border-radius:50%;animation:authGateLojaGirar 0.8s linear infinite;"></div>
+</div>
+<style>@keyframes authGateLojaGirar{to{transform:rotate(360deg);}}</style>
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  const firebaseConfig = { apiKey:"AIzaSyBetMNuPB8BDfvcanmgEUIWw3bLNgbi9aM",authDomain:"neon-raiders.firebaseapp.com",projectId:"neon-raiders",storageBucket:"neon-raiders.firebasestorage.app",messagingSenderId:"307351573602",appId:"1:307351573602:web:a1ce6488ed420d5b99ad3b",databaseURL:"https://neon-raiders-default-rtdb.firebaseio.com" };
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  onAuthStateChanged(getAuth(app), (user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    const gate = document.getElementById('authGateLoja');
+    if (gate) gate.style.display = 'none';
+  });
+</script>
+
+<div class="grid-deco"></div>
+<div id="scanline"></div>
+
+<!-- HEADER -->
+<header class="loja-header">
+  <button class="btn-voltar" onclick="window.location.href='menu.html'">《 VOLTAR</button>
+  
+  <div class="moedas-hud">
+    <span class="moeda-icone">◈</span>
+    <span id="moedas-display">0</span>
+  </div>
+</header>
+
+<!-- ABAS: NAVES | JOIAS -->
+<div class="loja-abas">
+  <button class="aba-btn ativa" id="abaNavesBtn" onclick="trocarAba('naves')">🚀 NAVES</button>
+  <button class="aba-btn" id="abaJoiasBtn" onclick="trocarAba('joias')">💎 JOIAS</button>
+</div>
+
+<!-- BANNER DA  — fica travado/escurecido com cadeado até
+     o jogador comprar a nave NR-01 Vanguard no grid abaixo; depois
+     libera e vira um link colorido pra loja-vanguard.html -->
+<div class="vanguard-banner bloqueada" id="vanguardBanner" onclick="irParaLojaVanguard()">
+  <div class="vanguard-banner-icone" id="vanguardBannerIcone">🔒</div>
+  <div class="vanguard-banner-texto">
+    <div class="vanguard-banner-titulo" id="vanguardBannerTitulo">LOJA VANGUARD — BLOQUEADA</div>
+    <div class="vanguard-banner-sub" id="vanguardBannerSub">Compre a NR-01 VANGUARD abaixo para desbloquear</div>
+  </div>
+  <div class="vanguard-banner-seta">›</div>
+</div>
+
+<!-- NAVE EQUIPADA (preview) -->
+<section class="preview-section">
+  <div class="preview-box">
+    <canvas id="previewCanvas" width="160" height="160"></canvas>
+    <div class="preview-info">
+      <div id="preview-nome" class="preview-nome">PHANTOM</div>
+      <div class="preview-stats" id="preview-stats"></div>
+    </div>
+  </div>
+</section>
+
+<!-- GRADE DE NAVES -->
+<section class="naves-grid" id="navesGrid"></section>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SEÇÃO DE JOIAS (oculta por padrão) -->
+<section id="secaoJoias" class="hidden">
+
+  <!-- Mochila -->
+  <div class="mochila-wrap">
+    <div class="mochila-titulo">🎒 MOCHILA</div>
+    <div id="mochila-lista" class="mochila-lista">
+      <div class="mochila-vazia">Nenhuma joia na mochila</div>
+    </div>
+  </div>
+
+  <!-- Loja de joias -->
+  <div class="joias-titulo">💎 JOIAS DISPONÍVEIS</div>
+  <div class="joias-grid" id="joiasGrid"></div>
+
+</section>
+
+<!-- MODAL COMPRA JOIA -->
+<div class="modal-overlay hidden" id="modalCompra">
+  <div class="modal-box">
+    <div class="modal-joia-img"><div id="modalJoiaImg"></div></div>
+    <div class="modal-joia-nome" id="modalJoiaNome"></div>
+    <div class="modal-joia-desc" id="modalJoiaDesc"></div>
+    <div class="modal-joia-preco" id="modalJoiaPreco"></div>
+    <p class="modal-pergunta">Deseja comprar?</p>
+    <div class="modal-btns">
+      <button class="modal-btn-sim" id="modalBtnSim">SIM</button>
+      <button class="modal-btn-nao" onclick="fecharModal()">NÃO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APÓS COMPRA: EQUIPAR ou MOCHILA -->
+<div class="modal-overlay hidden" id="modalDestino">
+  <div class="modal-box">
+    <div class="modal-joia-nome" id="modalDestinoNome"></div>
+    <p class="modal-pergunta">Deseja fazer upgrade em uma nave<br>ou colocar na mochila?</p>
+    <div class="modal-btns">
+      <button class="modal-btn-sim" id="modalBtnEquipar">⚡ EQUIPAR NAVE</button>
+      <button class="modal-btn-nao" id="modalBtnMochila">🎒 MOCHILA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ESCOLHER NAVE PARA EQUIPAR -->
+<div class="modal-overlay hidden" id="modalEscolherNave">
+  <div class="modal-box">
+    <div class="modal-joia-nome">ESCOLHA UMA NAVE</div>
+    <p class="modal-pergunta" style="font-size:12px;">A joia será equipada nessa nave</p>
+    <div id="modalNavesList" class="modal-naves-list"></div>
+    <button class="modal-btn-nao" style="margin-top:12px;" onclick="fecharModalNave()">CANCELARR</button>
+  </div>
+</div>
+
+<script src="gemas3d.js"></script>
+<script src="dados.js"></script>
+<script src="vanguard-core.js"></script>
+<script type="module" src="loja.js"></script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>

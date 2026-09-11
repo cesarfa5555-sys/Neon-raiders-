@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title></title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+  }
+
+  /* ── TELA 1: LOGO NEKTRA ── */
+  #telaNektra {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    z-index: 10;
+  }
+
+  #telaNektra img {
+    width: clamp(120px, 40vw, 200px);
+    filter: brightness(0) invert(1); /* deixa a logo branca */
+  }
+
+  #telaNektra .nektra-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: #ffffff55;
+    text-transform: uppercase;
+  }
+
+  /* ── TELA 2: CARREGAMENTO (agora 100% canvas) ── */
+  #telaLoading {
+    position: fixed;
+    inset: 0;
+    background: #02000a; /* fallback antes do 1º frame do canvas */
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    z-index: 9;
+  }
+
+  #loadingCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+
+
+</style>
+</head>
+<body>
+
+<!-- TELA 1: LOGO DA EMPRESA NEKTRA -->
+<div id="telaNektra">
+  <img src="nektra_logo.png" alt="NEKTRA">
+  <div class="nektra-sub">NEKTRA Studios</div>
+</div>
+
+<!-- TELA 2: CARREGAMENTO (canvas) -->
+<div id="telaLoading">
+  <canvas id="loadingCanvas"></canvas>
+</div>
+
+<script>
+/* ==========================================================================
+   MOTOR DA TELA DE CARREGAMENTO (CANVAS)
+   Baseado na versão enviada, com melhorias:
+   - Tudo escalado proporcionalmente ao tamanho da tela (a versão original usava
+     px fixos tipo "170px Arial", o que ficava gigante em telas pequenas e
+     minúsculo em tablets/telas grandes)
+   - devicePixelRatio limitado a 2 (celulares Android com dpr 3~4 sofriam de
+     lag desenhando um canvas gigantesco à toa)
+   - Loop para de rodar (cancelAnimationFrame) quando a tela sai de cena,
+     evitando gastar bateria/CPU em segundo plano
+   - Clímax: quando chega a 100%, o portal se abre e a nave "atravessa" antes
+     de avisar que terminou (dá um gancho visual pra transição de tela)
+   ========================================================================== */
+
+const canvas = document.getElementById('loadingCanvas');
+const ctx = canvas.getContext('2d');
+
+// Tempo total (em segundos) até a barra encher. Fácil de ajustar aqui.
+const TEMPO_CARREGAMENTO_SEG = 4.5;
+
+let dpr = Math.min(window.devicePixelRatio || 1, 2); // trava o DPR pra não pesar
+let animFrameId = null;
+let rodando = false;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = window.innerWidth, h = window.innerHeight;
+  canvas.width  = w * dpr;
+  canvas.height = h * dpr;
+}
+addEventListener('resize', resize);
+addEventListener('orientationchange', resize);
+
+// --- SISTEMAS DE PARTÍCULAS ---
+const stars = Array.from({ length: 150 }, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  r: Math.random() * 1.5 + 0.5,
+  a: Math.random() * 0.7 + 0.3,
+  s: Math.random() * 0.05 + 0.01
+}));
+
+// Meteoros com rastro
+const meteors = [];
+function spawnMeteor() {
+  if (meteors.length < 3 && Math.random() < 0.015) {
+    meteors.push({
+      x: Math.random() * canvas.width,
+      y: -50 * dpr,
+      vx: -(Math.random() * 8 + 6) * dpr,
+      vy: (Math.random() * 8 + 6) * dpr,
+      life: 1
+    });
+  }
+}
+
+// Partículas do Portal
+const portalParticles = Array.from({ length: 80 }, () => resetPortalParticle({}));
+function resetPortalParticle(p) {
+  const angle = Math.random() * Math.PI * 2;
+  const dist = Math.random() * 50 + 150; // Começam fora e espiralam para dentro
+  p.angle = angle;
+  p.dist = dist;
+  p.speed = Math.random() * 0.02 + 0.01;
+  p.radialSpeed = Math.random() * 1.2 + 0.8;
+  p.size = Math.random() * 2 + 1;
+  p.color = Math.random() > 0.3 ? '#4db2ff' : '#9433ff';
+  p.alpha = Math.random() * 0.5 + 0.5;
+  return p;
+}
+
+// Partículas de Propulsão da Nave
+const thrusterParticles = [];
+function spawnThruster(shipX, shipY, shipAngle, escala) {
+  const spawnDist = -35 * escala;
+  const px = shipX + Math.cos(shipAngle) * spawnDist;
+  const py = shipY + Math.sin(shipAngle) * spawnDist;
+
+  thrusterParticles.push({
+    x: px,
+    y: py,
+    vx: Math.cos(shipAngle + Math.PI + (Math.random() - 0.5) * 0.5) * (Math.random() * 5 + 3) * escala,
+    vy: Math.sin(shipAngle + Math.PI + (Math.random() - 0.5) * 0.5) * (Math.random() * 5 + 3) * escala,
+    size: (Math.random() * 6 + 4) * escala,
+    life: 1,
+    decay: Math.random() * 0.05 + 0.03
+  });
+}
+
+// --- DICAS DINÂMICAS ---
+const tips = [
+  "O UniCard pode ser usado para evoluir qualquer nave da frota.",
+  "Desvie dos asteroides vermelhos, eles têm blindagem reforçada!",
+  "Mantenha o propulsor ativo para ganhar bônus de velocidade passivo.",
+  "Melhore seus canhões de plasma no menu de hangar antes de chefões.",
+  "Coletar poeira cósmica azul recupera seu escudo instantaneamente."
+];
+let currentTipIndex = 0;
+let tipAlpha = 1;
+let tipTimer = 0;
+let tipState = 'visible'; // 'visible', 'fadeout', 'fadein'
+
+function updateTips(dt) {
+  tipTimer += dt;
+  if (tipTimer > 4) {
+    tipState = 'fadeout';
+    tipTimer = 0;
+  }
+  if (tipState === 'fadeout') {
+    tipAlpha -= dt * 2.5;
+    if (tipAlpha <= 0) {
+      tipAlpha = 0;
+      currentTipIndex = (currentTipIndex + 1) % tips.length;
+      tipState = 'fadein';
+    }
+  } else if (tipState === 'fadein') {
+    tipAlpha += dt * 2.5;
+    if (tipAlpha >= 1) {
+      tipAlpha = 1;
+      tipState = 'visible';
+    }
+  }
+}
+
+// --- VARIÁVEIS DE ESTADO ---
+let p = 0;        // Progresso 0 → 1
+let t = 0;         // Tempo acumulado
+let climaxT = 0;    // Tempo desde que bateu 100% (pro efeito do portal abrindo)
+let emClimax = false;
+let lastTime = performance.now();
+let onCompleteCallback = null;
+let jaAvisouConclusao = false;
+
+// Escala base usada pra todo texto/UI — evita px fixos que ficam
+// desproporcionais entre celulares e tablets
+function escalaBase(w, h) {
+  return Math.min(w, h) / 700;
+}
+
+// Fallback pra roundRect em WebViews Android mais antigas que não suportam
+if (!ctx.roundRect) {
+  ctx.roundRect = function (x, y, w, h, r) {
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r);
+    this.closePath();
+  };
+}
+
+// --- FUNÇÕES DE DESENHO ---
+
+function drawBg(w, h) {
+  const pulse = Math.sin(t * 1.5) * 20;
+  const g = ctx.createRadialGradient(w * 0.5, h * 0.45, 10, w * 0.5, h * 0.5, Math.max(w, h) * 0.8 + pulse);
+  g.addColorStop(0, '#10052a');
+  g.addColorStop(0.4, '#070214');
+  g.addColorStop(1, '#010005');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  const n = ctx.createRadialGradient(w * 0.5, h * 0.38, 50, w * 0.5, h * 0.38, Math.min(w, h) * 0.4);
+  n.addColorStop(0, 'rgba(148, 51, 255, 0.15)');
+  n.addColorStop(0.5, 'rgba(35, 95, 255, 0.05)');
+  n.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = n;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = '#ffffff';
+  for (const s of stars) {
+    const x = s.x * w;
+    const y = (s.y * h + t * 40 * s.s) % h;
+    ctx.globalAlpha = s.a * (0.6 + Math.sin(t * 3 + s.x * 10) * 0.4);
+    ctx.beginPath();
+    ctx.arc(x, y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1.0;
+}
+
+function drawMeteors() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = meteors.length - 1; i >= 0; i--) {
+    const m = meteors[i];
+    m.x += m.vx;
+    m.y += m.vy;
+
+    const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx * 2, m.y - m.vy * 2);
+    grad.addColorStop(0, `rgba(164, 224, 255, ${m.life})`);
+    grad.addColorStop(0.3, `rgba(100, 150, 255, ${m.life * 0.5})`);
+    grad.addColorStop(1, 'rgba(100, 150, 255, 0)');
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(m.x - m.vx * 2, m.y - m.vy * 2);
+    ctx.stroke();
+
+    if (m.x < -100 || m.y > canvas.height + 100) {
+      meteors.splice(i, 1);
+    }
+  }
+  ctx.restore();
+}
+
+function drawPortal(cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.globalCompositeOperation = 'lighter';
+
+  // No clímax (100% atingido), o portal incha e pulsa antes de a tela mudar
+  const raioClimax = emClimax ? r * (1 + Math.min(climaxT / 0.6, 1) * 0.6) : r;
+
+  const centerGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, raioClimax * 0.6);
+  centerGrad.addColorStop(0, '#ffffff');
+  centerGrad.addColorStop(0.2, '#99ecff');
+  centerGrad.addColorStop(0.5, 'rgba(84, 45, 255, 0.8)');
+  centerGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = centerGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, raioClimax * 0.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let i = 0; i < 3; i++) {
+    ctx.save();
+    const spin = t * (i % 2 === 0 ? 0.6 : -0.4) + i * 1.5;
+    ctx.rotate(spin);
+
+    ctx.strokeStyle = i === 0 ? 'rgba(0, 212, 255, 0.4)' : 'rgba(174, 79, 255, 0.3)';
+    ctx.lineWidth = (4 - i) * dpr;
+    ctx.setLineDash([raioClimax * 0.2, raioClimax * 0.1, raioClimax * 0.5, raioClimax * 0.15]);
+    ctx.beginPath();
+    ctx.arc(0, 0, raioClimax * (0.7 + i * 0.15), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (const part of portalParticles) {
+    part.angle += part.speed;
+    part.dist -= part.radialSpeed * (emClimax ? 2.5 : 1); // acelera no clímax
+
+    if (part.dist < 5) {
+      resetPortalParticle(part);
+    }
+
+    const px = Math.cos(part.angle) * part.dist * dpr;
+    const py = Math.sin(part.angle) * part.dist * dpr;
+
+    ctx.fillStyle = part.color;
+    ctx.globalAlpha = part.alpha * (part.dist / 200);
+    ctx.beginPath();
+    ctx.arc(px, py, part.size * dpr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function drawShip(w, h, escala) {
+  const portalX = w * 0.5;
+  const portalY = h * 0.44;
+
+  const shipBaseX = w * 0.76;
+  const shipBaseY = h * 0.62;
+  const floatX = Math.sin(t * 1.2) * 8 * dpr;
+  const floatY = Math.cos(t * 1.5) * 12 * dpr;
+
+  // No clímax, a nave é puxada em direção ao portal e "some" dentro dele
+  const puxao = emClimax ? Math.min(climaxT / 0.7, 1) : 0;
+  const x = shipBaseX + floatX + (portalX - (shipBaseX + floatX)) * puxao;
+  const y = shipBaseY + floatY + (portalY - (shipBaseY + floatY)) * puxao;
+
+  const shipAngle = Math.atan2(portalY - y, portalX - x);
+  const escalaNave = escala * (1 - puxao * 0.7); // encolhe ao entrar no portal
+
+  spawnThruster(x, y, shipAngle, escalaNave);
+
+  ctx.save();
+  ctx.globalAlpha = 1 - puxao; // desaparece ao entrar no portal
+  ctx.translate(x, y);
+  ctx.rotate(shipAngle);
+  ctx.scale(escalaNave, escalaNave);
+
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = thrusterParticles.length - 1; i >= 0; i--) {
+    const tp = thrusterParticles[i];
+    tp.x += tp.vx;
+    tp.y += tp.vy;
+    tp.life -= tp.decay;
+
+    if (tp.life <= 0) {
+      thrusterParticles.splice(i, 1);
+      continue;
+    }
+
+    const localX = (tp.x - x) / escalaNave;
+    const localY = (tp.y - y) / escalaNave;
+
+    ctx.save();
+    ctx.rotate(-shipAngle);
+
+    const thrusterGrad = ctx.createRadialGradient(localX, localY, 0, localX, localY, tp.size);
+    thrusterGrad.addColorStop(0, `rgba(255, 255, 255, ${tp.life})`);
+    thrusterGrad.addColorStop(0.3, `rgba(0, 204, 255, ${tp.life * 0.8})`);
+    thrusterGrad.addColorStop(0.8, `rgba(131, 41, 255, ${tp.life * 0.2})`);
+    thrusterGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+    ctx.fillStyle = thrusterGrad;
+    ctx.beginPath();
+    ctx.arc(localX, localY, tp.size * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // --- MODELO DA NAVE ---
+  ctx.shadowColor = 'rgba(0, 204, 255, 0.5)';
+  ctx.shadowBlur = 10;
+
+  ctx.fillStyle = '#0f1123';
+  ctx.strokeStyle = '#2d5bff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-35, 15);
+  ctx.lineTo(-10, -5);
+  ctx.lineTo(35, 0);
+  ctx.lineTo(-5, 25);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#1e254d';
+  ctx.beginPath();
+  ctx.moveTo(-30, 0);
+  ctx.lineTo(45, 0);
+  ctx.lineTo(-15, 12);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#3ceeff';
+  ctx.shadowColor = '#00f0ff';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.moveTo(5, -1);
+  ctx.lineTo(30, 0);
+  ctx.lineTo(10, 5);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#3ceeff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-15, 6);
+  ctx.lineTo(10, 6);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawUI(w, h, escala) {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Fontes agora escalam com o tamanho real da tela em vez de px fixos
+  const fontTitulo = Math.round(80 * escala);
+  const fontSub = Math.round(70 * escala);
+
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${fontTitulo}px Arial`;
+  ctx.letterSpacing = `${3 * escala}px`;
+  ctx.fillText('NEON', w / 2, h *0.10);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = '#00ccff';
+  ctx.font = `800 ${fontSub}px Arial`;
+  ctx.letterSpacing = `${1 * escala}px`;
+  ctx.fillText('RAIDERS', w / 2 + 4 * escala, h * 0.21);
+  ctx.restore();
+
+  // --- BARRA DE PROGRESSO ---
+  const bw = w * 0.5;
+  const bh = 5 * dpr;
+  const bx = (w - bw) / 2;
+  const by = h * 0.81;
+
+  ctx.fillStyle = 'rgba(16, 20, 48, 0.8)';
+  ctx.strokeStyle = 'rgba(0, 204, 255, 0.2)';
+  ctx.lineWidth = 1.5 * dpr;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, bh / 2);
+  ctx.fill();
+  ctx.stroke();
+
+  if (p > 0.01) {
+    ctx.save();
+    const fillGrad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+    fillGrad.addColorStop(0, '#8329ff');
+    fillGrad.addColorStop(0.5, '#00ccff');
+    fillGrad.addColorStop(1, '#3ceeff');
+    ctx.fillStyle = fillGrad;
+
+    ctx.shadowColor = '#00ccff';
+    ctx.shadowBlur = 8 * escala;
+
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw * p, bh, bh / 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${Math.round(15 * escala)}px Arial`;
+  ctx.fillText(`${Math.round(p * 100)}%`, w / 2, by - 16 * escala);
+
+  const loadingText = 'CARREGANDO SISTEMAS' + '.'.repeat(Math.floor(t * 3.5) % 4);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.font = `bold ${Math.round(13 * escala)}px Arial`;
+  ctx.letterSpacing = `${2 * escala}px`;
+  ctx.fillText(loadingText, w / 2, by + 24 * escala);
+
+  ctx.save();
+  ctx.globalAlpha = tipAlpha;
+  ctx.fillStyle = '#8999bc';
+  ctx.font = `italic ${Math.round(15 * escala)}px Arial`;
+  ctx.fillText(`Dica: ${tips[currentTipIndex]}`, w / 2, h * 0.94);
+  ctx.restore();
+}
+
+// --- LOOP PRINCIPAL ---
+function loop() {
+  if (!rodando) return; // segurança extra: não continua se foi parado
+
+  const now = performance.now();
+  const dt = (now - lastTime) / 1000;
+  lastTime = now;
+
+  t += dt;
+  if (!emClimax) {
+    p = Math.min(1, p + dt / TEMPO_CARREGAMENTO_SEG);
+    if (p >= 1) {
+      emClimax = true;
+      climaxT = 0;
+    }
+  } else {
+    climaxT += dt;
+  }
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const escala = escalaBase(w, h) * dpr;
+
+  ctx.clearRect(0, 0, w, h);
+
+  drawBg(w, h);
+  spawnMeteor();
+  drawMeteors();
+  drawPortal(w * 0.5, h * 0.44, Math.min(w, h) * 0.16);
+  drawShip(w, h, escala * 1.6);
+  updateTips(dt);
+  drawUI(w, h, escala);
+
+  // Depois de ~0.9s de clímax, avisa que terminou o carregamento
+  if (emClimax && climaxT > 0.9 && !jaAvisouConclusao) {
+    jaAvisouConclusao = true;
+    if (typeof onCompleteCallback === 'function') onCompleteCallback();
+  }
+
+  animFrameId = requestAnimationFrame(loop);
+}
+
+// Funções globais (sem type="module" — necessário pro preview do Spck Editor)
+function iniciarLoadingCanvas(callback) {
+  onCompleteCallback = callback;
+  p = 0; t = 0; climaxT = 0; emClimax = false; jaAvisouConclusao = false;
+  resize();
+  lastTime = performance.now();
+  rodando = true;
+  animFrameId = requestAnimationFrame(loop);
+}
+
+function pararLoadingCanvas() {
+  rodando = false;
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+}
+
+/* ==========================================================================
+   SEQUÊNCIA DA SPLASH (NEKTRA → carregamento → título → menu)
+   ========================================================================== */
+
+function fadeIn(el) {
+  return new Promise(res => {
+    el.style.opacity = '0';
+    el.style.display = 'flex';
+    setTimeout(() => { el.style.opacity = '1'; }, 3500);
+    setTimeout(res, 3500);
+  });
+}
+
+function fadeOut(el) {
+  return new Promise(res => {
+    el.style.opacity = '0';
+    setTimeout(() => { el.style.display = 'none'; res(); }, 900);
+  });
+}
+
+async function rodarSplash() {
+  const telaNektra     = document.getElementById('telaNektra');
+  const telaLoading = document.getElementById('telaLoading');
+
+  // 1) Tela NEKTRA: fade in → espera 2s → fade out
+  await fadeIn(telaNektra);
+  await new Promise(r => setTimeout(r, 2000));
+  await fadeOut(telaNektra);
+
+  // 2) Tela de carregamento (canvas): fade in → roda até o clímax → fade out
+  telaLoading.style.display = 'block'; // fadeIn() genérico usa 'flex', aqui forçamos block
+  await fadeIn(telaLoading);
+  await new Promise(resolve => iniciarLoadingCanvas(resolve));
+  pararLoadingCanvas(); // libera o rAF assim que a tela vai sair de cena
+  await fadeOut(telaLoading);
+
+  // 3) Redireciona direto para o jogo (tela de título removida)
+  window.location.href = 'menu.html';
+}
+
+window.addEventListener('load', rodarSplash);
+</script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>

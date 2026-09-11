@@ -1,0 +1,672 @@
+/* ════════════════════════════════════════════════════════════════
+   RESET BÁSICO — remove margens/padding padrão do navegador
+   ════════════════════════════════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background:#000;
+  overflow:hidden;
+  width:100vw; height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron', monospace;
+  touch-action: none; /* impede o navegador de fazer scroll/zoom ao tocar no jogo */
+}
+
+#gameCanvas {
+  display:block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+
+/* Container geral de toda a UI (HUD, telas, etc) */
+#ui {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events:none; /* deixa os cliques passarem direto pro canvas, exceto onde reativado abaixo */
+  z-index:10;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   HUD (pontuação, onda, barra de vida/energia durante o jogo)
+   ════════════════════════════════════════════════════════════════ */
+#hud {
+  position:absolute; top:0; left:0; right:0;
+  padding: 12px 16px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  background: linear-gradient(to bottom, rgba(0,0,20,0.85) 0%, transparent 100%);
+}
+
+.hud-left { display:flex; flex-direction:column; gap:10px; }
+.hud-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+
+.score-display {
+  font-family:'Orbitron', monospace;
+  font-size: clamp(18px, 5vw, 28px);
+  font-weight:900;
+  color:#00ffff;
+  text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff88;
+  letter-spacing:2px;
+}
+
+.wave-display {
+  font-family:'Share Tech Mono', monospace;
+  font-size: clamp(10px, 3vw, 14px);
+  color:#ff00ff;
+  text-shadow: 0 0 8px #ff00ff;
+  letter-spacing:3px;
+}
+
+.hp-bar-wrap {
+  display:flex; align-items:center; gap:8px;
+}
+.hp-label {
+  font-family:'Share Tech Mono', monospace;
+  font-size: clamp(9px, 2.5vw, 11px);
+  color:#ff4466;
+  text-shadow: 0 0 6px #ff4466;
+  letter-spacing:2px;
+}
+#hpBar {
+  width: clamp(90px, 22vw, 140px);
+  height: 10px;
+  background: rgba(255,50,80,0.2);
+  border: 1px solid #ff446688;
+  border-radius: 30px 0 30px 0;
+  overflow:hidden;
+  box-shadow: 0 0 8px #ff446644;
+}
+#hpFill {
+  height:100%; width:100%;
+  background: linear-gradient(90deg, #ff0044, #ff4466);
+  box-shadow: 0 0 10px #ff4466;
+  transition: width 0.15s ease;
+  border-radius: 30px 0 30px 0;
+}
+
+.energy-bar-wrap { display:flex; align-items:center; gap:8px; }
+.energy-label {
+  font-family:'Share Tech Mono', monospace;
+  font-size: clamp(9px, 2.5vw, 11px);
+  color:#00ffaa;
+  text-shadow: 0 0 6px #00ffaa;
+  letter-spacing:2px;
+}
+#energyBar {
+  width: clamp(60px, 18vw, 110px);
+  height:8px;
+  background: rgba(0,255,150,0.1);
+  border:1px solid #00ffaa55;
+  border-radius:4px 0 4px 0;
+  overflow:hidden;
+  box-shadow: 0 0 6px #00ffaa33;
+}
+#energyFill {
+  height:100%; width:0%;
+  background: linear-gradient(90deg, #00cc88, #00ffaa);
+  box-shadow: 0 0 8px #00ffaa;
+  border-radius:4px 0 4px 0;
+  transition: width 0.1s ease;
+}
+
+/* Texto central que aparece ao ativar um power-up */
+#powerupIndicator {
+  position:absolute;
+  top:70%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  font-family:'Orbitron', monospace;
+  font-size: clamp(14px, 4vw, 22px);
+  font-weight:700;
+  color:#ffff00;
+  text-shadow: 0 0 15px #ffff00, 0 0 40px #ffff0066;
+  letter-spacing:4px;
+  opacity:0;
+  transition: opacity 0.3s;
+  text-align:center;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TELAS (tela inicial, game over, vitória) — ocupam a tela toda
+   ════════════════════════════════════════════════════════════════ */
+.screen {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at center, rgba(0,10,40,0.97) 0%, rgba(0,0,0,0.99) 100%);
+  pointer-events:all; /* aqui reativa os cliques, já que essas telas precisam ser clicáveis */
+  z-index:20;
+}
+
+.screen.hidden { display:none; }
+
+.game-logo {
+  font-family:'Orbitron', monospace;
+  font-size: clamp(32px, 12vw, 2px);
+  font-weight:900;
+  letter-spacing:3px;
+  line-height:1;
+  text-align:center;
+  margin-right: 15vh;
+}
+.logo-neon-pai { 
+  position:relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-neon-filho {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  flex-direction:column;
+  bottom:10vh;
+  left: 50%;
+  transform: translate(-30%);
+}
+
+#logo-neon { color:#00ffff; text-shadow: 0 0 20px #00ffff, 0 0 60px #00ffff88, 0 0 100px #00ffff44; }
+
+#logo-sub { 
+  color:#ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 60px #ff00ff66; font-size:0.45em; letter-spacing:6px; 
+}
+
+.btn-primary {
+  position: absolute;
+  font-family:'Orbitron', monospace;
+  font-weight:700;
+  bottom: 25vh;
+  font-size: 15px;
+  letter-spacing:4px;
+  color:#000;
+  background: linear-gradient(135deg, #04FFE6, #00aaff);
+  border:none;
+  padding: 10px 15px;
+  border-radius:4px;
+  cursor:pointer;
+  box-shadow: 0 0 20px #00ffff88, 0 0 60px #00ffff22;
+  transition: transform 0.1s, box-shadow 0.2s;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.btn-primary:active { transform:scale(0.95); box-shadow: 0 0 40px #00ffff; }
+
+.btn-primary img { width:15px; }
+
+.final-score-label {
+  font-family:'Share Tech Mono', monospace;
+  font-size: clamp(11px, 3vw, 15px);
+  color:#ff00ff88;
+  letter-spacing:4px;
+  margin:16px 0 6px;
+}
+.final-score-value {
+  font-family:'Orbitron', monospace;
+  font-size: clamp(28px, 9vw, 56px);
+  font-weight:900;
+  color:#00ffff;
+  text-shadow: 0 0 20px #00ffff, 0 0 60px #00ffff55;
+}
+.final-wave {
+  font-family:'Share Tech Mono', monospace;
+  font-size: clamp(11px, 3vw, 14px);
+  color:#ff00ffaa;
+  letter-spacing:3px;
+  margin: 8px 0 32px;
+}
+
+/* Grade decorativa de fundo (efeito cyberpunk) */
+.grid-deco {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CONTROLES DO JOGO (botão de atirar e bomba)
+   ════════════════════════════════════════════════════════════════ */
+#controls {
+  position:absolute; bottom:0; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:flex-end;
+  padding: clamp(10px,4vw,32px);
+  pointer-events:none;
+}
+
+.right-btns {
+  pointer-events:all;
+  display:flex; flex-direction:column;
+  gap:0;
+  align-items:center;
+}
+
+.action-btn {
+  width: clamp(64px, 20vw, 88px);
+  height: clamp(64px, 20vw, 88px);
+  border-radius:15px 0 15px 0;
+  border:none;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron', monospace;
+  font-size: clamp(10px, 3vw, 13px);
+  font-weight:700;
+  letter-spacing:1px;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  transition: transform 0.08s, box-shadow 0.15s;
+  position:relative;
+  overflow:hidden;
+}
+.action-btn:active { transform:scale(0.9); }
+
+#shootBtn {
+  background: radial-gradient(circle at 40% 40%, #ff446688, #880022);
+  border: 2px solid #ff4466;
+  border-radius: 0 0 15px 15px;
+  box-shadow: 0 0 20px #ff446688, 0 0 60px #ff446622;
+  color:#fff;
+  font-size: clamp(22px,7vw,32px);
+  width: clamp(50px, 16vw, 70px);
+  height: clamp(50px, 16vw, 70px);
+}
+#shootBtn.firing { box-shadow: 0 0 40px #ff4466, 0 0 80px #ff446644; }
+
+#bombBtn {
+  background: radial-gradient(circle at 40% 40%, #ffaa0066, #553300);
+  border: 2px solid #ffaa00;
+  border-radius: 15px 15px 0  0;
+  box-shadow: 0 0 16px #ffaa0066;
+  color:#ffaa00;
+  font-size: clamp(9px, 2.8vw, 12px);
+  width: clamp(50px, 16vw, 70px);
+  height: clamp(50px, 16vw, 70px);
+}
+
+#bombBtn.empty { opacity:0.4; }
+
+#bombCount {
+  position:absolute; top:2px; right:2px;
+  background:#ffaa00;
+  color:#000;
+  font-family:'Orbitron', monospace;
+  font-size:8px;
+  font-weight:700;
+  width:18px; height:18px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* Efeito de linhas de scanline (estética retro CRT) */
+#scanline {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events:none;
+  z-index:100;
+}
+
+/* Texto de combo (multiplicador de pontos) */
+#comboDisplay {
+  position:absolute;
+  top:50%;
+  right: 16px;
+  transform:translateY(-50%);
+  text-align:right;
+  pointer-events:none;
+}
+#comboText {
+  font-family:'Orbitron', monospace;
+  font-size: clamp(11px, 3.5vw, 18px);
+  font-weight:900;
+  color:#ffff00;
+  text-shadow: 0 0 12px #ffff00;
+  opacity:0;
+  transition:opacity 0.3s;
+  letter-spacing:2px;
+}
+#comboMult {
+  font-family:'Share Tech Mono', monospace;
+  font-size: clamp(9px, 2.5vw, 12px);
+  color:#ffff0088;
+  opacity:0;
+  transition:opacity 0.3s;
+  letter-spacing:2px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SELETOR DE MAPA (tela inicial)
+   ════════════════════════════════════════════════════════════════ */
+.telinha {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#mapa1 {
+  color: rgba(0, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 10px;
+  border: 2.8px solid #00FFFF;
+  border-radius: 7px;
+  padding: 10px 20px;
+  letter-spacing:5px;
+  backdrop-filter: blur(1px);
+  text-align: center;
+  font-family: 'Share Tech Mono';
+}
+
+#bloq1 {
+  position: absolute;
+  color: #ffffff;
+  font-size: 5px;
+  bottom: 70px;
+  background: green;
+  padding: 10px 10px;
+  border-radius: 15px;
+}
+
+.seletor-mapa {
+  display: flex;
+  flex-direction: end;
+  gap: 10px;
+  margin-top: 10vh;
+}
+
+#anterior {
+  background:rgba(0, 255, 255, 1);
+  border: 1.5px solid #00ffff;
+  border-radius:5px;
+  transition: 0.5s;
+}
+
+#proximo {
+  background: rgba(0, 255, 255, 1);
+  border: 1.5px solid #00FFFF;
+  border-radius:5px;
+  transition: 0.5s;
+}
+button:active{
+  transform: scale(0.80);
+}
+#anterior img {
+  width: 20px;
+  transform: rotate(180deg);
+}
+
+#proximo img {
+  width: 20px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MENU HAMBURGUER — botão fixo no canto superior direito
+   ════════════════════════════════════════════════════════════════ */
+#btnMenu {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Cada uma das 3 linhas do ícone hambúrguer */
+.menu-linha {
+  width: 28px;
+  height: 3px;
+  background: #00ffff;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px #00ffff88;
+}
+
+/* Quando o botão tem a classe "aberto", as 3 linhas se transformam num X:
+   - linha 1 gira 45° e desce para o meio
+   - linha 2 desaparece (vira o "centro" do X que some)
+   - linha 3 gira -45° e sobe para o meio */
+#btnMenu.aberto .menu-linha:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+#btnMenu.aberto .menu-linha:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+#btnMenu.aberto .menu-linha:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   OVERLAY (fundo escuro atrás do painel do menu)
+   ════════════════════════════════════════════════════════════════ */
+#menuOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 998; /* fica abaixo do painel (1000), mas acima de tudo o resto do jogo */
+  opacity: 0;
+  pointer-events: none; /* enquanto fechado, não bloqueia cliques no jogo */
+  transition: opacity 0.3s ease;
+}
+
+#menuOverlay.ativo {
+  opacity: 1;
+  pointer-events: all; /* quando aberto, passa a capturar cliques (pra fechar o menu ao tocar fora) */
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PAINEL LATERAL DO MENU
+   ════════════════════════════════════════════════════════════════ */
+#menuPainel {
+  position: fixed;
+  top: 0;
+  right: -280px; /* começa escondido fora da tela, à direita */
+  width:auto;
+  height:auto;
+  background: linear-gradient(180deg, #0a0a1f, #050510);
+  border-left:15px;
+  z-index: 1000; /* fica ACIMA do overlay (998), assim os botões dentro dele recebem o clique primeiro */
+  transition: right 0.3s ease;
+  padding: 80px 24px 24px;
+  
+}
+
+/* Quando tem a classe "aberto", desliza para dentro da tela (right: 0) */
+#menuPainel.aberto {
+  right: 0;
+}
+
+/* Título de cada seção dentro do menu (ex: "🎵 SONS", "🎮 CONTROLE") */
+.menu-secao-titulo {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff88;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* Espaçamento extra entre seções diferentes do menu (Sons, Controle, etc) */
+.menu-secao {
+  margin-bottom: 28px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.menu-item-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #ffffff88;
+  letter-spacing: 2px;
+}
+
+/* Botão de toggle (ON/OFF) usado na música */
+.btn-toggle {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 2px solid #00ffff;
+  background: rgba(0,255,255,0.1);
+  color: #00ffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle.off {
+  border-color: #ffffff33;
+  background: transparent;
+  color: #ffffff33;
+}
+
+.menu-slider {
+  width: 100%;
+  accent-color: #00ffff;
+  cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SEÇÃO CONTROLE — cards de seleção do modo de movimento da nave
+   ════════════════════════════════════════════════════════════════ */
+
+/* Container que coloca os 2 cards (DIRETO / RELATIVO) lado a lado */
+.controle-opcoes {
+  display: flex;
+  gap: 8px;
+}
+
+/* Cada card de opção de controle */
+.controle-card {
+  flex: 1;
+  flex-direction: column;
+  background: rgba(0,255,255,0.05);
+  border: 2px solid #ffffff22;
+  border-radius: 6px;
+  padding: 10px 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card selecionado (modo atualmente em uso) fica destacado em ciano */
+.controle-card.ativo {
+  border-color: #00ffff;
+  background: rgba(0,255,255,0.12);
+  box-shadow: 0 0 12px #00ffff44;
+}
+
+.controle-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ffffff88;
+  text-align: center;
+}
+
+/* Quando o card está ativo, o texto também fica destacado em ciano */
+.controle-card.ativo .controle-label {
+  color: #00ffff;
+  text-shadow: 0 0 6px #00ffff88;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOTÕES DA TELA DE VITÓRIA
+   ════════════════════════════════════════════════════════════════ */
+.btn-victory-avancar {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: #000;
+  background: linear-gradient(135deg, #00ffff, #00aaff);
+  border: none;
+  border-radius: 5px;
+  padding: 14px 20px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-transform: uppercase;
+  width: 100%;
+}
+.btn-victory-avancar:active {
+  transform: scale(0.94);
+  box-shadow: 0 0 20px rgba(0,255,255,0.5);
+}
+
+.btn-victory-menu {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #ff00ff;
+  background: transparent;
+  border: 2px solid #ff00ff;
+  border-radius: 5px;
+  padding: 12px 20px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s, background 0.2s;
+  text-transform: uppercase;
+  width: 100%;
+}
+.btn-victory-menu:active {
+  transform: scale(0.94);
+  background: rgba(255,0,255,0.1);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOTÃO CONQUISTAS (tela inicial)
+   ════════════════════════════════════════════════════════════════ */
+#btn-conquistas {
+  position: absolute;
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  bottom: 8vh;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.08);
+  border: 2px solid #a855f7;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+  box-shadow: 0 0 12px #a855f733;
+  text-transform: uppercase;
+}
+
+#btn-conquistas:active {
+  transform: scale(0.92);
+  background: rgba(168, 85, 247, 0.2);
+  box-shadow: 0 0 28px #a855f766;
+}

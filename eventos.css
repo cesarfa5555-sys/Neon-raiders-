@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root {
+  --bg:    #000;
+  --neon:  #00ffff;
+  --ouro:  #ffd700;
+  --muted: #4a5a80;
+  --cor-evento: #00ffff; /* cor de destaque padrão quando não há evento em foco */
+}
+
+html { background: var(--bg); height: 100%; overflow-x: hidden; }
+
+body {
+  background:
+    linear-gradient(rgba(0, 10, 25, 0.35), rgba(0, 5, 15, 0.65)),
+    url("body-eventos.png") center top / cover no-repeat fixed;
+
+  min-height: 100%;
+  font-family: 'Orbitron', monospace;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#scanline {
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.hud-corner {
+  position: fixed; width: 20px; height: 20px; z-index: 101;
+  pointer-events: none; opacity: 0.45; border-color: var(--neon);
+}
+.hud-corner.tl { top: 12px; left: 12px; border-top: 2px solid; border-left: 2px solid; }
+.hud-corner.tr { top: 12px; right: 12px; border-top: 2px solid; border-right: 2px solid; }
+.hud-corner.bl { bottom: 12px; left: 12px; border-bottom: 2px solid; border-left: 2px solid; }
+.hud-corner.br { bottom: 12px; right: 12px; border-bottom: 2px solid; border-right: 2px solid; }
+
+/* ── HEADER ── */
+.eventos-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding:4px;
+  background: rgba(3,4,10,0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,255,255,0.3);
+  box-shadow: 0 2px 24px rgba(0,0,0,0.5);
+}
+.btn-voltar {
+  font-family: 'Orbitron', monospace;
+  font-size: 5px; font-weight: 700; letter-spacing: 2px;
+  color: var(--neon);
+  background: rgba(0,255,255,0.08);
+  border: 1.5px solid rgba(0,255,255,0.5);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.header-titulo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 0 12px var(--neon);
+}
+.header-spacer { width: 62px; } /* equilibra visualmente o botão voltar */
+
+/* ── CONTEÚDO ── */
+main {
+  padding: 78px 16px 40px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.subtitulo {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+/* ── GRID DE EVENTOS ── */
+.eventos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.evento-card {
+  position: relative;
+  border:none;
+  border-radius: 14px;
+  background: linear-gradient(
+  160deg,
+  rgba(5,10,25,0.72),
+  rgba(4,4,15,0.78)
+);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--card-cor, var(--cor-evento)) 22%, transparent),
+              inset 0 0 40px color-mix(in srgb, var(--card-cor, var(--cor-evento)) 8%, transparent);
+  padding: 18px 18px 16px;
+  overflow: hidden;
+  cursor: pointer;
+  animation: fadeSlideUp 0.5s ease both;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.evento-card:active { transform: scale(0.98); }
+
+.evento-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--card-cor, var(--cor-evento)), transparent);
+  opacity: 0.8;
+}
+
+@keyframes fadeSlideUp {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+
+
+.evento-top-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.evento-motor-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--card-cor, var(--cor-evento));
+  border: 1px solid var(--card-cor, var(--cor-evento));
+  border-radius: 4px;
+  padding: 3px 7px;
+  opacity: 0.85;
+  text-transform: uppercase;
+}
+.evento-countdown {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 4px; 
+  color: var(--ouro);
+  display: flex; align-items: center; 
+  gap: 5px;
+  margin-left:14px;
+}
+.evento-countdown .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ouro);
+  box-shadow: 0 0 8px var(--ouro);
+  animation: piscar 1.6s infinite;
+}
+@keyframes piscar { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+.evento-tema {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--card-cor, var(--cor-evento));
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.evento-titulo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 0 4px var(--card-cor, var(--cor-evento));
+  margin-bottom: 10px;
+  line-height: 1.15;
+}
+
+.evento-bottom-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 14px;
+}
+.evento-recorde {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 1px;
+}
+.evento-recorde b { color: #fff; }
+.evento-entrar {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700; font-size: 11px; letter-spacing: 2px;
+  color: #000;
+  background: var(--card-cor, var(--cor-evento));
+  border: none; border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── ESTADO VAZIO ── */
+.estado-vazio {
+  text-align: center;
+  padding: 70px 20px;
+  color: var(--muted);
+}
+.estado-vazio .icone { font-size: 40px; margin-bottom: 14px; opacity: 0.5; }
+.estado-vazio .titulo {
+  font-family: 'Orbitron', monospace; font-weight: 700;
+  font-size: 15px; letter-spacing: 2px; color: #fff; margin-bottom: 8px;
+}
+.estado-vazio .texto {
+  font-family: 'Share Tech Mono', monospace; font-size: 12px;
+  letter-spacing: 1px; max-width: 280px; margin: 0 auto; line-height: 1.6;
+}
+
+/* ── ESQUELETO DE CARREGAMENTO ── */
+.skeleton-card {
+  height: 128px; border-radius: 14px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+@keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
