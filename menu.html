@@ -48,12 +48,6 @@
     z-index: 1;
     width: 100%;
     height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 8px 20px 180px;
     overflow-y: auto;
     overflow-x: hidden;
     transition: transform 0.06s linear;
@@ -82,7 +76,7 @@
   .badge-sub {
     font-size: 6.5px;
     opacity: 0.6;
-    margin-top: 2px;
+    margin-top:2px;
     letter-spacing: 0.5px;
     font-family: 'Share Tech Mono', monospace;
     font-weight: 400;
@@ -120,10 +114,10 @@
   }
 
   .nr-topo-titulo {
-    position: relative;
+    position: absolute;
+    top: 100px;
+    left: 0; right: 0;
     width: 100%;
-    flex-shrink: 0;
-    margin-top: 44px;
   }
 
   #planetaCanvas {
@@ -149,7 +143,7 @@
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: 2px;
-    font-size: clamp(30px, 11vw, 46px);
+    font-size: clamp(25px, 6vw, 41px);
     animation: tituloFlicker 6.5s infinite, bootIn 0.9s ease-out both;
   }
   .titulo-jogo .linha1 {
@@ -352,9 +346,10 @@
   }
 
   .mapa-stack {
-    position: relative;
-    width: min(300px, 90%);
-    flex-shrink: 0;
+    position: absolute;
+    top:210px;
+    left:68px;
+    width: min(180px, 90%);
     perspective: 1400px;
     perspective-origin: 50% 30%;
     animation: bootInPlain 0.9s 0.15s ease-out both;
@@ -362,7 +357,7 @@
 
   .mapa-cards-area {
     position: relative;
-    height: 230px;
+    height: 300px;
     touch-action: pan-y;
   }
   .btn-seta.btn-seta--lateral {
@@ -373,35 +368,79 @@
   }
   .btn-seta--lateral.btn-seta:active { transform: translateY(-50%) scale(0.85); }
   .btn-seta--esq {
-    left: 25px; }
-  .btn-seta--dir { right: 25px; }
+    left: -42px; }
+  .btn-seta--dir { right: -42px; }
 
   .mapa-card {
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+
     width: 100%;
-    background: rgba(8,10,18,0.72);
-    border: 1.5px solid var(--card-cor, var(--cor-mapa, #00ffff));
-    border-radius: 16px;
-    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+
     padding: 13px 16px;
     box-sizing: border-box;
     overflow: hidden;
-    box-shadow: 0 0 22px color-mix(in srgb, var(--card-cor, var(--cor-mapa, #00ffff)) 40%, transparent), inset 0 0 18px color-mix(in srgb, var(--card-cor, var(--cor-mapa, #00ffff)) 12%, transparent);
+
+    border: none;
+
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    color: #fff;
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
     transform-style: preserve-3d;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     will-change: transform, opacity;
-    transition: transform 0.5s cubic-bezier(.61,.06,.36,1), opacity 0.45s ease;
-  }
-  .mapa-card::before {
-    content: '';
+
+    transition:
+        transform 0.5s cubic-bezier(.61,.06,.36,1),
+        opacity 0.45s ease;
+}
+
+
+/* Interior escuro */
+.mapa-card::before {
+    content: "";
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--card-cor, var(--cor-mapa, #00ffff)), transparent);
-    opacity: 0.7;
-  }
+    inset: 1px;
+
+    background: rgba(8,10,18,0.72);
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    z-index: 0;
+}
+
+
+/* Conteúdo do card */
+.mapa-card > * {
+    position: relative;
+    z-index: 1;
+}
   .mapa-card .mapa-numero { color: var(--card-cor, var(--cor-mapa, #00ffff)); }
   .mapa-card .mapa-tema-display { color: var(--card-cor, var(--cor-mapa, #00ffff)); }
 
@@ -462,12 +501,12 @@
     position: absolute;
     top: -1px; right: 14px;
     font-family: 'Orbitron', monospace;
-    font-size: 8px;
+    font-size: 2px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     color: #050505;
     background: linear-gradient(90deg, #ffd700, #fff3a0);
-    padding: 4px 9px 3px;
+    padding: 3px 5px 2px;
     border-radius: 0 0 8px 8px;
     box-shadow: 0 3px 12px rgba(255,215,0,0.55);
     animation: destaqueFlutuar 2.4s ease-in-out infinite;
@@ -482,7 +521,7 @@
     position: absolute;
     top: -1px; left: 14px;
     font-family: 'Orbitron', monospace;
-    font-size: 8px;
+    font-size: 2px;
     font-weight: 700;
     letter-spacing: 1px;
     color: #04140a;
@@ -510,13 +549,12 @@
 
   .mapa-progresso {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 8px;
+    font-size: 1px;
     letter-spacing: 1px;
     color: rgba(255,255,255,0.5);
     display: flex;
     align-items: center;
     gap: 5px;
-    margin-top: -3px;
   }
   .mapa-progresso .barra {
     flex: 1;
@@ -537,11 +575,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 9px;
+    margin-bottom: 5px;
   }
   .mapa-numero {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
+    font-size: 2px;
     letter-spacing: 3px;
     color: var(--cor-mapa, #00ffff);
     opacity: 0.65;
@@ -549,10 +587,9 @@
   }
   .mapa-status {
     font-family: 'Orbitron', monospace;
-    font-size: 7.5px;
+    font-size: 1px;
     font-weight: 700;
-    letter-spacing: 1px;
-    padding: 3px 8px;
+    padding: 3px 3px;
     border-radius: 25%;
     transition: all 0.3s;
   }
@@ -574,7 +611,7 @@
 
   .mapa-nome-display {
     font-family: 'Orbitron', monospace;
-    font-size: clamp(21px, 7.6vw, 34px);
+    font-size: clamp(7px, 7.6vw, 14px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -587,11 +624,11 @@
   }
   .mapa-tema-display {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
+    font-size: 7px;
     letter-spacing: 3px;
     color: var(--cor-mapa, #00ffff);
     opacity: 0.75;
-    margin-bottom: 8px;
+    margin-bottom: 2px;
     transition: color 0.15s;
   }
 
@@ -606,9 +643,9 @@
     z-index: 100;
   }
   .btn-seta {
-    width: 34px; height: 34px;
+    width: 42px; height: 42px;
     border-radius: 10px;
-    background: rgba(0,0,0,0.45);
+    background:#0B0E14;
     font-size: 18px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
@@ -630,18 +667,20 @@
     transform: scale(0.85);
   }
 
-  .btn-seta.btn-seta--lateral {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
-    border-radius: 8px !important;
-    background: rgba(0,0,0,0.55) !important;
-    border: 1px solid color-mix(in srgb, var(--cor-mapa, #00ffff) 55%, transparent) !important;
-    box-shadow: 0 0 10px color-mix(in srgb, var(--cor-mapa, #00ffff) 35%, transparent) !important;
-  }
+.btn-seta.btn-seta--lateral {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+
+  background: #161B26 !important;
+
+  border: 2px solid !important;
+  border-image: linear-gradient(90deg, #00ffff, #ff00ff) 1 !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cor-mapa, #00ffff) 35%, transparent) !important;
+}
   .btn-seta.btn-seta--lateral img {
-    width: 12px !important;
+    width: 35px !important;
     height: auto !important;
   }
 
@@ -653,7 +692,8 @@
   }
   .mapa-dot {
     position: relative;
-    width: 16px; height: 5px;
+    bottom:54vh;
+    width: 10px; height: 5px;
     border-radius: 3px;
     background: rgba(255,255,255,0.18);
     transition: all 0.3s;
@@ -675,71 +715,279 @@
     animation: destaqueFlutuar 2.4s ease-in-out infinite;
   }
 
-  .botoes-wrap {
+.botoes-wrap {
+  position: absolute;
+  top: 560px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: min(300px, 90%);
+}
+
+.badges-grid {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 150;
+
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+
+  padding: 10px 8px;
+  box-sizing: border-box;
+
+  background: #0B0E14;
+  border-top: 1px solid #00ffff;
+}
+
+.btn-badge {
+  position: relative;
+
+  width: 70px;
+  height: 50px;
+
+  font-family: 'Orbitron', monospace;
+  font-size: 1px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+  touch-action: manipulation;
+  text-align: center;
+
+  border-radius: 4px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-badge-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+
+.btn-badge:active {
+  transform: scale(0.95);
+}
+
+.btn-badge--tarefas,
+.btn-badge--vanguard,
+.btn-badge--hangar,
+.btn-badge--eventos {
+  color: #fff;
+  border: 0.7px solid transparent;
+  background:
+    linear-gradient(#131F24) padding-box,
+    linear-gradient(90deg, #00ffff, #ff00ff) border-box;
+}
+
+.btn-badge .badge-sub {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.btn-badge--eventos.tem-evento-ativo {
+  animation: badgePulseEventos 2s ease-in-out infinite;
+}
+
+.btn-badge--vanguard.msec-ativo,
+.btn-badge--vanguard {
+  animation: none;
+}
+.btn-badge--tarefas {
+    position: relative;
+    
+
+
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    width: min(300px, 90%);
-    flex-shrink: 0;
-  }
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
 
-  .badges-grid {
-    position: fixed;
-    left: 50%;
-    bottom:0;
-    transform: translateX(-50%);
-    z-index: 150;
-    width:100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 12px;
-    box-sizing: border-box;
-    background: rgba(4,6,12,1);
-    border-top: 2px solid #00ffff;
-    backdrop-filter: blur(3px);
-  }
-
-  .btn-badge {
-    position: relative;
-    font-family: 'Orbitron', monospace;
-    font-size: 1px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    touch-action: manipulation;
-    text-align: center;
-    border-radius: 8px 0px 8px 0px;
-    
-    box-sizing: border-box;
-    height: 36px;
-    display: flex; flex-direction: row; align-items: center; justify-content: center;
-    gap: 8px;
-    background: rgba(0,0,0,0.35);
-  }
-  .btn-badge-icon { font-size: 5px; line-height: 1; }
-  .btn-badge:active { transform: scale(0.95); }
-  .btn-badge--tarefas {
     color: #fff;
-    border: 0.7px solid #a855f7;
-    box-shadow: 0 0 14px rgba(168,85,247,0.25);
-  }
-  .btn-badge--vanguard {
-    color: #00ffcc;
-    border: 0.7px solid #00ffcc;
-    box-shadow: 0 0 14px rgba(0,255,204,0.3);
-  }
-  .btn-badge--hangar {
-    color: #ffd700;
-    border: 0.7px solid #ffd700;
-    box-shadow: 0 0 14px rgba(255,200,0,0.25);
-  }
-  .btn-badge--eventos {
-    color: #ff2d78;
-    border: 0.7px solid #ff2d78;
-    box-shadow: 0 0 14px rgba(255,45,120,0.25);
-  }
+    font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+    cursor: pointer;
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* Interior escuro do botão */
+.btn-badge--tarefas::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+
+    background: #101622;
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    z-index: 0;
+}
+
+/* Conteúdo fica por cima do fundo */
+.btn-badge--tarefas > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* Texto */
+.btn-badge--tarefas > span:last-child {
+    color: #fff;
+    
+    font-weight: 800;
+    
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Hover */
+.btn-badge--tarefas:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow:
+        0 0 25px rgba(0, 240, 255, 0.4),
+        0 0 20px rgba(176, 38, 255, 0.4);
+    filter: brightness(1.15);
+}
+
+/* Clique */
+.btn-badge--tarefas:active {
+    transform: translateY(1px) scale(0.98);
+}
+.btn-badge--vanguard,
+.btn-badge--hangar,
+.btn-badge--eventos {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    
+    border: none;
+
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    color: #fff;
+    font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+    cursor: pointer;
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* Interior */
+.btn-badge--vanguard::before,
+.btn-badge--hangar::before,
+.btn-badge--eventos::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+
+    background: #101622;
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    z-index: 0;
+}
+
+/* Conteúdo */
+.btn-badge--vanguard > *,
+.btn-badge--hangar > *,
+.btn-badge--eventos > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Texto */
+.btn-badge--vanguard > span:last-child,
+.btn-badge--hangar > span:last-child,
+.btn-badge--eventos > span:last-child {
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Hover */
+.btn-badge--vanguard:hover,
+.btn-badge--hangar:hover,
+.btn-badge--eventos:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow:
+        0 0 25px rgba(0, 240, 255, 0.4),
+        0 0 20px rgba(176, 38, 255, 0.4);
+    filter: brightness(1.15);
+}
+
+/* Clique */
+.btn-badge--vanguard:active,
+.btn-badge--hangar:active,
+.btn-badge--eventos:active {
+    transform: translateY(1px) scale(0.98);
+}
   .btn-badge .badge-sub {
     position: absolute;
     bottom: -14px;
@@ -753,38 +1001,34 @@
   .btn-badge--vanguard {
     animation: none;
   }
-  @keyframes badgePulseEventos {
-    0%, 100% { box-shadow: 0 0 10px rgba(255,45,120,0.25); }
-    50%      { box-shadow: 0 0 22px rgba(255,45,120,0.6); }
-  }
-  @keyframes badgePulse {
-    0%, 100% { box-shadow: 0 0 10px rgba(0,255,204,0.25); }
-    50%      { box-shadow: 0 0 22px rgba(0,255,204,0.55); }
-  }
+
 
   #btn-primary {
     order: 1;
-    width: 100%;
+    width: 60%;
     font-family: 'Orbitron', monospace;
-    font-size: 10px;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: 5px;
+    letter-spacing: 3px;
     color: #000;
     background: linear-gradient(90deg, #ff2d9c, #00ffff);
     border: none;
-    padding: 10px;
+    padding: 4px;
     cursor: pointer;
     touch-action: manipulation;
     transition: transform 0.1s, box-shadow 0.2s, background 0.15s, opacity 0.3s;
     box-shadow: 0 8px 28px rgba(255,45,156,0.35), 0 8px 28px rgba(0,255,255,0.25);
     position: relative;
+    bottom:18vh;
+    left:50%;
+    transform:translate(-50%);
     overflow: hidden;
     clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
   }
   #btn-primary::after {
     content: '';
     position: absolute;
-    top: 0; left: -40%;
+    top:0; left:-40%;
     width: 35%; height: 100%;
     background: linear-gradient(120deg, transparent, rgba(255,255,255,0.65), transparent);
     transform: translateX(0%) skewX(-20deg);
@@ -937,16 +1181,31 @@
      então defini aqui do zero, no mesmo estilo visual do resto da
      página, só pra não depender de CSS externo que eu não posso ver. */
   #btnMenu {
-    position: fixed;
-    top: 10px; right: 10px; left: auto;
-    z-index: 200;
-    width: 38px; height: 38px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 4px;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: transform 0.15s, border-color 0.15s;
-  }
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  left: auto;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width:38px;
+  height:38px;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  background: transparent;
+  border: 1px solid #00ffff;
+  color:#dedede;
+  clip-path: polygon(
+    16px 0,
+    100% 0,
+    100% calc(100% - 16px),
+    calc(100% - 16px) 100%,
+    0 100%,
+    0 16px
+  );
+}
   #btnMenu:active { transform: scale(0.92); }
   #btnMenu .menu-linha {
     width: 18px; height: 2px;
@@ -1132,8 +1391,8 @@
 
   <div class="mapa-stack" id="mapaStack">
     <div class="mapa-cards-area" id="mapaCardsArea">
-      <button class="btn-seta btn-seta--lateral btn-seta--esq" id="anterior"><img src="jogar (1).png"></button>
-      <button class="btn-seta btn-seta--lateral btn-seta--dir" id="proximo"><img src="jogar (1).png"></button>
+      <button class="btn-seta btn-seta--lateral btn-seta--esq" id="anterior"><img src="1789162635044.png"></button>
+      <button class="btn-seta btn-seta--lateral btn-seta--dir" id="proximo"><img src="/1789162635044.png"></button>
     </div>
     <div class="seletor-mapa" id="seletorMapa">
       <div class="mapa-dots" id="mapaDots"></div>
@@ -1146,30 +1405,45 @@
 
 </div>
 
-<div class="badges-grid" id="badgesCarousel">
-  <button onclick="abrirTarefas()" class="btn-badge btn-badge--tarefas">
-    <span class="btn-badge-icon">🏆</span><span>CONQUISTAS</span>
+<div class="badges-grid">
+
+  <button class="btn-badge btn-badge--tarefas">
+    <span class="btn-badge-icon">
+      <img src="icone1.png" alt="">
+    </span>
+    <span>MISS</span>
   </button>
 
-  <button onclick="window.location.href='eventos.html'" class="btn-badge btn-badge--eventos">
-    <span class="btn-badge-icon">📅</span><span>EVENTOS</span>
-    <div class="badge-sub" id="eventosAtivosLabel"></div>
+  <button class="btn-badge btn-badge--eventos">
+    <span class="btn-badge-icon">
+      <img src="icone2.png" alt="">
+    </span>
+    <span>EVEN</span>
   </button>
 
-  <button onclick="window.location.href='loja-vanguard.html'" class="btn-badge btn-badge--vanguard">
-    <span class="btn-badge-icon">▽</span><span>VANGUARD</span>
+  <button class="btn-badge btn-badge--vanguard">
+    <span class="btn-badge-icon">
+      <img src="icone3.png" alt="">
+    </span>
+    <span>VANG</span>
   </button>
 
-  <button onclick="window.location.href='loja.html'" class="btn-badge btn-badge--hangar">
-    <span class="btn-badge-icon">🎧</span><span>HANGAR</span>
-    <div class="badge-sub" id="naveAtualLabel"></div>
+  <button class="btn-badge btn-badge--hangar">
+    <span class="btn-badge-icon">
+      <img src="icone4.png" alt="">
+    </span>
+    <span>HANG</span>
   </button>
+
 </div>
 
-<button id="btnMenu">
-  <div class="menu-linha"></div>
-  <div class="menu-linha"></div>
-  <div class="menu-linha"></div>
+<button id="btnMenu" aria-label="Configurações">
+  <svg viewBox="0 0 24 24" width="25" height="25">
+    <path
+      d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.37-.31-.6-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98L14.5 2.42C14.47 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.5.42L9.12 5.07c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.48 0-.6.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.37.31.6.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.23.08.48 0 .6-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"
+      fill="currentColor"
+    />
+  </svg>
 </button>
 
 <div id="menuPainel">
@@ -1481,9 +1755,9 @@ function criarCards() {
       novoHtml +
       '<div class="card-glow"></div>' +
       '<div class="mapa-topo">' +
-        '<div class="mapa-numero">MAPA 0' + i + '</div>' +
+        '<div class="mapa-numero">MAPA ' + i + '</div>' +
         '<div class="mapa-status ' + (bloqueado ? "bloqueado" : "desbloqueado") + '">' +
-          (bloqueado ? "🔒 BLOQUEADO" : "✓ DESBLOQUEADO") +
+          (bloqueado ? " BLOQUEADO" : " DESBLOQUEADO") +
         '</div>' +
       '</div>' +
       '<div class="mapa-nome-display">' + mapa.nome + '</div>' +
@@ -1589,7 +1863,7 @@ function atualizarSeletorMapa() {
     if (!_primeiraRenderizacaoCards) {
       var frenteEl = _cardEls[_mapaMenu - 1];
       var numEl = frenteEl && frenteEl.querySelector('.mapa-numero');
-      if (numEl) embaralharNumero(numEl, 'MAPA 0' + _mapaMenu);
+      if (numEl) embaralharNumero(numEl, 'MAPA ' + _mapaMenu);
     }
   }
 
@@ -2276,7 +2550,7 @@ onValue(ref(db, 'sistema/manutencao'), (snap) => {
   }
 });
 </script>
-<div id="fpsCounter" style="position:fixed;bottom:0;left:0;z-index:99999;background:none;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;pointer-events:none;border:none;">fps --</div>
+<div id="fpsCounter" style="position:fixed;top:62px;left:15px;z-index:99999;background:none;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;pointer-events:none;border:none;">fps --</div>
 <script>
 (function() {
   var el = document.getElementById('fpsCounter');
@@ -2326,4 +2600,4 @@ onValue(ref(db, 'sistema/manutencao'), (snap) => {
 </script>
 <script type="module" src="atualizacao.js"></script>
 </body>
-</html>
+  </html>
