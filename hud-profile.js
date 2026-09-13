@@ -35,18 +35,18 @@
     style.textContent = `
       #nrHudProfileCard {
         position: fixed;
-        top: 10px;
-        left: 10px;
+        top:2px;
+        left:2px;
         z-index: 220;
         display: flex; align-items: center;
         cursor: pointer; user-select: none;
         max-width: 190px;
       }
-      #nrHudProfileCard:active .nr-hp-bg { border-color: #a855f7; box-shadow: 0 0 14px #a855f755; }
+      #nrHudProfileCard:active .nr-hp-bg { border-color: #a855f7; }
       #nrHudProfileCard .nr-hp-bg {
         position: absolute;
         top: 0; bottom: 0;
-        left: 20px; right: 0;
+        left:2px; right: 0;
         background: linear-gradient(to right, rgba(20,20,28,0.85), rgba(30,30,42,0.85));
         border: 1px solid rgba(168,85,247,0.35);
         border-radius: 25px;
@@ -56,15 +56,13 @@
       #nrHudProfileCard canvas {
         position: relative; z-index: 2;
         flex-shrink: 0;
-        width: 44px; height: 44px;
+        width: 50px; height: 50px;
         border-radius: 50%;
-        border: 2px solid #a855f7;
-        box-shadow: 0 0 10px rgba(168,85,247,0.55);
       }
-      #nrHudProfileCard .nr-hp-info { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 5px 12px 5px 10px; }
-      #nrHudProfileCard .nr-hp-nome { font-family:'Orbitron',monospace; font-size: 9px; font-weight:700; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px; }
-      #nrHudProfileCard .nr-hp-nivel { font-family:'Share Tech Mono',monospace; font-size: 8px; color:#22d3ee; letter-spacing:1px; }
-      #nrHudProfileCard .nr-hp-xpbar-track { width: 92px; height: 4px; background:#1e1e4a; border-radius:3px; overflow:hidden; }
+      #nrHudProfileCard .nr-hp-info { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 0px 12px 0px 10px; }
+      #nrHudProfileCard .nr-hp-nome { font-family:'Orbitron',monospace; font-size: 5px; font-weight:700; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px; }
+      #nrHudProfileCard .nr-hp-nivel { font-family:'Share Tech Mono',monospace; font-size: 1px; color:#22d3ee;  }
+      #nrHudProfileCard .nr-hp-xpbar-track { width: 80px; height: 4px; background:#1e1e4a; border-radius:3px; overflow:hidden; }
       #nrHudProfileCard .nr-hp-xpbar-fill { height:100%; background:linear-gradient(90deg,#6d28d9,#a855f7,#22d3ee); border-radius:3px; transition: width .5s ease; box-shadow:0 0 6px #a855f7aa; }
     `;
     document.head.appendChild(style);
