@@ -63,13 +63,13 @@
   .streak-badge {
     position:absolute;
     top:0;
-    right:16px;
+    right:0;
     font-family: 'Share Tech Mono', monospace;
     font-size: 1px;
     color: #ffd700;
     background:#404040;
     padding:4px;
-    border-radius: 0 0 6px 6px;
+    border-radius: 0 0 0px 6px;
   }
   .streak-badge.visivel { opacity: 0.85; }
 
@@ -115,7 +115,7 @@
 
   .nr-topo-titulo {
     position: absolute;
-    top: 100px;
+    top: 73px;
     left: 0; right: 0;
     width: 100%;
   }
@@ -143,7 +143,7 @@
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: 2px;
-    font-size: clamp(25px, 6vw, 41px);
+    font-size: clamp(20px, 6vw, 36px);
     animation: tituloFlicker 6.5s infinite, bootIn 0.9s ease-out both;
   }
   .titulo-jogo .linha1 {
@@ -347,9 +347,9 @@
 
   .mapa-stack {
     position: absolute;
-    top:210px;
-    left:68px;
-    width: min(180px, 90%);
+    top:180px;
+    left:75px;
+    width: min(170px, 90%);
     perspective: 1400px;
     perspective-origin: 50% 30%;
     animation: bootInPlain 0.9s 0.15s ease-out both;
@@ -357,9 +357,67 @@
 
   .mapa-cards-area {
     position: relative;
-    height: 300px;
+    height: 200px;
     touch-action: pan-y;
   }
+  
+/* Moldura externa */
+.mapa-cards-area::before {
+    content: "";
+    position: absolute;
+
+    top: -17px;
+    left: 6px;
+    right: 6px;
+    bottom: -17px;
+
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+/* Interior da moldura */
+.mapa-cards-area::after {
+    content: "";
+    position: absolute;
+
+    top: -16px;
+    left: 7px;
+    right: 7px;
+    bottom: -16px;
+
+    background: #07151d;
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    pointer-events: none;
+    z-index: 0;
+}
+  
   .btn-seta.btn-seta--lateral {
     position: absolute;
     top: 50%;
@@ -368,8 +426,8 @@
   }
   .btn-seta--lateral.btn-seta:active { transform: translateY(-50%) scale(0.85); }
   .btn-seta--esq {
-    left: -42px; }
-  .btn-seta--dir { right: -42px; }
+    left: -70px; }
+  .btn-seta--dir { right: -70px; }
 
   .mapa-card {
     position: absolute;
@@ -412,8 +470,50 @@
     transition:
         transform 0.5s cubic-bezier(.61,.06,.36,1),
         opacity 0.45s ease;
+        z-index:1;
 }
 
+.mapa-card-1 {
+    background-image: url("cidade-cyberpunk.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-2 {
+    background-image: url("cidade-glacial.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-3 {
+    background-image: url("cidade-infernal.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-4 {
+    background-image: url("cidade-sombrio.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-5 {
+    background-image: url("cidade-robotico.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-6 {
+    background-image: url("cidade-void.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
 
 /* Interior escuro */
 .mapa-card::before {
@@ -421,7 +521,7 @@
     position: absolute;
     inset: 1px;
 
-    background: rgba(8,10,18,0.72);
+    background: rgba(8,10,18,0.10);
 
     clip-path: polygon(
         15px 0,
@@ -692,7 +792,7 @@
   }
   .mapa-dot {
     position: relative;
-    bottom:54vh;
+    bottom:-24px;
     width: 10px; height: 5px;
     border-radius: 3px;
     background: rgba(255,255,255,0.18);
@@ -1182,8 +1282,8 @@
      página, só pra não depender de CSS externo que eu não posso ver. */
   #btnMenu {
   position: fixed;
-  top: 25px;
-  right: 25px;
+  top: 51px;
+  right:0;
   left: auto;
   z-index: 200;
   display: flex;
@@ -1230,7 +1330,7 @@
     position: fixed;
     top: 0; right: 0;
     z-index: 501;
-    width: min(240px, 78vw);
+    width: min(247px, 78vw);
     height: 100vh;
     background: #000;
     border-left: 1.5px solid rgba(0,255,255,0.35);
@@ -1293,7 +1393,7 @@
   border-radius: 12px;
   border: none;
 
-  background:#ff315c;
+  background:#252525;
   );
 
   color: white;
@@ -1323,7 +1423,7 @@
 }
 
 .controle-card.ativo {
-  background:#ff315c;
+  background:#252522;
 }
 
 .controle-label {
@@ -1407,28 +1507,28 @@
 
 <div class="badges-grid">
 
-  <button class="btn-badge btn-badge--tarefas">
-    <span class="btn-badge-icon">
-      <img src="icone1.png" alt="">
-    </span>
-    <span>MISS</span>
-  </button>
+  <button class="btn-badge btn-badge--tarefas" onclick="window.location.href='conquistas.html'">
+  <span class="btn-badge-icon">
+    <img src="icone1.png" alt="">
+  </span>
+  <span>MISS</span>
+</button>
 
-  <button class="btn-badge btn-badge--eventos">
+  <button class="btn-badge btn-badge--eventos" onclick="window.location.href='eventos.html'">
     <span class="btn-badge-icon">
       <img src="icone2.png" alt="">
     </span>
     <span>EVEN</span>
   </button>
 
-  <button class="btn-badge btn-badge--vanguard">
+  <button class="btn-badge btn-badge--vanguard" onclick="window.location.href='loja-vanguard.html'">
     <span class="btn-badge-icon">
       <img src="icone3.png" alt="">
     </span>
     <span>VANG</span>
   </button>
 
-  <button class="btn-badge btn-badge--hangar">
+  <button class="btn-badge btn-badge--hangar" onclick="window.location.href='loja.html'">
     <span class="btn-badge-icon">
       <img src="icone4.png" alt="">
     </span>
@@ -1468,11 +1568,11 @@
     <div class="menu-secao-titulo">🎮 CONTROLE</div>
     <div class="controle-opcoes">
       <button class="controle-card ativo" id="btnControleDireto" data-modo="direto">
-        <img src="1782871312120.png" style="width:40px;margin-bottom:4px;" onerror="this.style.display='none'">
+        <img src="1782871312120.png" style="width:55px;margin-bottom:4px;" onerror="this.style.display='none'">
         <div class="controle-label">DIRETO</div>
       </button>
       <button class="controle-card" id="btnControleRelativo" data-modo="relativo">
-        <img src="1782871840676.png" style="width:40px;margin-bottom:4px;" onerror="this.style.display='none'">
+        <img src="1782871840676.png" style="width:55px;margin-bottom:4px;" onerror="this.style.display='none'">
         <div class="controle-label">RELATIVO</div>
       </button>
     </div>
@@ -1739,7 +1839,7 @@ function criarCards() {
     var bloqueado = i > bloqueadoAte;
     var nivelAtual = Number(localStorage.getItem('nivelDesbloqueado_mapa' + i)) || 1;
     var card = document.createElement("div");
-    card.className = "mapa-card" + (bloqueado ? " travada" : "");
+    card.className = "mapa-card mapa-card-" + i + (bloqueado ? " travada" : "");
     card.style.setProperty("--card-cor", mapa.cor);
 
     var destaqueHtml = (i === MAPA_DESTAQUE) ? '<div class="mapa-destaque-badge">⭐ DESTAQUE</div>' : '';
@@ -1776,17 +1876,17 @@ function posicionarCards() {
     var transform, opacity, z;
 
     if (diff === 0) {
-      transform = "translateY(0px) scale(1) rotateY(0deg)";
+      transform = "translateY(0px) scale(1.1) rotateY(0deg)";
       opacity = 1;
       z = 60;
     } else if (diff === -1) {
       // mapa anterior: espia em cima, menor e apagado
-      transform = "translateY(-108px) scale(0.86) rotateY(0deg)";
-      opacity = 0.55;
+      transform = "translateY(-108px) scale(0.78) rotateY(0deg)";
+      opacity = 1;
       z = 40;
     } else if (diff === 1) {
       // próximo mapa: espia embaixo, menor e apagado
-      transform = "translateY(108px) scale(0.86) rotateY(0deg)";
+      transform = "translateY(108px) scale(0.78) rotateY(0deg)";
       opacity = 0.55;
       z = 40;
     } else if (diff < -1) {
@@ -2550,7 +2650,7 @@ onValue(ref(db, 'sistema/manutencao'), (snap) => {
   }
 });
 </script>
-<div id="fpsCounter" style="position:fixed;top:62px;left:15px;z-index:99999;background:none;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;pointer-events:none;border:none;">fps --</div>
+<div id="fpsCounter" style="position:fixed;top:27px;right:0;z-index:99999;background:#404040; border:none; padding:2px 4px; border-radius:6px 0px 0px 6px; color:#0f0;font-family:'Share Tech Mono',monospace;font-size:1px;pointer-events:none;">fps --</div>
 <script>
 (function() {
   var el = document.getElementById('fpsCounter');
