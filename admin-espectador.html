@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN — NEON RAIDERS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#050510; color:#e2e8f0; font-family:'Share Tech Mono',monospace;
+    min-height:100vh; padding:16px;
+  }
+  h1 {
+    font-family:'Orbitron',monospace; font-size:16px; letter-spacing:3px;
+    color:#00ffff; text-shadow:0 0 10px #00ffff88; margin-bottom:4px;
+  }
+  .sub { font-size:11px; color:#ffffff55; margin-bottom:16px; }
+
+  /* ── PORTÃO DE LOGIN/PERMISSÃO ── */
+  #portao {
+    position:fixed; inset:0; z-index:999; background:#050510;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px;
+  }
+  #portao input {
+    width:100%; max-width:280px; padding:10px 12px; border-radius:8px;
+    border:1px solid rgba(0,255,255,0.3); background:rgba(0,255,255,0.05); color:#fff;
+    font-family:'Share Tech Mono',monospace; font-size:13px;
+  }
+  #portao button {
+    padding:10px 24px; border-radius:8px; border:1px solid #00ffff;
+    background:rgba(0,255,255,0.1); color:#00ffff; font-family:'Orbitron',monospace;
+    font-size:11px; letter-spacing:2px; cursor:pointer;
+  }
+  #portaoErro { color:#ff4466; font-size:11px; min-height:14px; }
+  #portao.escondido { display:none; }
+
+  /* ── LISTA DE JOGADORES ── */
+  #listaJogadores { display:flex; flex-direction:column; gap:10px; max-width:900px; margin:0 auto; }
+  .card-jogador {
+    background:rgba(0,10,30,0.7); border:1px solid rgba(0,255,255,0.15); border-radius:10px;
+    padding:12px 14px; display:grid; grid-template-columns:1fr auto; gap:6px 16px; align-items:center;
+  }
+  .card-jogador .nome {
+    font-family:'Orbitron',monospace; font-size:13px; color:#00ffff; letter-spacing:1px;
+    grid-column:1/2;
+  }
+  .card-jogador .stats {
+    font-size:10px; color:#ffffff99; line-height:1.6; grid-column:1/2;
+  }
+  .card-jogador .stats b { color:#ffd700; }
+  .card-jogador .boss-linha { color:#ff6688; }
+  .card-jogador .acoes {
+    grid-column:2/3; grid-row:1/3; display:flex; flex-direction:column; gap:6px; align-items:stretch;
+  }
+  .card-jogador .acoes button {
+    font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; padding:7px 10px;
+    border-radius:6px; cursor:pointer; white-space:nowrap;
+  }
+  .btn-assistir { background:rgba(0,255,255,0.12); border:1px solid #00ffff; color:#00ffff; }
+  .btn-kick { background:rgba(255,170,0,0.12); border:1px solid #ffaa00; color:#ffaa00; }
+  .btn-ban { background:rgba(255,68,102,0.12); border:1px solid #ff4466; color:#ff4466; }
+
+  #semJogadores { text-align:center; color:#ffffff44; font-size:12px; margin-top:40px; }
+
+  /* ── MODAL DE ASSISTIR (radar) ── */
+  #modalAssistir {
+    position:fixed; inset:0; z-index:2000; background:rgba(2,2,10,0.96);
+    display:none; flex-direction:column; padding:16px;
+  }
+  #modalAssistir.aberto { display:flex; }
+  #modalAssistir .topo { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  #modalAssistir .topo .titulo { font-family:'Orbitron',monospace; font-size:13px; color:#00ffff; }
+  #modalAssistir .topo button {
+    font-family:'Orbitron',monospace; font-size:10px; padding:8px 16px; border-radius:6px;
+    border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:#ffffff88; cursor:pointer;
+  }
+  #radarCanvas {
+    background:#000; border:1px solid rgba(0,255,255,0.25); border-radius:8px;
+    width:100%; max-width:480px; height:360px; margin:0 auto; display:block;
+  }
+  #textoAssistir {
+    font-size:11px; color:#ffffff99; line-height:1.8; margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto; white-space:pre;
+  }
+</style>
+</head>
+<body>
+
+<div id="portao">
+  <div style="font-family:'Orbitron',monospace;font-size:15px;color:#00ffff;letter-spacing:2px;">🔒 ÁREA RESTRITA</div>
+  <input type="email" id="inEmail" placeholder="email">
+  <input type="password" id="inSenha" placeholder="senha">
+  <button id="btnEntrar">ENTRAR</button>
+  <div id="portaoErro"></div>
+</div>
+
+<h1>👁️ PAINEL DE ESPECTADOR / MODERAÇÃO</h1>
+<div class="sub" id="subStatus">conectando...</div>
+
+<div id="semJogadores" style="display:none;">Nenhum jogador online agora.</div>
+<div id="listaJogadores"></div>
+
+<!-- MODAL ASSISTIR -->
+<div id="modalAssistir">
+  <div class="topo">
+    <div class="titulo" id="tituloAssistir">Assistindo —</div>
+    <button id="btnFecharAssistir">FECHAR</button>
+  </div>
+  <canvas id="radarCanvas" width="480" height="360"></canvas>
+  <div id="textoAssistir"></div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+const firebaseConfig = { apiKey:"AIzaSyBetMNuPB8BDfvcanmgEUIWw3bLNgbi9aM",authDomain:"neon-raiders.firebaseapp.com",projectId:"neon-raiders",storageBucket:"neon-raiders.firebasestorage.app",messagingSenderId:"307351573602",appId:"1:307351573602:web:a1ce6488ed420d5b99ad3b",databaseURL:"https://neon-raiders-default-rtdb.firebaseio.com" };
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const elPortao = document.getElementById('portao');
+const elPortaoErro = document.getElementById('portaoErro');
+const elSubStatus = document.getElementById('subStatus');
+const elLista = document.getElementById('listaJogadores');
+const elSemJogadores = document.getElementById('semJogadores');
+
+// ── LOGIN ────────────────────────────────────────────────────────
+// Painel usa a MESMA conta Firebase do jogo (não é um login separado)
+// — a permissão de verdade é checada logo depois, olhando
+// informacoes.administrador daquele uid. Login errado ou conta sem
+// permissão de admin nunca chega a ver a lista de jogadores.
+document.getElementById('btnEntrar').onclick = async () => {
+  elPortaoErro.textContent = '';
+  const email = document.getElementById('inEmail').value.trim();
+  const senha = document.getElementById('inSenha').value;
+  if (!email || !senha) { elPortaoErro.textContent = 'Preenche email e senha.'; return; }
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+    // onAuthStateChanged abaixo cuida do resto (checar admin, abrir painel)
+  } catch (e) {
+    elPortaoErro.textContent = 'Login falhou: ' + (e.code || e.message || 'erro desconhecido');
+  }
+};
+
+let _souAdmin = false;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { elPortao.classList.remove('escondido'); return; }
+  try {
+    const snap = await get(ref(db, 'usuarios/' + user.uid + '/informacoes/administrador'));
+    _souAdmin = snap.exists() && snap.val() === true;
+  } catch (e) {
+    _souAdmin = false;
+  }
+  if (!_souAdmin) {
+    elPortaoErro.textContent = 'Essa conta não tem permissão de administrador.';
+    elPortao.classList.remove('escondido');
+    return;
+  }
+  elPortao.classList.add('escondido');
+  elSubStatus.textContent = 'conectado — ouvindo telemetria/ativos em tempo real';
+  ligarListaJogadores();
+});
+
+// ── LISTA DE JOGADORES ONLINE (tempo real) ────────────────────────
+let _ultimoDados = {};
+
+function ligarListaJogadores() {
+  onValue(ref(db, 'telemetria/ativos'), (snap) => {
+    const dados = snap.val() || {};
+    _ultimoDados = dados;
+    renderizarLista(dados);
+    // Se o jogador que estava sendo assistido saiu, fecha o modal sozinho
+    if (_uidAssistindo && !dados[_uidAssistindo]) fecharAssistir();
+    // Se o modal estiver aberto, atualiza o radar com o dado novo
+    if (_uidAssistindo && dados[_uidAssistindo]) atualizarRadar(dados[_uidAssistindo]);
+  });
+}
+
+function renderizarLista(dados) {
+  const uids = Object.keys(dados);
+  elSemJogadores.style.display = uids.length === 0 ? 'block' : 'none';
+  elLista.innerHTML = uids.map(uid => {
+    const d = dados[uid];
+    const bossLinha = d.bossNome
+      ? `<div class="boss-linha">Boss: ${escapar(d.bossNome)}  hp=${d.bossHp}/${d.bossHpMax}  danoBala=${d.bossDanoBala}</div>`
+      : '';
+    return `
+      <div class="card-jogador">
+        <div class="nome">${escapar(d.nome || 'Jogador')} <span style="color:#ffffff44;font-size:9px;">(${uid.slice(0,6)})</span></div>
+        <div class="stats">
+          Mapa${d.mapa ?? '-'} NV${d.nivel ?? '-'}  wave=${d.wave ?? '-'}  combo=${d.combo ?? '-'}  nave=${escapar(d.naveId || '-')}<br>
+          HP: <b>${d.hpAtual ?? '-'}/${d.hpMax ?? '-'}</b>  dano/tiro=${d.danoPorTiro ?? '-'}  dps=${d.dps ?? '-'}<br>
+          TTK~${d.ttk ?? '-'}s  HTD~${d.htd ?? '-'}  inimigos_na_tela=${d.qtdInimigos ?? '-'}<br>
+          fps=${d.fps ?? '-'}  ping=${d.ping != null ? d.ping + 'ms' : '-'}
+          ${bossLinha}
+        </div>
+        <div class="acoes">
+          <button class="btn-assistir" data-uid="${uid}">👁️ ASSISTIR</button>
+          <button class="btn-kick" data-uid="${uid}">⏏ KICK</button>
+          <button class="btn-ban" data-uid="${uid}">🚫 BAN</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  elLista.querySelectorAll('.btn-assistir').forEach(b => b.onclick = () => abrirAssistir(b.dataset.uid));
+  elLista.querySelectorAll('.btn-kick').forEach(b => b.onclick = () => aplicarModeracao(b.dataset.uid, 'kick'));
+  elLista.querySelectorAll('.btn-ban').forEach(b => b.onclick = () => aplicarModeracao(b.dataset.uid, 'ban'));
+}
+
+function escapar(txt) {
+  // nunca usa innerHTML com texto vindo de outro jogador sem escapar —
+  // nome do jogador é escolhido por ele mesmo, trata como não-confiável
+  const div = document.createElement('div');
+  div.textContent = String(txt);
+  return div.innerHTML;
+}
+
+// ── KICK / BAN ─────────────────────────────────────────────────────
+async function aplicarModeracao(uid, tipo) {
+  const motivo = prompt(tipo === 'ban' ? 'Motivo do banimento (opcional):' : 'Motivo do kick (opcional):') || '';
+  if (!confirm(`Confirma ${tipo.toUpperCase()} em ${_ultimoDados[uid]?.nome || uid}?`)) return;
+
+  // Comando em tempo real (o jogo escuta moderacao/{uid} e reage na
+  // hora, mesmo com a partida já em andamento)
+  await set(ref(db, 'moderacao/' + uid), { tipo, motivo, timestamp: Date.now() });
+
+  // Ban também é persistente — grava informacoes.banido pra a conta
+  // não conseguir logar de novo depois (kick é só daquela sessão)
+  if (tipo === 'ban') {
+    await set(ref(db, 'usuarios/' + uid + '/informacoes/banido'), true);
+  }
+}
+
+// ── ASSISTIR (radar simplificado) ─────────────────────────────────
+let _uidAssistindo = null;
+const canvas = document.getElementById('radarCanvas');
+const ctx = canvas.getContext('2d');
+
+function abrirAssistir(uid) {
+  _uidAssistindo = uid;
+  document.getElementById('tituloAssistir').textContent = 'Assistindo — ' + (_ultimoDados[uid]?.nome || uid);
+  document.getElementById('modalAssistir').classList.add('aberto');
+  if (_ultimoDados[uid]) atualizarRadar(_ultimoDados[uid]);
+}
+function fecharAssistir() {
+  _uidAssistindo = null;
+  document.getElementById('modalAssistir').classList.remove('aberto');
+}
+document.getElementById('btnFecharAssistir').onclick = fecharAssistir;
+
+// Desenha um "radar" de cima (não é a cena 3D real — é uma
+// reconstrução simplificada a partir só dos números que chegam:
+// posição X/altura do jogador e de cada inimigo, mais o HP de cada
+// um). Verde=jogador, vermelho=inimigo comum, roxo=boss.
+function atualizarRadar(d) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const escala = 30; // pixels por unidade de jogo
+  const cx = canvas.width / 2, cy = canvas.height * 0.75;
+
+  // grade de fundo
+  ctx.strokeStyle = 'rgba(0,255,255,0.08)';
+  for (let x = 0; x < canvas.width; x += 30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for (let y = 0; y < canvas.height; y += 30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+  // jogador
+  if (d.jogadorPos) {
+    ctx.fillStyle = '#00ffcc';
+    ctx.beginPath();
+    ctx.arc(cx + d.jogadorPos[0]*escala, cy - d.jogadorPos[1]*escala, 6, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // inimigos (radar = [x, altura, hp, ehBoss])
+  (d.radar || []).forEach(([x, y, hp, ehBoss]) => {
+    ctx.fillStyle = ehBoss ? '#cc00ff' : '#ff4466';
+    const raio = ehBoss ? 10 : 5;
+    ctx.beginPath();
+    ctx.arc(cx + x*escala, cy - y*escala, raio, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  document.getElementById('textoAssistir').textContent =
+    `Mapa${d.mapa} NV${d.nivel}  wave=${d.wave}  combo=${d.combo}\n` +
+    `HP: ${d.hpAtual}/${d.hpMax}   dano/tiro=${d.danoPorTiro}  dps=${d.dps}\n` +
+    `TTK~${d.ttk}s  HTD~${d.htd}   fps=${d.fps}  ping=${d.ping != null ? d.ping+'ms' : '-'}\n` +
+    (d.bossNome ? `Boss: ${d.bossNome}  hp=${d.bossHp}/${d.bossHpMax}  danoBala=${d.bossDanoBala}` : 'Boss: nenhum');
+}
+</script>
+</body>
+</html>

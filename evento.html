@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NEON RAIDERS — EVENTO</title>
+  <link rel="stylesheet" href="evento.css">
+</head>
+<body>
+
+<div id="scanline"></div>
+<div class="hud-corner tl"></div>
+<div class="hud-corner tr"></div>
+<div class="hud-corner bl"></div>
+<div class="hud-corner br"></div>
+
+<header class="evento-header">
+  <button class="btn-voltar" id="voltar">《 VOLTAR</button>
+  <div class="header-titulo" id="headerMotor">—</div>
+</header>
+
+<main id="conteudo">
+  <div class="hero-evento">
+    <div class="hero-tema" id="tema">CARREGANDO...</div>
+    <div class="hero-titulo" id="titulo">—</div>
+    <div class="hero-countdown"><span class="dot"></span><span id="countdown">—</span></div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="valor" id="statMelhorScore">—</div>
+        <div class="label">SEU RECORDE</div>
+      </div>
+      <div class="stat-box">
+        <div class="valor" id="statMelhorWave">—</div>
+        <div class="label">MELHOR ONDA</div>
+      </div>
+    </div>
+
+    <button class="btn-jogar" id="btnJogar">▶ JOGAR</button>
+  </div>
+
+  <div class="secao-titulo">▶ TOP 20 — PLACAR DO EVENTO</div>
+  <div class="placar-lista" id="placarLista">
+    <div class="estado-vazio-mini">Carregando placar...</div>
+  </div>
+</main>
+
+<script src="dados.js"></script>
+<script src="eventos-dados.js"></script>
+<script src="evento.js"></script>
+</body>
+</html>

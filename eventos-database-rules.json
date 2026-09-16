@@ -1,0 +1,59 @@
+{
+  "rules": {
+
+    "eventos": {
+      "$eventoId": {
+
+        "config": {
+          ".read": "auth != null",
+          ".write": false
+        },
+
+        "placar": {
+          ".read": "auth != null",
+
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.hasChildren(['nome','wave','kills','tempo','score','timestamp'])",
+
+            "nome": {
+              ".validate": "newData.isString() && newData.val().length <= 24"
+            },
+            "wave": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 500"
+            },
+            "kills": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50000 && newData.val() <= newData.parent().child('tempo').val() * 8 + 20"
+            },
+            "tempo": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 21600"
+            },
+            "score": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= (newData.parent().child('wave').val() * 1000 + newData.parent().child('kills').val() * 10 + newData.parent().child('tempo').val() * 2 + 500)"
+            },
+            "timestamp": {
+              ".validate": "newData.val() <= now"
+            },
+
+            "$outro": { ".validate": false }
+          }
+        }
+      }
+    },
+
+    "usuarios": {
+      "$uid": {
+
+        "eventos": {
+          "$eventoId": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.hasChildren(['nome','wave','kills','tempo','score','timestamp'])"
+          }
+        }
+
+      }
+    }
+
+  }
+}

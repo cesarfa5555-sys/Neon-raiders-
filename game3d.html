@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEON RAIDERS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Orbitron', monospace;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Aviso de teste — não faz parte do jogo final, é só orientação */
+        
+
+        /* Botão pra alternar modo de controle (direto/relativo) — igual ao 2D */
+        #modoControleBtn {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #ff00ff;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ff00ff;
+            border-radius: 8px;
+            padding: 8px 16px;
+            pointer-events: auto;
+        }
+
+        /* ════════════════════════════════════════════════════════════════
+           HUD REAL — portado direto do boss.css (mesmas classes/ids do
+           jogo 2D), só ajustando o que dependia de layout específico da
+           tela retrato do 2D. Isso significa que quando o resto do jogo
+           for portado, o CSS daqui pode simplesmente substituir/mesclar
+           com o boss.css original sem reescrever do zero.
+           ════════════════════════════════════════════════════════════════ */
+        #ui { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10; }
+
+        #hud {
+          position:absolute; top:0; left:0; right:0;
+          padding: 12px 16px;
+          display:flex; justify-content:space-between; align-items:flex-start;
+          background: linear-gradient(to bottom, rgba(0,0,20,0.85) 0%, transparent 100%);
+        }
+        .hud-left { display:flex; flex-direction:column; gap:8px; }
+        .hud-right { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+
+        .score-display {
+          font-family:'Orbitron', monospace;
+          font-size: clamp(12px, 2vw, 18px);
+          font-weight:900;
+          color:#00ffff;
+          text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff88;
+          letter-spacing:2px;
+        }
+        .wave-display {
+          font-family:'Share Tech Mono', monospace;
+          font-size: clamp(10px, 3vw, 14px);
+          color:#ff00ff;
+          text-shadow: 0 0 8px #ff00ff;
+          letter-spacing:3px;
+        }
+        .nivel-display {
+          font-family:'Orbitron', monospace;
+          font-size: clamp(9px, 1vw, 12px);
+          color:#ffd700;
+          letter-spacing:1px;
+          font-weight:900;
+        }
+        #xpBar {
+          width: clamp(90px, 22vw, 140px);
+          height: 5px;
+          background: rgba(255,215,0,0.15);
+          border: 1px solid #ffd70066;
+          border-radius: 3px;
+          overflow: hidden;
+          margin-top: 2px;
+        }
+        #xpFill {
+          height:100%; width:0%;
+          background: linear-gradient(90deg, #cc9900, #ffd700);
+          box-shadow: 0 0 6px #ffd700;
+          transition: width 0.2s ease;
+        }
+        #levelUpToast {
+          position:absolute; top:55%; left:50%; transform:translate(-50%,-50%);
+          font-family:'Orbitron', monospace;
+          font-size: clamp(16px, 5vw, 26px);
+          font-weight:900;
+          color:#ffd700;
+          text-shadow: 0 0 15px #ffd700, 0 0 40px #ffd70066;
+          letter-spacing:3px;
+          opacity:0;
+          transition: opacity 0.4s;
+          text-align:center;
+          pointer-events:none;
+        }
+        .hp-bar-wrap { display:flex; align-items:center; gap:8px; }
+        .hp-label {
+          font-family:'Share Tech Mono', monospace;
+          font-size: clamp(7px, 2.5vw, 9px);
+          color:#ff4466;
+          text-shadow: 0 0 6px #ff4466;
+          letter-spacing:2px;
+        }
+        #hpBar {
+          width: clamp(90px, 22vw, 140px);
+          height: 8px;
+          background: rgba(255,50,80,0.2);
+          border: 1px solid #ff446688;
+          border-radius: 30px 0 30px 0;
+          overflow:hidden;
+          box-shadow: 0 0 8px #ff446644;
+        }
+        #hpFill {
+          height:100%; width:100%;
+          background: linear-gradient(90deg, #ff0044, #ff4466);
+          box-shadow: 0 0 10px #ff4466;
+          transition: width 0.15s ease;
+          border-radius: 30px 0 30px 0;
+        }
+        .energy-bar-wrap { display:flex; align-items:center; gap:8px; }
+        .energy-label {
+          font-family:'Share Tech Mono', monospace;
+          font-size: clamp(9px, 2.5vw, 11px);
+          color:#00ffaa;
+          text-shadow: 0 0 6px #00ffaa;
+          letter-spacing:2px;
+        }
+        #energyBar {
+          width: clamp(60px, 18vw, 110px);
+          height:8px;
+          background: rgba(0,255,150,0.1);
+          border:1px solid #00ffaa55;
+          border-radius:4px 0 4px 0;
+          overflow:hidden;
+          box-shadow: 0 0 6px #00ffaa33;
+        }
+        #energyFill {
+          height:100%; width:0%;
+          background: linear-gradient(90deg, #00cc88, #00ffaa);
+          box-shadow: 0 0 8px #00ffaa;
+          border-radius:4px 0 4px 0;
+          transition: width 0.1s ease;
+        }
+
+        #powerupIndicator {
+          position:absolute; top:70%; left:50%; transform:translate(-50%, -50%);
+          font-family:'Orbitron', monospace;
+          font-size: clamp(14px, 4vw, 22px);
+          font-weight:700;
+          color:#ffff00;
+          text-shadow: 0 0 15px #ffff00, 0 0 40px #ffff0066;
+          letter-spacing:4px;
+          opacity:0;
+          transition: opacity 0.3s;
+          text-align:center;
+        }
+
+        #comboDisplay { position:absolute; top:50%; right:16px; transform:translateY(-50%); text-align:right; pointer-events:none; }
+        #comboText {
+          font-family:'Orbitron', monospace;
+          font-size: clamp(11px, 3.5vw, 18px);
+          font-weight:900;
+          color:#ffff00;
+          text-shadow: 0 0 12px #ffff00;
+          opacity:0;
+          transition: opacity 0.2s;
+        }
+        #comboMult {
+          font-family:'Share Tech Mono', monospace;
+          font-size: clamp(9px, 2.5vw, 12px);
+          color:#ffff0099;
+          letter-spacing:2px;
+        }
+
+        #controls {
+          position:absolute; bottom:0; left:0; right:0;
+          display:flex; justify-content:flex-end; align-items:flex-end;
+          padding: clamp(10px,4vw,32px);
+          pointer-events:none;
+        }
+        .right-btns { pointer-events:all; display:flex; flex-direction:column; gap:10px; align-items:center; }
+        .action-btn {
+          border:none; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+          font-family:'Orbitron', monospace;
+          font-weight:700;
+          -webkit-tap-highlight-color:transparent;
+          touch-action:manipulation;
+          transition: transform 0.08s, box-shadow 0.15s;
+          position:relative;
+          overflow:hidden;
+        }
+        .action-btn:active { transform:scale(0.9); }
+        #shootBtn {
+          background: radial-gradient(circle at 40% 40%, #ff446688, #880022);
+          border: 2px solid #ff4466;
+          border-radius: 0 0 15px 15px;
+          box-shadow: 0 0 20px #ff446688, 0 0 60px #ff446622;
+          color:#fff;
+          font-size: clamp(22px,7vw,32px);
+          width: clamp(50px, 16vw, 70px);
+          height: clamp(50px, 16vw, 70px);
+        }
+        #shootBtn.firing { box-shadow: 0 0 40px #ff4466, 0 0 80px #ff446644; }
+        #bombBtn {
+          background: radial-gradient(circle at 40% 40%, #ffaa0066, #553300);
+          border: 2px solid #ffaa00;
+          border-radius: 15px 15px 0 0;
+          box-shadow: 0 0 16px #ffaa0066;
+          color:#ffaa00;
+          font-size: clamp(9px, 2.8vw, 12px);
+          width: clamp(50px, 16vw, 70px);
+          height: clamp(50px, 16vw, 70px);
+        }
+        #bombBtn.empty { opacity:0.4; }
+        #bombCount {
+          position:absolute; top:2px; right:2px;
+          background:#ffaa00; color:#000;
+          font-family:'Orbitron', monospace; font-size:8px; font-weight:700;
+          width:18px; height:18px; border-radius:50%;
+          display:flex; align-items:center; justify-content:center;
+        }
+
+        #scanline {
+          position:fixed; top:0; left:0; right:0; bottom:0;
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+          pointer-events:none;
+          z-index:100;
+        }
+
+        /* ── TELA DE LOADING — mesmo estilo visual do index.html real ── */
+        #telaLoading {
+          position:fixed; inset:0; z-index:200;
+          background: radial-gradient(ellipse at center, #10142f 0%, #05061a 100%);
+          display:flex; flex-direction:column; align-items:center; justify-content:center;
+          transition: opacity 0.6s ease;
+        }
+        #telaLoading.saindo { opacity:0; pointer-events:none; }
+        #telaLoading .titulo-loading {
+          font-family:'Orbitron', monospace; font-weight:900;
+          font-size: clamp(22px, 7vw, 34px);
+          letter-spacing:4px;
+          color:#00ccff;
+          text-shadow: 0 0 20px #00ccff, 0 0 50px #8329ff66;
+          margin-bottom: 40px;
+        }
+        #barraLoadingWrap {
+          width: min(80vw, 340px); height: 10px;
+          background: rgba(16,20,48,0.8);
+          border: 1.5px solid rgba(0,204,255,0.2);
+          border-radius: 10px;
+          overflow: hidden;
+        }
+        #barraLoadingFill {
+          height:100%; width:0%;
+          background: linear-gradient(90deg, #8329ff, #00ccff, #3ceeff);
+          box-shadow: 0 0 8px #00ccff;
+          transition: width 0.3s ease;
+        }
+        #percentualLoading {
+          font-family:Arial, sans-serif; font-weight:bold; color:#fff;
+          font-size:15px; margin-bottom:8px;
+        }
+        #textoLoading {
+          font-family:Arial, sans-serif; font-weight:bold; letter-spacing:2px;
+          color:rgba(255,255,255,0.8); font-size:13px; margin-top:10px;
+        }
+        #dicaLoading {
+          font-family:Arial, sans-serif; font-style:italic; color:#8999bc;
+          font-size:14px; margin-top:34px; text-align:center; max-width:80vw;
+          opacity:0; transition: opacity 0.4s ease;
+        }
+        #dicaLoading.visivel { opacity:1; }
+
+        /* ── TELAS DE GAME OVER / VITÓRIA — portadas do boss.css real ── */
+        .screen {
+          position:absolute; top:0; left:0; right:0; bottom:0;
+          display:flex; flex-direction:column;
+          align-items:center; justify-content:center;
+          background: radial-gradient(ellipse at center, rgba(0,10,40,0.97) 0%, rgba(0,0,0,0.99) 100%);
+          pointer-events:all;
+          z-index:30;
+        }
+        .screen.hidden { display:none; }
+        .final-score-label {
+          font-family:'Share Tech Mono', monospace;
+          font-size: clamp(11px, 3vw, 15px);
+          color:#ff00ff88;
+          letter-spacing:4px;
+          margin:16px 0 6px;
+        }
+        .final-score-value {
+          font-family:'Orbitron', monospace;
+          font-size: clamp(28px, 9vw, 56px);
+          font-weight:900;
+          color:#00ffff;
+          text-shadow: 0 0 20px #00ffff, 0 0 60px #00ffff55;
+        }
+        .final-wave {
+          font-family:'Share Tech Mono', monospace;
+          font-size: clamp(11px, 3vw, 14px);
+          color:#ff00ffaa;
+          letter-spacing:3px;
+        }
+        .btn-primary-tela {
+          font-family:'Orbitron', monospace;
+          font-weight:700;
+          font-size: 15px;
+          letter-spacing:4px;
+          color:#000;
+          background: linear-gradient(135deg, #04FFE6, #00aaff);
+          border:none;
+          padding: 12px 20px;
+          border-radius:4px;
+          cursor:pointer;
+          box-shadow: 0 0 20px #00ffff88, 0 0 60px #00ffff22;
+          transition: transform 0.1s, box-shadow 0.2s;
+          touch-action:manipulation;
+          margin-top: 14px;
+          width:85%; max-width:320px;
+        }
+        .btn-primary-tela:active { transform:scale(0.95); box-shadow: 0 0 40px #00ffff; }
+        .btn-nav-secundario {
+          flex:1;
+          font-family:'Orbitron', monospace;
+          font-size: 10px;
+          font-weight:700;
+          letter-spacing:2px;
+          padding: 10px 4px;
+          border-radius:10px;
+          cursor:pointer;
+          touch-action:manipulation;
+          background: rgba(0,0,0,0.3);
+        }
+        .titulo-fim-jogo {
+          font-family:'Orbitron', monospace;
+          font-size: clamp(38px, 13vw, 64px);
+          font-weight:900;
+          letter-spacing:3px;
+          line-height:1;
+          text-align:center;
+        }
+
+        /* ── RANKING TOP 10 — mesmo estilo do game.html real ── */
+        #rankingSection { width:100%; max-width:340px; margin:10px auto 0; }
+        .ranking-titulo { font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:4px; color:#ff00ff; text-align:center; margin-bottom:6px; text-shadow:0 0 8px #ff00ff88; }
+        .rank-entry { display:grid; grid-template-columns:28px 1fr 70px 55px; align-items:center; gap:4px; padding:5px 8px; margin-bottom:3px; background:rgba(0,255,255,0.04); border:1px solid rgba(0,255,255,0.1); border-radius:4px; font-family:'Share Tech Mono',monospace; font-size:11px; }
+        .rank-entry.top1 { border-color:#ffd700; }
+        .rank-entry.top2 { border-color:#c0c0c0; }
+        .rank-entry.top3 { border-color:#cd7f32; }
+        .rank-pos { color:#ffffff88; text-align:center; }
+        .rank-name { color:#e0f0ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rank-pts { color:#00ffff; text-align:right; font-size:10px; }
+        .rank-lv { color:#ffffff55; text-align:right; font-size:10px; }
+        .rank-msg { font-family:'Share Tech Mono',monospace; font-size:11px; color:#ff00ff; text-align:center; min-height:16px; margin-bottom:4px; letter-spacing:1px; }
+    </style>
+</head>
+<body>
+
+    <div id="telaLoading">
+        <div class="titulo-loading">NEON RAIDERS 3D</div>
+        <div id="percentualLoading">0%</div>
+        <div id="barraLoadingWrap"><div id="barraLoadingFill"></div></div>
+        <div id="textoLoading">CARREGANDO SISTEMAS</div>
+        <div id="dicaLoading"></div>
+    </div>
+
+    <div id="container">
+        <div id="statusFirebase" style="position:absolute;top:38px;left:50%;transform:translateX(-50%);z-index:20;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:#888;background:rgba(0,0,0,0.4);padding:3px 10px;border-radius:6px;pointer-events:none;">🔥 conectando...</div>
+        <button id="modoControleBtn">MODO: DIRETO</button>
+
+        <!-- Estrutura idêntica ao #ui do game.html real, só sem as telas -->
+        <!-- de início/game over/vitória (essas entram numa camada futura -->
+        <!-- de integração completa, não fazem parte do HUD em si). -->
+        <div id="ui">
+            <div id="hud">
+                <div class="hud-left">
+                    <div class="score-display" id="scoreDisplay">000000</div>
+                    <div class="wave-display" id="waveDisplay">ONDA 1</div>
+                    <div class="nivel-display" id="nivelDisplay">NÍVEL 1</div>
+                    <div id="xpBar"><div id="xpFill"></div></div>
+                    <div class="hp-bar-wrap">
+                        <span class="hp-label">HP</span>
+                        <div id="hpBar"><div id="hpFill"></div></div>
+                    </div>
+                    <div class="hp-bar-wrap" id="escudoBarWrap" style="display:none;">
+                        <span class="hp-label" style="color:#00ffcc;text-shadow:0 0 6px #00ffcc;">ESC</span>
+                        <div id="escudoBar" style="width:clamp(90px,22vw,140px);height:10px;background:rgba(0,255,204,0.15);border:1px solid #00ffcc88;border-radius:30px 0 30px 0;overflow:hidden;"><div id="escudoFill" style="height:100%;width:100%;background:linear-gradient(90deg,#00ccaa,#00ffcc);box-shadow:0 0 10px #00ffcc;transition:width 0.15s ease;"></div></div>
+                    </div>
+                </div>
+                <div class="hud-right">
+                    <div id="moedas" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:#ffd700;text-shadow:0 0 8px #ffd700aa;letter-spacing:2px;margin-bottom:6px;">◈ 0</div>
+                    <div class="energy-bar-wrap">
+                        <div id="energyBar"><div id="energyFill"></div></div>
+                        <span class="energy-label">PWR</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="powerupIndicator"></div>
+            <div id="levelUpToast"></div>
+            <div id="comboDisplay">
+                <div id="comboText"></div>
+                <div id="comboMult"></div>
+            </div>
+
+            <div id="controls">
+                <div class="right-btns">
+                    <button id="bombBtn" class="action-btn">💣<div id="bombCount">0</div></button>
+                    <button id="shootBtn" class="action-btn">⚡</button>
+                </div>
+            </div>
+        </div>
+        <div id="scanline"></div>
+
+        <!-- ── GAME OVER — mesmo layout/botões do game.html real ── -->
+        <div id="gameOverScreen" class="screen hidden">
+            <div class="titulo-fim-jogo" style="color:#ff0044;text-shadow:0 0 30px #ff0044,0 0 80px #ff004466;">GAME<br>OVER</div>
+            <div style="width:80%;max-width:300px;height:1px;background:linear-gradient(90deg,transparent,#ff0044,transparent);margin:10px auto;"></div>
+            <p class="final-score-label">PONTUAÇÃO FINAL</p>
+            <div class="final-score-value" id="finalScore">000000</div>
+            <div class="final-wave" id="finalWave">ONDA 1 ALCANÇADA</div>
+            <div id="rankingSection">
+                <p class="ranking-titulo">🏆 TOP 10 GLOBAL</p>
+                <div class="rank-msg" id="rankMsg"></div>
+                <div id="rankingList" class="ranking-list-dinamica"><div style="text-align:center;color:#ffffff55;font-family:'Share Tech Mono',monospace;font-size:11px;">carregando...</div></div>
+            </div>
+            <button class="btn-primary-tela" onclick="reiniciarPartida()">↺ TENTAR NOVAMENTE</button>
+            <div style="display:flex;gap:10px;margin-top:10px;width:85%;max-width:320px;">
+                <button class="btn-nav-secundario" style="color:#00ffff;border:1.5px solid #00ffff;" onclick="location.href='menu.html'">⌂ MENU</button>
+                <button class="btn-nav-secundario" style="color:#ff00ff;border:1.5px solid #ff00ff;" onclick="location.href='modos.html?mapa=' + (new URLSearchParams(location.search).get('mapa') || 1)">⊞ MODOS</button>
+            </div>
+        </div>
+
+        <!-- ── VITÓRIA — condição de teste: derrotar 2 bosses (o jogo -->
+        <!-- real vence ao terminar a última onda de uma fase; aqui não -->
+        <!-- existe estrutura de fase ainda, então isso é um placeholder). -->
+        <!-- Conteúdo preenchido em JS por venceuJogo() (boss3d.js), igual -->
+        <!-- ao showVictoryScreen() real — inclui o botão de avançar pro -->
+        <!-- próximo nível/mapa via modos.html -->
+        <div id="victoryScreen" class="screen hidden"></div>
+
+        <!-- ── MERCADO NEGRO — aparece 1x por partida (onda 2, igual ao 2D
+        real). Diferente do Game Over/Vitória, o jogo continua rodando
+        atrás (é um overlay rápido sob pressão de tempo, não uma pausa) -->
+        <div id="mercadoNegroOverlay" style="position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(2,2,10,0.82);backdrop-filter:blur(4px);">
+            <div style="width:min(92vw,340px);background:#05050f;border:2px solid #ff00ff;border-radius:16px;box-shadow:0 0 40px rgba(255,0,255,0.35);padding:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:900;letter-spacing:2px;color:#ff00ff;text-shadow:0 0 10px #ff00ff;">🏴‍☠️ MERCADO NEGRO</div>
+                    <div id="mercadoTimer" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:#00ffff;">17s</div>
+                </div>
+                <div id="mercadoItens" style="display:flex;flex-direction:column;gap:8px;"></div>
+                <button onclick="fecharMercadoNegro()" style="width:100%;margin-top:10px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:#ffffff88;background:rgba(255,255,255,0.05);border:1px solid #ffffff33;border-radius:8px;padding:8px;cursor:pointer;">DISPENSAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js CDN (r128 — mesma versão usada na referência do Gemini) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="inimigos3d.js"></script>
+    <script src="telemetria.js"></script>
+    <script src="boss3d.js"></script>
+</body>
+</html>

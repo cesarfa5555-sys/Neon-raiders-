@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Neon Raiders — Login</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  html, body {
+    margin: 0; padding: 0;
+    background: #050510;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    overscroll-behavior: none;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+  
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+  /* ── Wrapper principal — tela em pé normal ── */
+  #app-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #bgCanvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ══════════════════ SPLASH ══════════════════ */
+  #splashScreen {
+    position: absolute; inset: 0;
+    z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 22px;
+    background: #050510;
+    transition: opacity 0.5s ease;
+  }
+  #splashScreen.saindo { opacity: 0; pointer-events: none; }
+  .splash-logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(24px, 6vmin, 46px);
+    letter-spacing: 4px;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .splash-logo .linha1 { display:block; color:#fff; text-shadow:0 0 6px #fff, 0 0 16px rgba(255,255,255,0.6); }
+  .splash-logo .linha2 { display:block; color:#00ffff; text-shadow:0 0 10px #00ffff, 0 0 26px #00ffff; }
+  .splash-spinner {
+    width: 34px; height: 34px;
+    border: 3px solid rgba(0,255,255,0.15);
+    border-top-color: #00ffff;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  .splash-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #ffffff55;
+  }
+
+  /* ══════════════════ TELA DE LOGIN ══════════════════ */
+  #loginScreen {
+    position: absolute; inset: 0;
+    z-index: 1;
+    width: 100%; height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px 20px;
+    overflow-y: auto;
+  }
+  #loginScreen.visivel { display: flex; }
+
+  .login-logo {
+    flex-shrink: 0;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(20px, 7vw, 32px);
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .login-logo .linha1 { display:block; color:#fff; }
+  .login-logo .linha2 { display:block; color:#00ffff; }
+
+  .login-card {
+    flex-shrink: 0;
+    width: min(380px, 92%);
+    max-height: 75vh;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.55);
+    border: 2px solid #00ffff55;
+    border-radius: 20px;
+    padding: 15px 22px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 40px rgba(0,255,255,0.12), 0 20px 50px -20px rgba(0,0,0,0.8);
+    position: relative;
+  }
+  .login-card::before {
+    content: '';
+    position: absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    opacity: 0.7;
+  }
+
+  .login-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .login-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 6px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ffffff66;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .login-tab.ativa {
+    color: #000;
+    background: linear-gradient(135deg, #00ffff, #00aaff);
+    box-shadow: 0 0 14px rgba(0,255,255,0.4);
+  }
+
+  .campo-grupo { margin-bottom: 14px; }
+  .campo-label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #00ffff99;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .campo-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid #ffffff22;
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .campo-input::placeholder { color: #ffffff33; }
+  .campo-input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 12px rgba(0,255,255,0.25);
+  }
+  .campo-input.erro {
+    border-color: #ff4466;
+    box-shadow: 0 0 12px rgba(255,68,102,0.25);
+  }
+
+  .campo-oculto { display: none; }
+
+  #msgErro {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: #ff6688;
+    background: rgba(255,50,80,0.1);
+    border: 1px solid rgba(255,68,102,0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    display: none;
+    animation: erroEntra 0.35s ease;
+  }
+  #msgErro.visivel { display: block; }
+  @keyframes erroEntra {
+    0% { opacity:0; transform: translateY(-6px); }
+    30% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+    100% { opacity:1; transform: translateY(0) translateX(0); }
+  }
+
+  #msgSucesso {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: #4ade80;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  #msgSucesso.visivel { display: block; }
+
+  .btn-entrar {
+    width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #000;
+    background: linear-gradient(135deg, #00ffff, #00aaff);
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: transform 0.1s, opacity 0.2s;
+    position: relative;
+  }
+  .btn-entrar:active { transform: scale(0.97); }
+  .btn-entrar:disabled { opacity: 0.5; pointer-events: none; }
+  .btn-entrar .spinner-btn {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.25);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: girar 0.7s linear infinite;
+    position: absolute;
+    left: 50%; top: 50%;
+    margin: -8px 0 0 -8px;
+  }
+  .btn-entrar.carregando .spinner-btn { display: block; }
+  .btn-entrar.carregando .btn-texto { opacity: 0; }
+
+  .divisor {
+    display: flex; align-items: center; gap: 10px;
+    margin: 18px 0 14px;
+  }
+  .divisor::before, .divisor::after {
+    content: ''; flex: 1; height: 1px; background: #ffffff1a;
+  }
+  .divisor span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; color: #ffffff44;
+  }
+
+  .btn-google {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid #ffffff33;
+    padding: 13px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-google:active { transform: scale(0.97); background: rgba(255,255,255,0.1); }
+
+  .link-esqueci {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #00ffff88;
+    cursor: pointer;
+  }
+  .link-esqueci:active { color: #00ffff; }
+
+  /* ── Painel de recuperar senha ── */
+  #painelReset {
+    position: absolute; inset: 0;
+    background: rgba(5,5,16,0.97);
+    border-radius: 20px;
+    display: none;
+    flex-direction: column;
+    padding: 26px 22px;
+  }
+  #painelReset.visivel { display: flex; }
+  .reset-titulo {
+    font-family: 'Orbitron', monospace;
+    font-size: 15px; font-weight: 700; letter-spacing: 2px;
+    color: #00ffff; margin-bottom: 6px;
+  }
+  .reset-desc {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: #ffffff77; letter-spacing: 0.5px;
+    margin-bottom: 18px; line-height: 1.5;
+  }
+  .link-voltar {
+    display: block; text-align: center; margin-top: 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 1px; color: #ffffff66; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- Tudo encapsulado no wrapper para aplicar a rotação com segurança -->
+<div id="app-wrapper">
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- ═══════════ SPLASH ═══════════ -->
+  <div id="splashScreen">
+    <div class="splash-logo"><span class="linha1">NEON</span><span class="linha2">RAIDERS</span></div>
+    <div class="splash-spinner"></div>
+    <div class="splash-status" id="splashStatus">VERIFICANDO SESSÃO...</div>
+  </div>
+
+  <!-- ═══════════ LOGIN / CADASTRO ═══════════ -->
+  <div id="loginScreen">
+    <div class="login-logo"><span class="linha1">Welcome to NEON</span><span class="linha2">RAIDERS</span></div>
+
+    <div class="login-card">
+      <div class="login-tabs">
+        <div class="login-tab ativa" id="tabEntrar">ENTRAR</div>
+        <div class="login-tab" id="tabCriar">CRIAR CONTA</div>
+      </div>
+
+      <div id="msgErro"></div>
+      <div id="msgSucesso"></div>
+
+      <div class="campo-grupo campo-oculto" id="grupoNome">
+        <label class="campo-label">Nome</label>
+        <input type="text" class="campo-input" id="inputNome" placeholder="Como quer ser chamado" autocomplete="off">
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">E-mail</label>
+        <input type="email" class="campo-input" id="inputEmail" placeholder="seu@email.com" autocomplete="off">
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Senha</label>
+        <input type="password" class="campo-input" id="inputSenha" placeholder="Mínimo 8 caracteres" autocomplete="off">
+      </div>
+
+      <div class="campo-grupo campo-oculto" id="grupoConfirmar">
+        <label class="campo-label">Confirmar senha</label>
+        <input type="password" class="campo-input" id="inputConfirmar" placeholder="Repita a senha" autocomplete="off">
+      </div>
+
+      <button class="btn-entrar" id="btnPrincipal">
+        <span class="btn-texto">ENTRAR</span>
+        <span class="spinner-btn"></span>
+      </button>
+
+      <div class="link-esqueci" id="linkEsqueci">Esqueci minha senha</div>
+
+      <div class="divisor"><span>OU</span></div>
+
+      <button class="btn-google" id="btnGoogle">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.81.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.97H.95A9 9 0 000 9c0 1.45.35 2.83.95 4.03l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+        ENTRAR COM GOOGLE
+      </button>
+
+      <!-- Painel de recuperar senha -->
+      <div id="painelReset">
+        <div class="reset-titulo">RECUPERAR SENHA</div>
+        <div class="reset-desc">Informe o e-mail da sua conta. Vamos enviar um link pra você redefinir a senha.</div>
+        <div id="msgResetErro" style="display:none;" class="campo-grupo"></div>
+        <div class="campo-grupo">
+          <label class="campo-label">E-mail</label>
+          <input type="email" class="campo-input" id="inputResetEmail" placeholder="seu@email.com" autocomplete="off">
+        </div>
+        <button class="btn-entrar" id="btnEnviarReset">
+          <span class="btn-texto">ENVIAR LINK</span>
+          <span class="spinner-btn"></span>
+        </button>
+        <div class="link-voltar" id="linkVoltarReset">← Voltar pro login</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+  getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
+  GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+const firebaseConfig = { apiKey:"AIzaSyBetMNuPB8BDfvcanmgEUIWw3bLNgbi9aM",authDomain:"neon-raiders.firebaseapp.com",projectId:"neon-raiders",storageBucket:"neon-raiders.firebasestorage.app",messagingSenderId:"307351573602",appId:"1:307351573602:web:a1ce6488ed420d5b99ad3b",databaseURL:"https://neon-raiders-default-rtdb.firebaseio.com" };
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const googleProvider = new GoogleAuthProvider();
+
+function perfilPadrao(nome, email) {
+  const agora = Date.now();
+  return {
+    informacoes: {
+      nome: nome || "Jogador",
+      email: email || "",
+      fotoPerfil: "",
+      dataCriacao: agora,
+      ultimoLogin: agora,
+      versaoJogo: "1.0.0",
+      ultimaSincronizacao: agora,
+      banido: false,
+      administrador: false,
+    },
+    progresso: {
+      xp: 0,
+      nivel: 1,
+      moedas: 0,
+      joiasGemas: 0,
+      recorde: 0,
+      mapaDesbloqueado: 1,
+      naveAtual: "padrao",
+      navesCompradas: ["padrao"],
+      niveisDesbloqueados: { "1": 1, "2": 1, "3": 1, "4": 1, "5": 1, "6": 1 },
+    },
+    naves: { joiasMochila: [], joiasEquipadas: {} },
+    vanguard: { partesEquipadas: {}, skinsCompradas: [] },
+    conquistas: {},
+    estatisticas: { tempoJogado: 0, mortes: 0, vitorias: 0, totalKills: 0, totalBosses: 0, totalMoedasGanhas: 0 },
+    configuracoes: { musica: true, volumeMusica: 100, modoControle: "direto" },
+  };
+}
+
+async function garantirPerfil(user, nomeSugerido) {
+  const uidRef = ref(db, "usuarios/" + user.uid);
+  const snap = await get(uidRef);
+  if (!snap.exists()) {
+    await set(uidRef, perfilPadrao(nomeSugerido || user.displayName || "Jogador", user.email || ""));
+  } else {
+    const dados = snap.val();
+    // Conta banida (painel de espectador/moderação) — nunca deixa
+    // entrar, mesmo com senha certa. informacoes.banido já existia
+    // como campo desde sempre (perfilPadrao já cria com false), só
+    // nunca tinha sido checado em lugar nenhum até agora.
+    if (dados && dados.informacoes && dados.informacoes.banido === true) {
+      await auth.signOut();
+      const erroBanido = new Error("Sua conta foi banida.");
+      erroBanido.code = "conta/banida";
+      throw erroBanido;
+    }
+    await update(ref(db, "usuarios/" + user.uid + "/informacoes"), {
+      ultimoLogin: Date.now(),
+      ultimaSincronizacao: Date.now(),
+    });
+  }
+}
+
+function traduzirErro(erro) {
+  const codigo = (erro && erro.code) || String(erro || "");
+  const mapa = {
+    "auth/invalid-email": "E-mail inválido.",
+    "auth/user-not-found": "Não existe conta com esse e-mail.",
+    "auth/wrong-password": "Senha incorreta.",
+    "auth/invalid-credential": "E-mail ou senha incorretos.",
+    "auth/email-already-in-use": "Já existe uma conta com esse e-mail.",
+    "auth/weak-password": "A senha precisa ter no mínimo 8 caracteres.",
+    "auth/too-many-requests": "Muitas tentativas. Aguarde um pouco e tente de novo.",
+    "auth/network-request-failed": "Falha de conexão. Verifique sua internet.",
+    "auth/popup-blocked": "O navegador bloqueou a janela do Google. Permita pop-ups e tente de novo.",
+    "auth/popup-closed-by-user": "Login com Google cancelado.",
+    "auth/cancelled-popup-request": "Login com Google cancelado.",
+    "auth/operation-not-allowed": "Esse tipo de login não está ativado no projeto ainda.",
+    "PERMISSION_DENIED": "Sem permissão para salvar seus dados.",
+    "conta/banida": "Sua conta foi banida. Se achar que isso é um erro, entre em contato com o suporte.",
+  };
+  if (mapa[codigo]) return mapa[codigo];
+  const detalhe = (erro && erro.message) || codigo || "erro desconhecido";
+  return "Algo deu errado (" + detalhe + "). Tente novamente.";
+}
+
+const elSplash = document.getElementById("splashScreen");
+const elSplashStatus = document.getElementById("splashStatus");
+const elLoginScreen = document.getElementById("loginScreen");
+const elMsgErro = document.getElementById("msgErro");
+const elMsgSucesso = document.getElementById("msgSucesso");
+const elTabEntrar = document.getElementById("tabEntrar");
+const elTabCriar = document.getElementById("tabCriar");
+const elGrupoNome = document.getElementById("grupoNome");
+const elGrupoConfirmar = document.getElementById("grupoConfirmar");
+const elInputNome = document.getElementById("inputNome");
+const elInputEmail = document.getElementById("inputEmail");
+const elInputSenha = document.getElementById("inputSenha");
+const elInputConfirmar = document.getElementById("inputConfirmar");
+const elBtnPrincipal = document.getElementById("btnPrincipal");
+const elBtnGoogle = document.getElementById("btnGoogle");
+const elLinkEsqueci = document.getElementById("linkEsqueci");
+const elPainelReset = document.getElementById("painelReset");
+const elInputResetEmail = document.getElementById("inputResetEmail");
+const elBtnEnviarReset = document.getElementById("btnEnviarReset");
+const elLinkVoltarReset = document.getElementById("linkVoltarReset");
+const elMsgResetErro = document.getElementById("msgResetErro");
+
+let modo = "entrar";
+
+function limparMensagens() {
+  elMsgErro.classList.remove("visivel"); elMsgErro.textContent = "";
+  elMsgSucesso.classList.remove("visivel"); elMsgSucesso.textContent = "";
+  [elInputNome, elInputEmail, elInputSenha, elInputConfirmar].forEach(el => el.classList.remove("erro"));
+}
+function mostrarErro(msg, campos) {
+  limparMensagens();
+  elMsgErro.textContent = msg;
+  elMsgErro.classList.add("visivel");
+  (campos || []).forEach(el => el && el.classList.add("erro"));
+}
+function mostrarSucesso(msg) {
+  limparMensagens();
+  elMsgSucesso.textContent = msg;
+  elMsgSucesso.classList.add("visivel");
+}
+function setCarregando(btn, ligado) {
+  btn.classList.toggle("carregando", ligado);
+  btn.disabled = ligado;
+}
+
+function setModo(novoModo) {
+  modo = novoModo;
+  limparMensagens();
+  const criando = modo === "criar";
+  elTabEntrar.classList.toggle("ativa", !criando);
+  elTabCriar.classList.toggle("ativa", criando);
+  elGrupoNome.classList.toggle("campo-oculto", !criando);
+  elGrupoConfirmar.classList.toggle("campo-oculto", !criando);
+  elBtnPrincipal.querySelector(".btn-texto").textContent = criando ? "CRIAR CONTA" : "ENTRAR";
+}
+elTabEntrar.addEventListener("click", () => setModo("entrar"));
+elTabCriar.addEventListener("click", () => setModo("criar"));
+
+function emailValido(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+
+elBtnPrincipal.addEventListener("click", async () => {
+  limparMensagens();
+  const email = elInputEmail.value.trim();
+  const senha = elInputSenha.value;
+
+  if (!emailValido(email)) { mostrarErro("Digite um e-mail válido.", [elInputEmail]); return; }
+  if (senha.length < 8) { mostrarErro("A senha precisa ter no mínimo 8 caracteres.", [elInputSenha]); return; }
+
+  if (modo === "criar") {
+    const nome = elInputNome.value.trim();
+    const confirmar = elInputConfirmar.value;
+    if (!nome) { mostrarErro("Digite seu nome.", [elInputNome]); return; }
+    if (senha !== confirmar) { mostrarErro("As senhas não coincidem.", [elInputSenha, elInputConfirmar]); return; }
+
+    setCarregando(elBtnPrincipal, true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, senha);
+      await updateProfile(cred.user, { displayName: nome });
+      await garantirPerfil(cred.user, nome);
+      localStorage.setItem("jogadorNome", nome);
+      window.location.href = "menu.html"; 
+    } catch (e) {
+      setCarregando(elBtnPrincipal, false);
+      console.error("[Neon Raiders login]", e); mostrarErro(traduzirErro(e));
+    }
+  } else {
+    setCarregando(elBtnPrincipal, true);
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, senha);
+      await garantirPerfil(cred.user);
+      localStorage.setItem("jogadorNome", cred.user.displayName || cred.user.email || "Jogador");
+      window.location.href = "menu.html";
+    } catch (e) {
+      setCarregando(elBtnPrincipal, false);
+      console.error("[Neon Raiders login]", e); mostrarErro(traduzirErro(e));
+    }
+  }
+});
+
+elBtnGoogle.addEventListener("click", async () => {
+  limparMensagens();
+  setCarregando(elBtnGoogle, true);
+  try {
+    const cred = await signInWithPopup(auth, googleProvider);
+    await garantirPerfil(cred.user);
+    localStorage.setItem("jogadorNome", cred.user.displayName || cred.user.email || "Jogador");
+    window.location.href = "menu.html";
+  } catch (e) {
+    setCarregando(elBtnGoogle, false);
+    console.error("[Neon Raiders login]", e); mostrarErro(traduzirErro(e));
+  }
+});
+
+elLinkEsqueci.addEventListener("click", () => {
+  elInputResetEmail.value = elInputEmail.value.trim();
+  elMsgResetErro.style.display = "none";
+  elPainelReset.classList.add("visivel");
+});
+elLinkVoltarReset.addEventListener("click", () => { elPainelReset.classList.remove("visivel"); });
+elBtnEnviarReset.addEventListener("click", async () => {
+  const email = elInputResetEmail.value.trim();
+  elMsgResetErro.style.display = "none";
+  if (!emailValido(email)) {
+    elMsgResetErro.textContent = "Digite um e-mail válido.";
+    elMsgResetErro.style.cssText = "display:block;color:#ff6688;font-family:'Share Tech Mono',monospace;font-size:12px;background:rgba(255,50,80,0.1);border:1px solid rgba(255,68,102,0.35);border-radius:10px;padding:10px 12px;";
+    return;
+  }
+  setCarregando(elBtnEnviarReset, true);
+  try {
+    await sendPasswordResetEmail(auth, email);
+    elPainelReset.classList.remove("visivel");
+    mostrarSucesso("Link enviado! Confira seu e-mail pra redefinir a senha.");
+  } catch (e) {
+    console.error("[Neon Raiders login]", e); elMsgResetErro.textContent = traduzirErro(e);
+    elMsgResetErro.style.cssText = "display:block;color:#ff6688;font-family:'Share Tech Mono',monospace;font-size:12px;background:rgba(255,50,80,0.1);border:1px solid rgba(255,68,102,0.35);border-radius:10px;padding:10px 12px;";
+  }
+  setCarregando(elBtnEnviarReset, false);
+});
+
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+let _primeiraChecagemAuth = true;
+onAuthStateChanged(auth, async (user) => {
+  if (!_primeiraChecagemAuth) return;
+  _primeiraChecagemAuth = false;
+
+  if (user) {
+    elSplashStatus.textContent = "SINCRONIZANDO DADOS...";
+
+    // Sessão já estava salva (não passou pelo garantirPerfil() do
+    // fluxo de login normal) — precisa checar banido aqui também,
+    // senão uma conta banida com sessão salva no aparelho entrava
+    // igual, sem passar pela checagem nenhuma.
+    try {
+      const snap = await get(ref(db, "usuarios/" + user.uid + "/informacoes/banido"));
+      if (snap.exists() && snap.val() === true) {
+        await auth.signOut();
+        elSplashStatus.textContent = "CONTA BANIDA";
+        elSplash.classList.add("saindo");
+        setTimeout(() => {
+          elSplash.style.display = "none";
+          elLoginScreen.classList.add("visivel");
+          mostrarErro(traduzirErro({ code: "conta/banida" }));
+        }, 600);
+        return;
+      }
+    } catch (e) {
+      // Se a checagem falhar por qualquer motivo (rede etc.), não
+      // trava o jogador de fora à toa — deixa entrar normal, do jeito
+      // que já era antes dessa correção.
+    }
+
+    localStorage.setItem("jogadorNome", user.displayName || user.email || "Jogador");
+    window.location.href = "menu.html";
+  } else {
+    elSplash.classList.add("saindo");
+    setTimeout(() => {
+      elSplash.style.display = "none";
+      elLoginScreen.classList.add("visivel");
+    }, 500);
+  }
+});
+
+// ── Funções atualizadas para calcular o tamanho real da tela independentemente da rotação ──
+function getGameWidth() {
+  return window.innerWidth;
+}
+function getGameHeight() {
+  return window.innerHeight;
+}
+
+const bgCanvas = document.getElementById("bgCanvas");
+const bgCtx = bgCanvas.getContext("2d");
+let bgParticulas = [];
+
+function resizeBg() {
+  bgCanvas.width = getGameWidth();
+  bgCanvas.height = getGameHeight();
+}
+
+resizeBg();
+window.addEventListener("resize", resizeBg);
+window.addEventListener("orientationchange", resizeBg);
+
+for (let i = 0; i < 45; i++) {
+  bgParticulas.push({
+    x: Math.random()*getGameWidth(), y: Math.random()*getGameHeight(),
+    r: Math.random()*2+0.5, spd: Math.random()*0.5+0.2,
+    drift: (Math.random()-0.5)*0.3, alpha: Math.random()*0.5+0.1, pulse: Math.random()*Math.PI*2
+  });
+}
+
+let _bgAnimSkip = 0;
+function animarBg() {
+  requestAnimationFrame(animarBg);
+  _bgAnimSkip++;
+  if (_bgAnimSkip % 2 !== 0) return;
+  const W = bgCanvas.width, H = bgCanvas.height;
+  bgCtx.clearRect(0,0,W,H);
+  const grad = bgCtx.createRadialGradient(W/2,H/2,H*0.1,W/2,H/2,H*0.9);
+  grad.addColorStop(0,"#02001a"); grad.addColorStop(1,"#000008");
+  bgCtx.fillStyle = grad; bgCtx.fillRect(0,0,W,H);
+  bgCtx.save();
+  bgParticulas.forEach(p => {
+    p.y -= p.spd; p.x += p.drift; p.pulse += 0.02;
+    if (p.y < -10) { p.y = H+10; p.x = Math.random()*W; }
+    bgCtx.globalAlpha = p.alpha*(0.7+Math.sin(p.pulse)*0.3);
+    bgCtx.fillStyle = "#00ffff";
+    bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill();
+  });
+  bgCtx.restore();
+}
+requestAnimationFrame(animarBg);
+</script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>
