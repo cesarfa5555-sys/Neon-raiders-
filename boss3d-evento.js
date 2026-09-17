@@ -34,7 +34,7 @@
         // estar na mesma pasta do game3d.html pra funcionar (error_004.ogg
         // e minimize_006.ogg já existem no projeto, reaproveitados aqui)
         const shootSound = new Audio('error_004.ogg');
-        shootSound.volume = 0.35;
+        shootSound.volume = 0.75;
         const enemyDeathSound = new Audio('minimize_006.ogg');
         enemyDeathSound.volume = 0.5;
         function tocarSom(audio) {
