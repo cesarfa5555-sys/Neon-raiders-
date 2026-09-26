@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Raiders — Conquistas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#050510; --bg2:#0b0b1f; --panel:#0f0f28; --border:#1e1e4a;
+      --purple:#a855f7; --purple-dim:#6d28d9; --cyan:#22d3ee; --gold:#fbbf24;
+      --text:#e2e8f0; --muted:#64748b; --locked:#1e293b; --locked-tx:#334155;
+    }
+    html, body { -webkit-tap-highlight-color: transparent; }
+    body {
+      background:
+        radial-gradient(ellipse at 50% -10%, rgba(168,85,247,0.12), transparent 55%),
+        radial-gradient(ellipse at 50% 110%, rgba(34,211,238,0.08), transparent 55%),
+        var(--bg);
+      color:var(--text); font-family:'Share Tech Mono',monospace; min-height:100vh; overflow-x:hidden;
+    }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%,#ffffff22,transparent),
+        radial-gradient(1px 1px at 60% 10%,#ffffff18,transparent),
+        radial-gradient(1px 1px at 80% 70%,#ffffff15,transparent),
+        radial-gradient(1px 1px at 10% 80%,#ffffff20,transparent),
+        radial-gradient(1.5px 1.5px at 35% 90%,#a855f730,transparent),
+        radial-gradient(1.5px 1.5px at 70% 20%,#22d3ee25,transparent);
+      pointer-events:none; z-index:0;
+    }
+    body::after {
+      content:''; position:fixed; inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+      pointer-events:none; z-index:0;
+    }
+    .wrapper { position:relative; z-index:1; max-width:900px; margin:0 auto; padding:20px 16px 60px; }
+    header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:22px; gap:10px; }
+    .back-btn {
+      background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--muted);
+      font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px; padding:9px 14px;
+      cursor:pointer; border-radius:20px 0 20px 0; transition:all .2s;
+      display:inline-flex; align-items:center; gap:6px; flex-shrink:0;
+    }
+    .back-btn:hover, .back-btn:active { border-color:var(--purple); color:var(--purple); background:rgba(168,85,247,.08); }
+    .header-title { flex:1; display:flex; justify-content:center; }
+    .ribbon-banner {
+      position:relative;
+      padding:12px 30px;
+      text-align:center;
+      background:linear-gradient(135deg, rgba(168,85,247,0.18), rgba(34,211,238,0.12));
+      border:1px solid var(--border);
+      border-top-color:#a855f766;
+      clip-path:polygon(6% 0,94% 0,100% 50%,94% 100%,6% 100%,0 50%);
+      box-shadow:0 0 24px rgba(168,85,247,0.15);
+    }
+    .header-title h1 {
+      font-family:'Orbitron',monospace; font-size:clamp(16px,4.6vw,24px); font-weight:900;
+      letter-spacing:4px; text-transform:uppercase;
+      background:linear-gradient(90deg,var(--purple),var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .header-title p { font-size:10px; color:var(--muted); letter-spacing:2px; margin-top:3px; }
+    .progress-bar-wrapper {
+      background:var(--panel); border:1px solid var(--border); border-radius:14px;
+      padding:16px 20px; margin-bottom:14px; display:flex; align-items:center; gap:16px;
+      box-shadow: inset 0 0 20px rgba(168,85,247,0.05);
+    }
+    .progress-label { font-family:'Orbitron',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; white-space:nowrap; }
+    .progress-track { flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,var(--purple-dim),var(--purple),var(--cyan)); border-radius:4px; transition:width .8s ease; box-shadow:0 0 10px var(--purple); }
+    .progress-count { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; color:var(--purple); white-space:nowrap; }
+
+    /* ── TRILHA DE BAÚS (marcos de progresso geral) ── */
+    .chest-track {
+      position:relative;
+      background:var(--panel); border:1px solid var(--border); border-radius:14px;
+      padding:22px 22px 14px; margin-bottom:22px;
+      display:flex; justify-content:space-between; align-items:flex-start;
+    }
+    .chest-track-line {
+      position:absolute; top:36px; left:11%; right:11%; height:4px;
+      background:var(--border); border-radius:2px; z-index:0;
+    }
+    .chest-track-fill {
+      height:100%; width:0%; border-radius:2px;
+      background:linear-gradient(90deg,var(--purple-dim),var(--purple),var(--cyan));
+      transition:width .9s ease; box-shadow:0 0 10px var(--purple);
+    }
+    .chest-marker {
+      position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:6px;
+      flex:1;
+    }
+    .chest-icon {
+      width:38px; height:38px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; background:var(--locked); border:2px solid var(--border);
+      filter:grayscale(1) brightness(0.7);
+      transition:all .3s;
+    }
+    .chest-marker.atingido .chest-icon {
+      background:linear-gradient(135deg, rgba(168,85,247,.35), rgba(34,211,238,.25));
+      border-color:var(--purple);
+      filter:none;
+      box-shadow:0 0 16px rgba(168,85,247,.55);
+      transform:scale(1.08);
+    }
+    .chest-req { font-family:'Orbitron',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
+    .chest-marker.atingido .chest-req { color:var(--purple); }
+    .filtros { display:flex; gap:10px; margin-bottom:22px; }
+    .filtro-btn {
+      flex:1;
+      background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--muted);
+      font-family:'Orbitron',monospace; font-size:11px; letter-spacing:2px; padding:13px 10px;
+      cursor:pointer; border-radius:10px; transition:all .2s; text-transform:uppercase;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .filtro-btn:hover { border-color:var(--purple); color:var(--text); }
+    .filtro-btn[data-cat="score"].ativo {
+      border-color:var(--purple); color:#fff;
+      background:linear-gradient(135deg, rgba(168,85,247,.4), rgba(168,85,247,.12));
+      box-shadow:0 0 18px rgba(168,85,247,.35);
+    }
+    .filtro-btn[data-cat="nitro"].ativo {
+      border-color:#00ffcc; color:#fff;
+      background:linear-gradient(135deg, rgba(0,255,204,.32), rgba(0,255,204,.08));
+      box-shadow:0 0 18px rgba(0,255,204,.32);
+    }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+    .card {
+      background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px 18px;
+      display:flex; align-items:center; gap:14px; position:relative; overflow:hidden;
+      transition:border-color .25s, box-shadow .25s, transform .15s;
+    }
+    .card.desbloqueada { border-color:#a855f744; box-shadow:0 0 16px #a855f715; }
+    .card.desbloqueada:hover { border-color:var(--purple); box-shadow:0 0 28px #a855f730; transform:translateY(-1px); }
+    .card.bloqueada { opacity:.65; }
+    .card.desbloqueada::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--purple),transparent); }
+    .card-icone {
+      width:46px; height:46px; flex-shrink:0; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:22px; line-height:1;
+      background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35);
+      filter:drop-shadow(0 0 6px currentColor);
+    }
+    .card.bloqueada .card-icone { filter:none; background:rgba(255,255,255,0.03); border-color:var(--border); }
+    .card-info { flex:1; min-width:0; padding-right:64px; }
+    .card-categoria { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+    .card.desbloqueada .card-categoria { color:var(--purple); }
+    .card-titulo { font-family:'Orbitron',monospace; font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card.bloqueada .card-titulo { color:var(--locked-tx); }
+    .card-desc { font-size:11px; color:var(--muted); line-height:1.4; }
+    .card-data {
+      position:absolute; top:14px; right:14px; bottom:auto;
+      font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px;
+      color:#4ade80; background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.4);
+      padding:4px 9px; border-radius:20px; white-space:nowrap;
+    }
+    .card-data::before { content:'✓ '; }
+    .card.bloqueada::after {
+      content:'🔒 BLOQ.';
+      position:absolute; top:14px; right:14px;
+      font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px;
+      color:var(--locked-tx); background:rgba(255,255,255,0.03); border:1px solid var(--border);
+      padding:4px 9px; border-radius:20px; white-space:nowrap;
+    }
+    .card-segredo { font-size:10px; color:var(--locked-tx); letter-spacing:1px; margin-top:4px; }
+    .badge-novo {
+      position:absolute; top:44px; right:14px; background:var(--purple); color:#fff;
+      font-family:'Orbitron',monospace; font-size:8px; letter-spacing:2px; padding:2px 7px;
+      border-radius:20px; text-transform:uppercase; box-shadow:0 0 10px rgba(168,85,247,.6);
+    }
+    #telaNitro > div {
+      position:relative;
+      border-radius:18px !important;
+      box-shadow: 0 0 30px rgba(0,255,204,0.08), inset 0 0 24px rgba(0,255,204,0.04);
+    }
+    #telaNitro > div::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg, transparent, #00ffcc, transparent);
+      opacity:.7;
+    }
+    #nitroMissoesList > * {
+      border-radius:10px !important;
+    }
+    .vazio { text-align:center; padding:60px 20px; color:var(--muted); grid-column:1/-1; }
+    .vazio p:first-child { font-size:32px; margin-bottom:12px; }
+    .vazio p:last-child { font-size:12px; letter-spacing:1px; }
+    #loading { text-align:center; padding:80px 20px; color:var(--muted); font-size:12px; letter-spacing:3px; }
+    .spinner { display:inline-block; width:28px; height:28px; border:2px solid var(--border); border-top-color:var(--purple); border-radius:50%; animation:spin .8s linear infinite; margin-bottom:14px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:480px) { .grid { grid-template-columns:1fr; } .progress-bar-wrapper { flex-wrap:wrap; } }
+  </style>
+</head>
+<script type="module" src="manutencao.js"></script>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="header-title">
+      <div class="ribbon-banner">
+        <h1>TAREFAS</h1>
+        <p id="subtitulo">NEON RAIDERS</p>
+      </div>
+    </div>
+    <div style="width:80px; display:flex; justify-content:flex-end;">
+      <button class="back-btn" id="backBtn">⟵ VOLTAR</button>
+    </div>
+  </header>
+
+  <div class="progress-bar-wrapper">
+    <span class="progress-label">PROGRESSO</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <span class="progress-count" id="progress-count">0 / 0</span>
+  </div>
+
+  <div class="chest-track" id="chestTrack">
+    <div class="chest-track-line"><div class="chest-track-fill" id="chestTrackFill"></div></div>
+    <div class="chest-marker" data-index="0">
+      <div class="chest-icon"><img src="pacote.png" width="32px"></div>
+      <div class="chest-req" id="chestReq0">–</div>
+    </div>
+    <div class="chest-marker" data-index="1">
+      <div class="chest-icon"><img src="caixa-de-presente.png" width="28px"></div>
+      <div class="chest-req" id="chestReq1">–</div>
+    </div>
+    <div class="chest-marker" data-index="2">
+      <div class="chest-icon"><img src="trofeu.png" width="34px"></div>
+      <div class="chest-req" id="chestReq2">–</div>
+    </div>
+  </div>
+
+  <div class="filtros" id="filtros">
+    <button class="filtro-btn" data-cat="score">Pontuação</button>
+    <button class="filtro-btn" data-cat="nitro" style="border-color:#00ffcc44;color:#00ffcc88;"><img src="chatbot.png" > NITRO</button>
+  </div>
+
+
+
+  <div id="telaNitro" style="display:none;padding:8px 0 16px;"><div style="background:rgba(0,255,200,0.04);border:1px solid rgba(0,255,200,0.18);border-radius:20px;padding:24px 20px;text-align:center;"><canvas id="nitroCanvas" width="140" height="140" style="display:block;margin:0 auto 12px;"></canvas><div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:#00ffcc;letter-spacing:5px;margin-bottom:4px;">NITRO</div><div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#ffffff55;letter-spacing:4px;margin-bottom:14px;">DRONE COMPANHEIRO</div><div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#ffffff77;line-height:1.9;margin-bottom:18px;">Ataca inimigos automaticamente<br>Coleta cristais • Cura o jogador<br>Dá dicas durante a partida</div><div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#00ffcc66;letter-spacing:3px;margin-bottom:8px;">PROGRESSO DO DESBLOQUEIO</div><div style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,255,200,0.15);border-radius:8px;height:14px;overflow:hidden;margin-bottom:6px;"><div id="nitroProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#00ffaa,#00ffcc);border-radius:8px;transition:width 1.2s ease;"></div></div><div id="nitroProgressLabel" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:#00ffcc;letter-spacing:2px;margin-bottom:14px;">0 / 15 MISSÕES</div><div id="nitroBadge" style="display:none;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:#000;background:linear-gradient(135deg,#00ffaa,#00ffcc);border-radius:10px;padding:12px 20px;letter-spacing:2px;">🤖 NITRO DESBLOQUEADO!</div></div></div>
+
+  <!-- LISTA DAS 15 MISSÕES -->
+  <div id="nitroMissoesList" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+
+  <div id="loading"><div class="spinner"></div><br>CARREGANDO...</div>
+  <div class="grid" id="grid" style="display:none"></div>
+</div>
+
+<!-- Firebase modular igual ao resto do jogo -->
+
+<script src="conquistas.js"></script>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBetMNuPB8BDfvcanmgEUIWw3bLNgbi9aM",
+    authDomain: "neon-raiders.firebaseapp.com",
+    projectId: "neon-raiders",
+    storageBucket: "neon-raiders.firebasestorage.app",
+    messagingSenderId: "307351573602",
+    appId: "1:307351573602:web:a1ce6488ed420d5b99ad3b",
+    databaseURL: "https://neon-raiders-default-rtdb.firebaseio.com"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  // ── Chave correta igual ao resto do jogo ──
+  const JOGADOR = localStorage.getItem("jogadorNome") || "Jogador";
+
+  // ── Lista de conquistas ──
+const CONQUISTAS_DEF = [
+  // ── PONTUAÇÃO ────────────────────────────────
+  { id: "score_1k",      categoria: "score",   icone: "⭐", titulo: "Marcador",              descricao: "Alcançou 1.000 pontos em uma partida.",    segredo: false },
+  { id: "score_10k",     categoria: "score",   icone: "🌟", titulo: "Artilheiro",            descricao: "Alcançou 10.000 pontos em uma partida.",   segredo: false },
+  { id: "score_50k",     categoria: "score",   icone: "💫", titulo: "Lendário",              descricao: "Alcançou 50.000 pontos em uma partida.",   segredo: true  },
+
+  // ── MISSÕES DO NITRO ──
+  { id: 'nitro_m1',  categoria: 'nitro', icone: '🤖', titulo: 'Estreante',         descricao: 'Elimine 65 inimigos no total.', segredo: false },
+  { id: 'nitro_m2',  categoria: 'nitro', icone: '🤖', titulo: 'Primeiro Setor',    descricao: 'Complete o Mapa 1, Nível 1.', segredo: false },
+  { id: 'nitro_m3',  categoria: 'nitro', icone: '🤖', titulo: 'Acumulador',        descricao: 'Acumule 573 moedas no total.', segredo: false },
+  { id: 'nitro_m4',  categoria: 'nitro', icone: '🤖', titulo: 'Caçador Iniciante', descricao: 'Elimine 289 inimigos no total.', segredo: false },
+  { id: 'nitro_m5',  categoria: 'nitro', icone: '🤖', titulo: 'Zona Gelada',       descricao: 'Complete o Mapa 2, Nível 1.', segredo: false },
+  { id: 'nitro_m6',  categoria: 'nitro', icone: '🤖', titulo: 'Matador de Titãs',  descricao: 'Derrote 7 bosses no total.', segredo: false },
+  { id: 'nitro_m7',  categoria: 'nitro', icone: '🤖', titulo: 'Rico do Setor',     descricao: 'Acumule 2.500 moedas no total.', segredo: false },
+  { id: 'nitro_m8',  categoria: 'nitro', icone: '🤖', titulo: 'Veterano Glacial',  descricao: 'Complete o Mapa 2, Nível 6.', segredo: false },
+  { id: 'nitro_m9',  categoria: 'nitro', icone: '🤖', titulo: 'Exterminador',      descricao: 'Elimine 611 inimigos no total.', segredo: false },
+  { id: 'nitro_m10', categoria: 'nitro', icone: '🤖', titulo: 'Caçador de Bosses', descricao: 'Derrote 18 bosses no total.', segredo: false },
+  { id: 'nitro_m11', categoria: 'nitro', icone: '🤖', titulo: 'Zona Infernal',     descricao: 'Complete o Mapa 3, Nível 1.', segredo: false },
+  { id: 'nitro_m12', categoria: 'nitro', icone: '🤖', titulo: 'Magnata Espacial',  descricao: 'Acumule 25.000 moedas no total.', segredo: false },
+  { id: 'nitro_m13', categoria: 'nitro', icone: '🤖', titulo: 'Lenda da Guerra',   descricao: 'Elimine 1.250 inimigos no total.', segredo: false },
+  { id: 'nitro_m14', categoria: 'nitro', icone: '🤖', titulo: 'Zona Sombria',      descricao: 'Complete o Mapa 4, Nível 1.', segredo: false },
+  { id: 'nitro_m15', categoria: 'nitro', icone: '🤖', titulo: 'Digno do NITRO',    descricao: 'Derrote 30 bosses — NITRO desbloqueado!', segredo: false },
+];
+
+  // ── localStorage helpers ──
+  function lsKey(j) { return `neonraiders_conquistas_${j}`; }
+  function lerLocal(j) { try { const r=localStorage.getItem(lsKey(j)); return r?JSON.parse(r):{}; } catch(e){return{};} }
+
+  // ── Carrega conquistas ──
+  async function carregarConquistas() {
+    const local = lerLocal(JOGADOR);
+    try {
+      const snap = await get(ref(database, `conquistas/${JOGADOR}`));
+      if (snap.exists()) {
+        const merged = Object.assign({}, local, snap.val());
+        localStorage.setItem(lsKey(JOGADOR), JSON.stringify(merged));
+        return merged;
+      }
+    } catch(e) { console.warn("[Conquistas] Firebase erro, usando localStorage:", e); }
+    return local;
+  }
+
+  // ── Estado ──
+  let conquistasDesbloqueadas = {};
+  let filtroAtual = "nitro";
+
+  // ── Trilha de baús: 3 marcos de progresso geral (1/3, 2/3 e total) ──
+  function atualizarChestTrack(totalDesbloq, totalGeral) {
+    const marcos = [
+      Math.max(1, Math.round(totalGeral / 3)),
+      Math.max(2, Math.round((totalGeral * 2) / 3)),
+      totalGeral
+    ];
+    const pct = Math.min(100, (totalDesbloq / totalGeral) * 100);
+    const fillEl = document.getElementById("chestTrackFill");
+    if (fillEl) fillEl.style.width = pct + "%";
+
+    marcos.forEach((req, i) => {
+      const reqEl = document.getElementById("chestReq" + i);
+      if (reqEl) reqEl.textContent = req;
+      const marker = document.querySelector('.chest-marker[data-index="' + i + '"]');
+      if (marker) marker.classList.toggle("atingido", totalDesbloq >= req);
+    });
+  }
+
+  // ── Render ──
+  function renderGrid() {
+    const grid  = document.getElementById("grid");
+    const agora = Date.now();
+
+    const visiveis = CONQUISTAS_DEF.filter(c => {
+      if (filtroAtual === "nitro")         return true;
+      if (filtroAtual === "desbloqueadas") return !!conquistasDesbloqueadas[c.id];
+      return c.categoria === filtroAtual;
+    });
+
+    visiveis.sort((a,b) => (!!conquistasDesbloqueadas[b.id] ? 1:0) - (!!conquistasDesbloqueadas[a.id] ? 1:0));
+
+    const totalDesbloq = CONQUISTAS_DEF.filter(c => !!conquistasDesbloqueadas[c.id]).length;
+    const totalGeral   = CONQUISTAS_DEF.length;
+    const pct = Math.round((totalDesbloq / totalGeral) * 100);
+
+    document.getElementById("progress-fill").style.width  = pct + "%";
+    document.getElementById("progress-count").textContent = `${totalDesbloq} / ${totalGeral}`;
+    document.getElementById("subtitulo").textContent      = `${JOGADOR} · NEON RAIDERS`;
+    atualizarChestTrack(totalDesbloq, totalGeral);
+
+    if (visiveis.length === 0) {
+      grid.innerHTML = `<div class="vazio"><p>🚀</p><p>Nenhuma conquista aqui ainda.<br>Continue jogando!</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = visiveis.map(c => {
+      const ts       = conquistasDesbloqueadas[c.id];
+      const unlocked = !!ts;
+      const isNovo   = unlocked && (agora - ts) < 600_000;
+      const dataStr  = unlocked ? new Date(ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"}) : "";
+      const descricao = (!unlocked && c.segredo)
+        ? `<span class="card-segredo"> Conquista secreta</span>`
+        : `<p class="card-desc">${c.descricao}</p>`;
+
+      return `
+        <div class="card ${unlocked?"desbloqueada":"bloqueada"}">
+          ${isNovo?'<span class="badge-novo">NOVO</span>':""}
+          <div class="card-icone">${unlocked?c.icone:"🔒"}</div>
+          <div class="card-info">
+            <div class="card-categoria">${c.categoria.toUpperCase()}</div>
+            <div class="card-titulo">${(!unlocked&&c.segredo)?"???":c.titulo}</div>
+            ${descricao}
+          </div>
+          ${unlocked?`<span class="card-data">${dataStr}</span>`:""}
+        </div>`;
+    }).join("");
+  }
+
+  // ── Filtros ──
+  document.getElementById("filtros").addEventListener("click", e => {
+    const btn = e.target.closest(".filtro-btn");
+    if (!btn) return;
+    document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("ativo"));
+    btn.classList.add("ativo");
+    filtroAtual = btn.dataset.cat;
+    const _telaNitro = document.getElementById('telaNitro');
+    const _grid = document.getElementById('grid');
+    if (filtroAtual === 'nitro') {
+      _telaNitro.style.display = 'block';
+      _grid.style.display = 'none';
+      if(typeof atualizarProgressoNitro==='function') atualizarProgressoNitro();
+      renderMissoesNitro();
+      setTimeout(() => { if(typeof animarNitroCanvas==='function') animarNitroCanvas(); }, 100);
+      return;
+    } else {
+      _telaNitro.style.display = 'none';
+      _grid.style.display = '';
+      if(typeof pararNitroAnim==='function') pararNitroAnim();
+    }
+    renderGrid();
+  });
+
+  // ── Init ──
+  conquistasDesbloqueadas = await carregarConquistas();
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("grid").style.display    = "grid";
+  renderGrid();
+
+  // ── Botão VOLTAR ──
+  // Se a página estiver dentro do modal do menu.html (iframe), avisa o
+  // menu pra fechar o painel. Se for aberta sozinha (fora do iframe),
+  // continua navegando normalmente pro menu.
+  const abertaEmIframe = window.self !== window.top;
+  document.getElementById("backBtn").addEventListener("click", () => {
+    if (abertaEmIframe) {
+      window.parent.postMessage({ tipo: "fecharTarefas" }, "*");
+    } else {
+      window.location.href = "menu.html";
+    }
+  });
+</script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>

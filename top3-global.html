@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Global | Ranking da Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: #0e0704;
+      --foreground: #f8f6f0;
+      --surface: rgba(36, 17, 10, 0.88);
+      --surface-strong: rgba(26, 12, 7, 0.96);
+      --line: rgba(255, 90, 20, 0.28);
+      --ember: #ff5500;
+      --ember-bright: #ff7722;
+      --ember-deep: #a03000;
+      --gold: #ffbe1a;
+      --silver: #cbd5e1;
+      --bronze: #d97706;
+      --smoke: #9e8e84;
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body: 'Rajdhani', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button { font: inherit; }
+
+    /* Canvas com a animação de feixes de luz pulsantes (substitui a imagem estática) */
+    #fundoCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: -4;
+      display: block;
+    }
+
+    /* Camada de esmaecimento nas bordas, por cima do canvas, pra fundir com o --background */
+    .background-image {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+    }
+    .background-image::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--background) 0%, transparent 25%, transparent 75%, var(--background) 100%);
+    }
+
+    /* Brasas animadas subindo */
+    .embers { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+    .embers i {
+      position: absolute;
+      bottom: 0;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--ember-bright);
+      box-shadow: 0 0 10px var(--ember);
+      animation: float-ember 4.5s linear infinite;
+    }
+    @keyframes float-ember {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-105vh) scale(0.2); opacity: 0; }
+    }
+
+    .ranking-screen {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      padding: 0 24px 36px;
+    }
+
+    /* Barra Superior */
+    .topbar {
+      width: min(1120px, 100%);
+      height: 78px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .icon-button {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      justify-self: start;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: inherit;
+      cursor: pointer;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      transition: .2s ease;
+    }
+    .icon-button:hover { background: var(--ember); border-color: var(--ember-bright); transform: translateX(-3px); }
+    .icon-button svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+    .season-mark {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      color: var(--gold);
+      font: 700 15px var(--font-display);
+      letter-spacing: .18em;
+    }
+    .season-mark svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    .live-count {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--smoke);
+      font: 700 13px var(--font-display);
+      letter-spacing: .12em;
+    }
+    .live-count svg {
+      width: 15px;
+      height: 15px;
+      color: var(--ember-bright);
+      stroke: currentColor;
+      stroke-width: 2.2;
+      fill: none;
+      animation: status-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* Cabeçalho do Ranking */
+    .ranking-header { text-align: center; padding: 46px 0 16px; }
+    .eyebrow {
+      color: var(--gold);
+      font: 700 13px var(--font-display);
+      letter-spacing: .28em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .eyebrow svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    .ranking-header h1 {
+      margin: 6px 0 0;
+      font: 900 clamp(64px, 10vw, 122px)/.85 var(--font-display);
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 0 7px 30px rgba(0,0,0,0.85);
+    }
+    .ranking-header h1 span {
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--ember-bright);
+      filter: drop-shadow(0 0 14px rgba(255, 85, 0, 0.45));
+    }
+    .ranking-header > p {
+      margin: 18px 0 24px;
+      color: var(--smoke);
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: .05em;
+    }
+
+    /* Abas Global / Regional */
+    .scope-tabs {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    }
+    .scope-tabs button {
+      min-width: 130px;
+      height: 38px;
+      background: transparent;
+      border: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      color: var(--smoke);
+      font: 700 13px var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: .25s ease;
+    }
+    .scope-tabs button svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .scope-tabs button.active {
+      background: var(--ember-deep);
+      color: var(--foreground);
+      box-shadow: inset 0 0 0 1px var(--ember);
+    }
+
+    /* Pódio 3D */
+    .podium {
+      width: min(930px, 100%);
+      height: 410px;
+      margin: 0 auto 44px;
+      display: grid;
+      grid-template-columns: 1fr 1.14fr 1fr;
+      align-items: end;
+      gap: 12px;
+    }
+    .podium-card { position: relative; text-align: center; }
+    .podium-1 { order: 2; z-index: 2; }
+    .podium-2 { order: 3; }
+    .podium-3 { order: 1; }
+
+    .avatar-shell { width: fit-content; margin: auto; position: relative; }
+    .avatar {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 46px;
+      height: 46px;
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, var(--surface), var(--surface-strong));
+      clip-path: polygon(10px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 7px 100%, 0 calc(100% - 7px), 0 10px);
+      box-shadow: inset 0 0 24px rgba(0,0,0,0.45);
+    }
+    .avatar span { font: 800 14px var(--font-display); letter-spacing: .05em; }
+    .avatar-large { width: 102px; height: 102px; border-width: 2px; }
+    .avatar-large span { font-size: 27px; }
+    .avatar-gold { border-color: var(--gold); color: var(--gold); box-shadow: inset 0 0 24px rgba(255,190,26,0.2), 0 0 22px rgba(255,190,26,0.16); }
+    .avatar-silver { border-color: var(--silver); color: var(--silver); }
+    .avatar-bronze { border-color: var(--bronze); color: var(--bronze); }
+    .avatar-ember, .avatar-player { border-color: var(--ember-deep); color: var(--ember-bright); }
+
+    .crown-wrap {
+      position: absolute;
+      top: -56px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--gold);
+      animation: crown-float 2.6s ease-in-out infinite;
+    }
+    .crown-wrap svg {
+      width: 42px;
+      height: 42px;
+      stroke: var(--gold);
+      stroke-width: 2;
+      fill: rgba(255, 190, 26, 0.2);
+    }
+    @keyframes crown-float { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -7px); } }
+
+    .rank-medal {
+      position: absolute;
+      right: -6px;
+      bottom: -6px;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--background);
+      background: var(--silver);
+      border: 3px solid var(--background);
+      border-radius: 50%;
+      font: 900 17px var(--font-display);
+    }
+    .podium-1 .rank-medal { background: var(--gold); }
+    .podium-3 .rank-medal { background: var(--bronze); color: #fff; }
+
+    .podium-copy { margin: 16px 0 14px; }
+    .podium-name { margin: 0; font: 800 clamp(17px, 2vw, 24px) var(--font-display); letter-spacing: .07em; white-space: nowrap; }
+    .podium-score { margin: 3px 0 0; color: var(--gold); font: 700 14px var(--font-body); }
+
+    /* Bases do Pódio com Scanline */
+    .podium-base {
+      height: 130px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(80, 25, 10, 0.94), var(--surface-strong));
+      border: 1px solid var(--line);
+      border-bottom: none;
+      clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%, 0 12px);
+      overflow: hidden;
+    }
+    .podium-base::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 35%, rgba(255, 140, 40, 0.18) 50%, transparent 65%);
+      transform: translateX(-130%);
+      animation: scan 4s ease-in-out infinite;
+    }
+    @keyframes scan { from { transform: translateX(-130%); } to { transform: translateX(130%); } }
+
+    .podium-base span { font: 900 92px/.8 var(--font-display); color: rgba(255, 255, 255, 0.12); }
+    .podium-1 .podium-base {
+      height: 175px;
+      border-color: rgba(255, 150, 40, 0.62);
+      background: linear-gradient(180deg, rgba(110, 35, 10, 0.95), var(--surface-strong));
+      box-shadow: 0 -18px 55px rgba(255, 85, 0, 0.2);
+    }
+    .podium-3 .podium-base { height: 100px; }
+
+    /* Tabela da Elite da Arena */
+    .leaderboard {
+      width: min(940px, 100%);
+      margin: auto;
+      padding: 25px;
+      background: linear-gradient(145deg, var(--surface), var(--surface-strong));
+      border: 1px solid var(--line);
+      clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+    }
+    .leaderboard-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .leaderboard-heading p { margin: 0; color: var(--ember-bright); font: 700 11px var(--font-display); letter-spacing: .22em; }
+    .leaderboard-heading h2 { margin: 3px 0 0; font: 800 29px var(--font-display); text-transform: uppercase; }
+    .update-status {
+      color: var(--smoke);
+      font: 700 10px var(--font-display);
+      letter-spacing: .14em;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .update-status span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: status-pulse 1.3s infinite;
+    }
+
+    .table-header, .player-row, .your-rank {
+      display: grid;
+      grid-template-columns: 60px minmax(190px, 1fr) 140px 130px;
+      align-items: center;
+    }
+    .table-header {
+      padding: 14px 16px 8px;
+      color: var(--smoke);
+      opacity: .75;
+      font: 700 10px var(--font-display);
+      letter-spacing: .16em;
+    }
+    .table-header span:nth-child(n+3) { text-align: right; }
+
+    .player-row {
+      width: 100%;
+      min-height: 72px;
+      padding: 10px 16px;
+      background: transparent;
+      border: 0;
+      border-top: 1px solid rgba(255, 90, 20, 0.14);
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: .22s ease;
+      position: relative;
+    }
+    .player-row:hover { background: rgba(255, 85, 0, 0.12); transform: translateX(4px); }
+    .player-row:hover::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      height: 38px;
+      width: 2px;
+      background: var(--ember-bright);
+      box-shadow: 0 0 12px var(--ember);
+    }
+
+    .list-rank { color: var(--smoke); font: 800 20px var(--font-display); }
+    .player-id { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .player-id > span { display: grid; min-width: 0; }
+    .player-id strong { font: 800 17px var(--font-display); letter-spacing: .05em; }
+    .player-id small { color: var(--smoke); font-size: 11px; }
+
+    .wins { justify-self: end; display: flex; align-items: center; gap: 7px; color: var(--smoke); font-weight: 700; }
+    .wins svg { width: 15px; height: 15px; color: var(--ember); stroke: currentColor; stroke-width: 2; fill: none; }
+    .score { justify-self: end; color: var(--gold); font: 800 17px var(--font-display); }
+
+    /* Caixa do Jogador Atual ("VOCÊ") */
+    .your-rank {
+      margin-top: 16px;
+      padding: 12px 16px;
+      min-height: 72px;
+      background: linear-gradient(90deg, rgba(160, 48, 0, 0.3), transparent);
+      border: 1px solid var(--ember-deep);
+    }
+    .avatar-player span { font-size: 10px; }
+
+    footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 9px;
+      padding: 36px 0 0;
+      color: var(--smoke);
+      font: 700 11px var(--font-display);
+      letter-spacing: .18em;
+    }
+    footer svg { width: 15px; height: 15px; color: var(--ember); stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* Modal do Jogador */
+    .player-modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px; }
+    .modal-backdrop { position: absolute; inset: 0; background: rgba(10, 4, 2, 0.82); backdrop-filter: blur(8px); }
+    .profile-card {
+      width: min(390px, 100%);
+      position: relative;
+      z-index: 1;
+      padding: 44px 30px 30px;
+      text-align: center;
+      background: var(--surface-strong);
+      border: 1px solid var(--ember);
+      clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+      box-shadow: 0 0 80px rgba(255, 85, 0, 0.25);
+    }
+    .profile-card > .avatar { margin: auto; }
+    .profile-card svg.trophy-icon { width: 36px; height: 36px; color: var(--gold); margin: 20px auto 8px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .profile-card > p { color: var(--ember-bright); font: 700 12px var(--font-display); letter-spacing: .2em; }
+    .profile-card h3 { margin: 0; font: 900 38px var(--font-display); }
+    .profile-card > div.stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 25px;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+    }
+    .profile-card > div.stats-grid span { display: grid; font: 800 24px var(--font-display); }
+    .profile-card small { color: var(--smoke); font-size: 10px; letter-spacing: .12em; }
+    .close-button { position: absolute; right: 16px; top: 12px; background: transparent; border: 0; color: var(--smoke); font-size: 27px; cursor: pointer; }
+
+    /* Ajuste para Celular / Telas Menores */
+    @media (max-width: 700px) {
+      .ranking-screen { padding-inline: 14px; }
+      .topbar { height: 66px; }
+      .season-mark span { display: none; }
+      .ranking-header { padding-top: 35px; }
+      .ranking-header h1 { font-size: 66px; }
+      .ranking-header > p { font-size: 14px; }
+      .podium { height: 340px; gap: 6px; margin-bottom: 28px; }
+      .avatar-large { width: 76px; height: 76px; }
+      .avatar-large span { font-size: 21px; }
+      .podium-name { font-size: 14px; }
+      .podium-score { font-size: 11px; }
+      .podium-base { height: 105px; }
+      .podium-1 .podium-base { height: 145px; }
+      .podium-3 .podium-base { height: 82px; }
+      .podium-base span { font-size: 65px; }
+      .leaderboard { padding: 18px 10px; }
+      .update-status { display: none; }
+      .table-header, .player-row, .your-rank { grid-template-columns: 42px minmax(130px, 1fr) 82px; }
+      .table-header span:nth-child(3), .wins { display: none; }
+      .table-header span:nth-child(4) { text-align: right; }
+      .player-row, .your-rank { padding-inline: 8px; }
+      .player-id { gap: 8px; }
+      .avatar { width: 40px; height: 40px; }
+      .player-id strong { font-size: 14px; }
+      .score { font-size: 14px; }
+      .list-rank { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CANVAS COM A ANIMAÇÃO DE FEIXES DE LUZ PULSANTES (fundo) -->
+  <canvas id="fundoCanvas"></canvas>
+
+  <!-- CAMADA DE ESMAECIMENTO NAS BORDAS, por cima do canvas -->
+  <div class="background-image"></div>
+
+  <!-- BRASAS EM MOVIMENTO -->
+  <div class="embers" id="embers"></div>
+
+  <main class="ranking-screen">
+    
+    <!-- BARRA SUPERIOR -->
+    <header class="topbar">
+      <button class="icon-button" type="button" aria-label="Voltar">
+        <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+
+      <div class="season-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>SEASON 07</span>
+      </div>
+
+      <div class="live-count">
+        <svg viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+        <span>782 ONLINE</span>
+      </div>
+    </header>
+
+    <!-- CABEÇALHO -->
+    <section class="ranking-header">
+      <div class="eyebrow">
+        <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        HALL OF CHAMPIONS
+      </div>
+      <h1>TOP <span>GLOBAL</span></h1>
+      <p>Os jogadores mais implacáveis da arena.</p>
+
+      <div class="scope-tabs" role="tablist">
+        <button type="button" class="active" id="btn-global" onclick="switchScope('global')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          Global
+        </button>
+        <button type="button" id="btn-regional" onclick="switchScope('regional')">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Regional
+        </button>
+      </div>
+    </section>
+
+    <!-- PÓDIO 3D -->
+    <section class="podium" id="podium-root" aria-label="Pódio dos três melhores jogadores"></section>
+
+    <!-- TABELA ELITE DA ARENA -->
+    <section class="leaderboard" aria-labelledby="leaderboard-title">
+      <div class="leaderboard-heading">
+        <div>
+          <p>CLASSIFICAÇÃO</p>
+          <h2 id="leaderboard-title">Elite da arena</h2>
+        </div>
+        <div class="update-status"><span aria-hidden="true"></span> ATUALIZANDO AO VIVO</div>
+      </div>
+
+      <div class="table-header" aria-hidden="true">
+        <span>POS</span><span>JOGADOR</span><span>VITÓRIAS</span><span>PONTOS</span>
+      </div>
+
+      <div class="player-list" id="player-list-root"></div>
+
+      <!-- SEU CARD FIXO -->
+      <div class="your-rank">
+        <span class="list-rank">128</span>
+        <span class="player-id">
+          <div class="avatar avatar-player"><span>VOCÊ</span></div>
+          <span><strong>SEU NOME</strong><small>Sua posição atual</small></span>
+        </span>
+        <span class="wins">
+          <svg viewBox="0 0 24 24"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+          214
+        </span>
+        <strong class="score">32.480</strong>
+      </div>
+    </section>
+
+    <!-- MODAL DE DETALHES AO CLICAR EM UM JOGADOR -->
+    <div id="modal-container"></div>
+
+    <footer>
+      <svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      A LENDA É CONQUISTADA, NÃO DADA.
+    </footer>
+  </main>
+
+  <script>
+    const data = {
+      global: [
+        { rank: 1, name: "VOID REAPER", tag: "VRX", score: 98420, wins: 842, accent: "gold" },
+        { rank: 2, name: "NOVA", tag: "NVA", score: 92180, wins: 791, accent: "silver" },
+        { rank: 3, name: "KRYPTON", tag: "KRY", score: 89670, wins: 754, accent: "bronze" },
+        { rank: 4, name: "SHADOWX", tag: "SHX", score: 84410, wins: 712, accent: "ember" },
+        { rank: 5, name: "LUNAR", tag: "LNR", score: 81090, wins: 686, accent: "ember" },
+        { rank: 6, name: "RAZE", tag: "RZE", score: 79730, wins: 651, accent: "ember" }
+      ],
+      regional: [
+        { rank: 1, name: "KRYPTON", tag: "KRY", score: 89670, wins: 754, accent: "gold" },
+        { rank: 2, name: "RAZE", tag: "RZE", score: 79730, wins: 651, accent: "silver" },
+        { rank: 3, name: "NIX", tag: "NIX", score: 76120, wins: 623, accent: "bronze" },
+        { rank: 4, name: "AXION", tag: "AXN", score: 73890, wins: 602, accent: "ember" },
+        { rank: 5, name: "VANTA", tag: "VNT", score: 71440, wins: 588, accent: "ember" },
+        { rank: 6, name: "JINX", tag: "JNX", score: 69820, wins: 561, accent: "ember" }
+      ]
+    };
+
+    let currentScope = "global";
+
+    const crownSvg = `<svg viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>`;
+    const swordSvg = `<svg viewBox="0 0 24 24"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>`;
+    const trophySvg = `<svg class="trophy-icon" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`;
+
+    function render() {
+      const players = data[currentScope];
+      const p1 = players[0], p2 = players[1], p3 = players[2];
+
+      document.getElementById('podium-root').innerHTML = `
+        <article class="podium-card podium-3" onclick="openProfile(2)">
+          <div class="avatar-shell">
+            <div class="avatar avatar-large avatar-bronze"><span>${p3.tag}</span></div>
+            <span class="rank-medal">3</span>
+          </div>
+          <div class="podium-copy">
+            <p class="podium-name">${p3.name}</p>
+            <p class="podium-score">${p3.score.toLocaleString("pt-BR")} XP</p>
+          </div>
+          <div class="podium-base"><span>3</span></div>
+        </article>
+
+        <article class="podium-card podium-1" onclick="openProfile(0)">
+          <div class="crown-wrap">${crownSvg}</div>
+          <div class="avatar-shell">
+            <div class="avatar avatar-large avatar-gold"><span>${p1.tag}</span></div>
+            <span class="rank-medal">1</span>
+          </div>
+          <div class="podium-copy">
+            <p class="podium-name">${p1.name}</p>
+            <p class="podium-score">${p1.score.toLocaleString("pt-BR")} XP</p>
+          </div>
+          <div class="podium-base"><span>1</span></div>
+        </article>
+
+        <article class="podium-card podium-2" onclick="openProfile(1)">
+          <div class="avatar-shell">
+            <div class="avatar avatar-large avatar-silver"><span>${p2.tag}</span></div>
+            <span class="rank-medal">2</span>
+          </div>
+          <div class="podium-copy">
+            <p class="podium-name">${p2.name}</p>
+            <p class="podium-score">${p2.score.toLocaleString("pt-BR")} XP</p>
+          </div>
+          <div class="podium-base"><span>2</span></div>
+        </article>
+      `;
+
+      document.getElementById('player-list-root').innerHTML = players.slice(3).map((p, idx) => `
+        <button class="player-row" type="button" onclick="openProfile(${idx + 3})">
+          <span class="list-rank">0${p.rank}</span>
+          <span class="player-id">
+            <div class="avatar avatar-ember"><span>${p.tag}</span></div>
+            <span><strong>${p.name}</strong><small>Divisão Lendária</small></span>
+          </span>
+          <span class="wins">${swordSvg} ${p.wins}</span>
+          <strong class="score">${p.score.toLocaleString("pt-BR")}</strong>
+        </button>
+      `).join('');
+    }
+
+    function switchScope(scope) {
+      currentScope = scope;
+      document.getElementById('btn-global').className = scope === 'global' ? 'active' : '';
+      document.getElementById('btn-regional').className = scope === 'regional' ? 'active' : '';
+      render();
+    }
+
+    function openProfile(index) {
+      const p = data[currentScope][index];
+      document.getElementById('modal-container').innerHTML = `
+        <div class="player-modal" role="dialog">
+          <div class="modal-backdrop" onclick="closeProfile()"></div>
+          <div class="profile-card">
+            <button class="close-button" type="button" onclick="closeProfile()">×</button>
+            <div class="avatar avatar-large avatar-${p.accent || 'ember'}"><span>${p.tag}</span></div>
+            ${trophySvg}
+            <p>RANK #${p.rank}</p>
+            <h3>${p.name}</h3>
+            <div class="stats-grid">
+              <span>${p.wins}<small>VITÓRIAS</small></span>
+              <span>${p.score.toLocaleString("pt-BR")}<small>XP TOTAL</small></span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function closeProfile() {
+      document.getElementById('modal-container').innerHTML = '';
+    }
+
+    // Inicialização das partículas em brasa
+    const embersContainer = document.getElementById('embers');
+    for (let i = 0; i < 20; i++) {
+      const dot = document.createElement('i');
+      dot.style.left = (i * 5 + Math.random() * 2) + '%';
+      dot.style.animationDelay = (Math.random() * -5) + 's';
+      dot.style.animationDuration = (3.5 + Math.random() * 2) + 's';
+      embersContainer.appendChild(dot);
+    }
+
+    render();
+  </script>
+
+  <script>
+    /*
+      FUNDO ANIMADO - FEIXES DE LUZ PULSANTES
+      ----------------------------------------
+      Recria o efeito da imagem de referência (feixes verticais laranja
+      saindo de um ponto central no topo) de forma animada: pulsação de
+      intensidade, ondulação lateral e partículas de energia subindo.
+
+      Tudo dentro de uma IIFE (função que roda sozinha) pra não conflitar
+      com as variáveis/funções do resto da página (render, switchScope, etc).
+      Sem devicePixelRatio e com canvas.width/height em pixels normais —
+      mais compatível com WebViews mobile (algumas travam a tela em preto
+      com escala + transform do canvas).
+    */
+    (function () {
+      function iniciar() {
+        const canvas = document.getElementById('fundoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let largura, altura;
+
+        function redimensionar() {
+          largura = window.innerWidth;
+          altura = window.innerHeight;
+          canvas.width = largura;
+          canvas.height = altura;
+        }
+        redimensionar();
+        window.addEventListener('resize', redimensionar);
+
+        // Configuração dos feixes de luz
+        const NUM_FEIXES = 7;
+        const feixes = [];
+
+        for (let i = 0; i < NUM_FEIXES; i++) {
+          const offset = (i - (NUM_FEIXES - 1) / 2);
+          feixes.push({
+            offsetBase: offset * 34,
+            larguraBase: 90 - Math.abs(offset) * 8,
+            velocidadePulso: 0.4 + Math.random() * 0.5,
+            fase: Math.random() * Math.PI * 2,
+            velocidadeOndulacao: 0.15 + Math.random() * 0.2,
+            faseOndulacao: Math.random() * Math.PI * 2,
+            opacidadeMax: 1 - Math.abs(offset) * 0.11
+          });
+        }
+
+        // Partículas de energia subindo pelo feixe central
+        const NUM_PARTICULAS = 45;
+        const particulas = [];
+
+        function criarParticula() {
+          return {
+            x: (Math.random() - 0.5) * 160,
+            y: altura + Math.random() * 200,
+            velocidade: 1.2 + Math.random() * 2.5,
+            tamanho: 1 + Math.random() * 2.5,
+            opacidade: 0.3 + Math.random() * 0.7,
+            balanco: Math.random() * Math.PI * 2
+          };
+        }
+
+        for (let i = 0; i < NUM_PARTICULAS; i++) {
+          particulas.push(criarParticula());
+        }
+
+        let tempo = 0;
+
+        function desenhar() {
+          tempo += 0.016;
+
+          // Rastro leve em vez de limpeza total (sensação de arrasto de luz)
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+          ctx.fillRect(0, 0, largura, altura);
+
+          const centroX = largura / 2;
+
+          feixes
+            .slice()
+            .sort((a, b) => Math.abs(b.offsetBase) - Math.abs(a.offsetBase))
+            .forEach((f) => {
+              const pulso = 0.6 + 0.4 * Math.sin(tempo * f.velocidadePulso + f.fase);
+              const ondulacao = Math.sin(tempo * f.velocidadeOndulacao + f.faseOndulacao) * 14;
+
+              const x = centroX + f.offsetBase + ondulacao;
+              const larguraFeixe = f.larguraBase * (0.85 + 0.15 * pulso);
+              const opacidade = f.opacidadeMax * pulso;
+
+              const gradiente = ctx.createLinearGradient(0, altura, 0, 0);
+              gradiente.addColorStop(0, `rgba(255, 200, 140, ${opacidade})`);
+              gradiente.addColorStop(0.25, `rgba(255, 140, 40, ${opacidade * 0.9})`);
+              gradiente.addColorStop(0.6, `rgba(200, 70, 10, ${opacidade * 0.5})`);
+              gradiente.addColorStop(1, `rgba(80, 20, 0, 0)`);
+
+              ctx.save();
+              ctx.shadowBlur = 40 * pulso;
+              ctx.shadowColor = 'rgba(255,120,30,0.8)';
+              ctx.fillStyle = gradiente;
+
+              ctx.beginPath();
+              ctx.moveTo(x - larguraFeixe / 2, altura);
+              ctx.lineTo(x - larguraFeixe / 8, 0);
+              ctx.lineTo(x + larguraFeixe / 8, 0);
+              ctx.lineTo(x + larguraFeixe / 2, altura);
+              ctx.closePath();
+              ctx.fill();
+              ctx.restore();
+            });
+
+          ctx.save();
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = 'rgba(255,180,90,0.9)';
+          particulas.forEach((p) => {
+            p.y -= p.velocidade;
+            const zigzag = Math.sin(tempo * 2 + p.balanco) * 6;
+
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(255, 220, 170, ${p.opacidade})`;
+            ctx.arc(centroX + p.x + zigzag, p.y, p.tamanho, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (p.y < -20) {
+              Object.assign(p, criarParticula());
+              p.y = altura + 20;
+            }
+          });
+          ctx.restore();
+
+          requestAnimationFrame(desenhar);
+        }
+
+        desenhar();
+      }
+
+      // Espera a página carregar antes de pegar o canvas e iniciar
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        iniciar();
+      } else {
+        window.addEventListener('DOMContentLoaded', iniciar);
+      }
+    })();
+  </script>
+</body>
+</html>

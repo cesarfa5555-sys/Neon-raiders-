@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NEON RAIDERS — MODOS</title>
+  <link rel="stylesheet" href="modos.css">
+</head>
+<script type="module" src="manutencao.js"></script>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div id="scanline"></div>
+<div class="hud-corner tl"></div>
+<div class="hud-corner tr"></div>
+<div class="hud-corner bl"></div>
+<div class="hud-corner br"></div>
+
+<!-- HEADER -->
+<header class="modos-header">
+  <button class="btn-voltar" id="voltar">《 VOLTAR</button>
+  <div class="header-center">
+    <div id="mapa-nome" class="mapa-nome">MAPA 1</div>
+    <div id="mapa-tema" class="mapa-tema">CYBERPUNK</div>
+  </div>
+  <button class="btn-hangar" onclick="window.location.href='loja.html'">◈ HANGAR</button>
+</header>
+
+<!-- TÍTULO -->
+<div class="titulo-section">
+  <div class="titulo-label">SELECIONE O NÍVEL</div>
+  <div id="progresso-bar" class="progresso-bar">
+    <div id="progresso-fill" class="progresso-fill"></div>
+  </div>
+  <div id="progresso-label" class="progresso-label"></div>
+</div>
+
+<!-- CAMINHO DE NÍVEIS (canvas desenha hexágonos + linhas, HTML por cima só pro clique/texto) -->
+<div class="niveis-caminho" id="niveisCaminho">
+  <canvas id="caminhoCanvas"></canvas>
+</div>
+
+<!-- MÚSICA -->
+<button id="btnMusica"><img src="caixas-de-som.png" alt="música"></button>
+<audio id="bgMusic" loop><source src="level5.ogg" type="audio/ogg"></audio>
+
+<div class="instructions-panel">
+  <div class="instructions-row">JOYSTICK <span class="sep">—</span> MOVER <span class="sep">|</span> ⚡ <span class="sep">—</span> ATIRAR</div>
+  <div class="instructions-row">💣 <span class="sep">—</span> BOMBA NUCLEAR <span class="sep">|</span> COLETE CRISTAIS</div>
+</div>
+
+<script src="modos.js"></script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>

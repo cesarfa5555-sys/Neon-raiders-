@@ -1,0 +1,2656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap">
+<link rel="stylesheet" href="boss.css">
+<style>
+  
+
+  /* ── RESET / SENSAÇÃO DE JOGO ── */
+  html, body {
+    margin: 0; padding: 0;
+    background: #000 url('1789060700251.png') center center / cover no-repeat fixed;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    overscroll-behavior: none;
+    height: 100%;
+    display: block !important;
+    overflow: visible !important;
+  }
+  * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+
+  /* Pausa TODAS as animações CSS quando um modal opaco cobre a tela
+     (ex: tarefasOverlay). Evita gastar GPU/bateria animando algo que
+     nem está visível. Os RAF dos canvas já pausam via _animacoesPausadas;
+     isso cobre o resto (glow, shine, scan, ticker, pulse etc). */
+  body.animacoes-pausadas *,
+  body.animacoes-pausadas *::before,
+  body.animacoes-pausadas *::after {
+    animation-play-state: paused !important;
+  }
+
+  #bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  #startScreen {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: transform 0.06s linear;
+  }
+  #startScreen.tremendo { animation: telaTremer 0.42s cubic-bezier(.36,.07,.19,.97) both; }
+  @keyframes telaTremer {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+
+  .streak-badge {
+    position:absolute;
+    top:0;
+    right:0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1px;
+    color: #ffd700;
+    background:#404040;
+    padding:4px;
+    border-radius: 0 0 0px 6px;
+  }
+  .streak-badge.visivel { opacity: 0.85; }
+
+  .badge-sub {
+    font-size: 6.5px;
+    opacity: 0.6;
+    margin-top:2px;
+    letter-spacing: 0.5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-ticker {
+    position:absolute;
+    bottom:5px;
+    text-align:center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size:0.1px;
+    color:#fff;
+    opacity: 0.55;
+    text-align: center;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .status-ticker::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background:Orange ;
+    animation: tickerPing 1.6s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes tickerPing {
+    0%, 100% { opacity: 0.4; transform: scale(0.8); }
+    50%      { opacity: 1; transform: scale(1.15); }
+  }
+
+  .nr-topo-titulo {
+    position: absolute;
+    top: 73px;
+    left: 0; right: 0;
+    width: 100%;
+  }
+
+  #planetaCanvas {
+    display: none;
+  }
+
+  .titulo-jogo {
+    position: relative !important;
+    left: 0 !important;
+    right: auto !important;
+    float: none !important;
+    z-index: 1;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+    padding: 0 6px;
+    pointer-events: none;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: 2px;
+    font-size: clamp(20px, 6vw, 36px);
+    animation: tituloFlicker 6.5s infinite, bootIn 0.9s ease-out both;
+  }
+  .titulo-jogo .linha1 {
+    display: block;
+    color: #fff;
+  }
+  .titulo-jogo .linha2 {
+    display: block;
+    color: var(--cor-mapa, #00ffff);
+    transition: color 0.15s;
+  }
+  @keyframes tituloFlicker {
+    0%, 92%, 94.5%, 97%, 100% { opacity: 1; }
+    93% { opacity: 0.5; }
+    96% { opacity: .82; }
+  }
+  @keyframes bootIn {
+    0% { opacity: 0; transform: scale(0.92); filter: blur(4px); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+  @keyframes bootInPlain {
+    0% { opacity: 0; transform: scale(0.94); filter: blur(3px); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+  .titulo-jogo.piscando .linha2 { animation: glitchTroca 0.5s steps(2, end); }
+  @keyframes glitchTroca {
+    0%   { transform: translateX(0); filter: hue-rotate(0deg); }
+    25%  { transform: translateX(-2px); filter: hue-rotate(90deg); }
+    50%  { transform: translateX(2px); filter: hue-rotate(-90deg); }
+    75%  { transform: translateX(-1px); filter: hue-rotate(45deg); }
+    100% { transform: translateX(0); filter: hue-rotate(0deg); }
+  }
+
+  #scanOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+  }
+  #scanOverlay::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 0;
+    height: 140px;
+    background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--cor-mapa, #00ffff) 14%, transparent), transparent);
+    transform: translateY(-140px);
+    animation: scanSweep 7s linear infinite;
+    opacity: 0.55;
+    will-change: transform;
+  }
+  @keyframes scanSweep {
+    0%   { transform: translateY(-140px); }
+    100% { transform: translateY(100vh); }
+  }
+
+  #ambientGlow {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    animation: ambientBreathe 4.5s ease-in-out infinite;
+  }
+  @keyframes ambientBreathe {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+
+  #warpOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 6000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+  }
+  #warpOverlay.ativo { opacity: 1; }
+  #warpOverlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--warp-cor, #00ffff);
+    opacity: 0;
+  }
+  #warpOverlay.ativo::before { animation: warpFlash 0.45s ease forwards; }
+  @keyframes warpFlash {
+    0%   { opacity: 0; }
+    55%  { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+  .warp-anel {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 4px solid var(--warp-cor, #00ffff);
+  }
+  #warpOverlay.ativo .warp-anel {
+    animation: warpExpandir 0.48s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes warpExpandir {
+    to { width: 2400px; height: 2400px; border-width: 0; opacity: 0; }
+  }
+
+  .spark-toque {
+    position: fixed;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 50;
+    animation: sparkFly 0.55s ease-out forwards;
+  }
+  @keyframes sparkFly {
+    to { transform: translateY(-20px) scale(0); opacity: 0; }
+  }
+
+  #flashNegado {
+    position: fixed;
+    inset: 0;
+    z-index: 4500;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 65%, rgba(255,30,60,0.32), transparent 65%);
+    opacity: 0;
+  }
+  #flashNegado.ativo { animation: flashNegadoAnim 0.5s ease-out; }
+  @keyframes flashNegadoAnim {
+    0%   { opacity: 0; }
+    15%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  #negadoToast {
+    position: fixed;
+    left: 50%;
+    bottom: 14%;
+    transform: translate(-50%, 10px);
+    font-size: 2px;
+    letter-spacing: 2px;
+    z-index: 4600;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    color: #ff5577;
+    background: rgba(10,0,4,0.88);
+    border: 1.5px solid #ff3355aa;
+    box-shadow: 0 0 24px rgba(255,40,80,0.5);
+    padding: 10px 18px;
+    border-radius: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  #negadoToast.ativo { opacity: 1; transform: translate(-50%, 0); }
+
+  .shockwave {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 900px; height: 900px;
+    margin: -450px 0 0 -450px;
+    border-radius: 50%;
+    border: 2px solid var(--sw-cor, #00ffff);
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0.9;
+    transform: scale(0.0111);
+    will-change: transform, opacity;
+    animation: shockwaveAnim 0.75s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes shockwaveAnim {
+    0%   { transform: scale(0.0111); opacity: 0.85; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+
+  .hud-corner {
+    position: fixed;
+    width: 22px; height: 22px;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.5;
+    border-color: var(--cor-mapa, #00ffff);
+    transition: border-color 0.15s, opacity 0.15s;
+  }
+  .hud-corner.tl { top: 14px; left: 14px; border-top: 2px solid; border-left: 2px solid; }
+  .hud-corner.tr { top: 14px; right: 14px; border-top: 2px solid; border-right: 2px solid; }
+  .hud-corner.bl { bottom: 14px; left: 14px; border-bottom: 2px solid; border-left: 2px solid; }
+  .hud-corner.br { bottom: 14px; right: 14px; border-bottom: 2px solid; border-right: 2px solid; }
+  .hud-corner.alerta { border-color: #ff3355; opacity: 0.9; animation: alertaCorner 0.9s ease-in-out infinite; }
+  @keyframes alertaCorner {
+    0%, 100% { opacity: 0.5; }
+    50%      { opacity: 1; }
+  }
+
+  .mapa-stack {
+    position: absolute;
+    top:180px;
+    left:75px;
+    width: min(170px, 90%);
+    perspective: 1400px;
+    perspective-origin: 50% 30%;
+    animation: bootInPlain 0.9s 0.15s ease-out both;
+  }
+
+  .mapa-cards-area {
+    position: relative;
+    height: 200px;
+    touch-action: pan-y;
+  }
+  
+/* Moldura externa */
+.mapa-cards-area::before {
+    content: "";
+    position: absolute;
+
+    top: -17px;
+    left: 6px;
+    right: 6px;
+    bottom: -17px;
+
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+/* Interior da moldura */
+.mapa-cards-area::after {
+    content: "";
+    position: absolute;
+
+    top: -16px;
+    left: 7px;
+    right: 7px;
+    bottom: -16px;
+
+    background: #07151d;
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    pointer-events: none;
+    z-index: 0;
+}
+  
+  .btn-seta.btn-seta--lateral {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+  }
+  .btn-seta--lateral.btn-seta:active { transform: translateY(-50%) scale(0.85); }
+  .btn-seta--esq {
+    left: -70px; }
+  .btn-seta--dir { right: -70px; }
+
+  .mapa-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    width: 100%;
+
+    padding: 13px 16px;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    border: none;
+
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    color: #fff;
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: transform, opacity;
+
+    transition:
+        transform 0.5s cubic-bezier(.61,.06,.36,1),
+        opacity 0.45s ease;
+        z-index:1;
+}
+
+.mapa-card-1 {
+    background-image: url("cidade-cyberpunk.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-2 {
+    background-image: url("cidade-glacial.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-3 {
+    background-image: url("cidade-infernal.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-4 {
+    background-image: url("cidade-sombrio.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-5 {
+    background-image: url("cidade-robotico.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.mapa-card-6 {
+    background-image: url("cidade-void.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Interior escuro */
+.mapa-card::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+
+    background: rgba(8,10,18,0.10);
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    z-index: 0;
+}
+
+
+/* Conteúdo do card */
+.mapa-card > * {
+    position: relative;
+    z-index: 1;
+}
+  .mapa-card .mapa-numero { color: var(--card-cor, var(--cor-mapa, #00ffff)); }
+  .mapa-card .mapa-tema-display { color: var(--card-cor, var(--cor-mapa, #00ffff)); }
+
+
+  .mapa-card.mapa-card--arrastando {
+    transition: none !important;
+  }
+
+  .mapa-card .card-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity;
+  }
+  .mapa-card.mapa-card--frente .card-glow {
+    animation: cardGlowPulse 3s ease-in-out infinite;
+  }
+  @keyframes cardGlowPulse {
+    0%, 100% { opacity: 0; }
+    50%      { opacity: 1; }
+  }
+  .mapa-card.mapa-card--frente::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 0;
+    height: 45%;
+    background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--card-cor, var(--cor-mapa, #00ffff)) 16%, transparent), transparent);
+    transform: translateY(-100%);
+    animation: cardScan 4.2s linear infinite;
+    will-change: transform;
+    pointer-events: none;
+  }
+  @keyframes cardScan {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(222%); }
+  }
+
+  .mapa-card.travada .mapa-nome-display,
+  .mapa-card.travada .mapa-tema-display { opacity: 0.55; }
+  .mapa-card.travada::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, transparent 1px, transparent 3px);
+    animation: estaticaTravada 0.35s steps(2) infinite;
+    opacity: 0.5;
+  }
+  @keyframes estaticaTravada {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(3px); }
+  }
+
+  .mapa-destaque-badge {
+    position: absolute;
+    top: -1px; right: 14px;
+    font-family: 'Orbitron', monospace;
+    font-size: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #050505;
+    background: linear-gradient(90deg, #ffd700, #fff3a0);
+    padding: 3px 5px 2px;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 3px 12px rgba(255,215,0,0.55);
+    animation: destaqueFlutuar 2.4s ease-in-out infinite;
+    z-index: 5;
+  }
+  @keyframes destaqueFlutuar {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(2px); }
+  }
+
+  .mapa-novo-badge {
+    position: absolute;
+    top: -1px; left: 14px;
+    font-family: 'Orbitron', monospace;
+    font-size: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #04140a;
+    background: linear-gradient(90deg, #00ff88, #b6ffde);
+    padding: 4px 9px 3px;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 3px 12px rgba(0,255,136,0.55);
+    animation: destaqueFlutuar 2s ease-in-out infinite;
+    z-index: 5;
+  }
+
+  .confete {
+    position: fixed;
+    top: -12px;
+    width: 6px; height: 11px;
+    border-radius: 1px;
+    z-index: 4700;
+    pointer-events: none;
+    opacity: 0.95;
+    animation: confeteCair linear forwards;
+  }
+  @keyframes confeteCair {
+    to { transform: translateY(112vh) rotate(560deg); opacity: 0; }
+  }
+
+  .mapa-progresso {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mapa-progresso .barra {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .mapa-progresso .barra span {
+    display: block;
+    height: 100%;
+    background: var(--card-cor, var(--cor-mapa, #00ffff));
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(.4,1.4,.6,1);
+  }
+
+  .mapa-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .mapa-numero {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2px;
+    letter-spacing: 3px;
+    color: var(--cor-mapa, #00ffff);
+    opacity: 0.65;
+    transition: color 0.15s;
+  }
+  .mapa-status {
+    font-family: 'Orbitron', monospace;
+    font-size: 1px;
+    font-weight: 700;
+    padding: 3px 3px;
+    border-radius: 25%;
+    transition: all 0.3s;
+  }
+  .mapa-status.desbloqueado {
+    background: rgba(0,255,100,0.15);
+    border: 1px solid #00ff6688;
+    color: #00ff88;
+  }
+  .mapa-status.bloqueado {
+    background: rgba(255,50,50,0.12);
+    border: 1px solid #ff444488;
+    color: #ff6666;
+    animation: statusBloqueadoPulso 1.8s ease-in-out infinite;
+  }
+  @keyframes statusBloqueadoPulso {
+    0%, 100% { box-shadow: 0 0 0 rgba(255,60,80,0); }
+    50%      { box-shadow: 0 0 10px rgba(255,60,80,0.45); }
+  }
+
+  .mapa-nome-display {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(7px, 7.6vw, 14px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #fff;
+    margin-bottom: 2px;
+    
+  }
+  .mapa-tema-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 3px;
+    color: var(--cor-mapa, #00ffff);
+    opacity: 0.75;
+    margin-bottom: 2px;
+    transition: color 0.15s;
+  }
+
+  .seletor-mapa {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 4px;
+    position: relative;
+    z-index: 100;
+  }
+  .btn-seta {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background:#0B0E14;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .btn-seta::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 15px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .btn-seta img {
+    width: 16px;
+  }
+  #anterior img { transform: scaleX(-1); }
+  .btn-seta:active {
+    transform: scale(0.85);
+  }
+
+.btn-seta.btn-seta--lateral {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+
+  background: #161B26 !important;
+
+  border: 2px solid !important;
+  border-image: linear-gradient(90deg, #00ffff, #ff00ff) 1 !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cor-mapa, #00ffff) 35%, transparent) !important;
+}
+  .btn-seta.btn-seta--lateral img {
+    width: 35px !important;
+    height: auto !important;
+  }
+
+  .mapa-dots {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+  }
+  .mapa-dot {
+    position: relative;
+    bottom:-24px;
+    width: 10px; height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.18);
+    transition: all 0.3s;
+  }
+  .mapa-dot.ativo {
+    background: var(--cor-mapa, #00ffff);
+    box-shadow: 0 0 10px var(--cor-mapa, #00ffff), 0 0 22px color-mix(in srgb, var(--cor-mapa, #00ffff) 50%, transparent);
+    transform: scaleY(1.5);
+  }
+  .mapa-dot.destaque::after {
+    content: '';
+    position: absolute;
+    top: -5px; left: 50%;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: #ffd700;
+    box-shadow: 0 0 6px #ffd700;
+    transform: translateX(-50%);
+    animation: destaqueFlutuar 2.4s ease-in-out infinite;
+  }
+
+.botoes-wrap {
+  position: absolute;
+  top: 560px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: min(300px, 90%);
+}
+
+.badges-grid {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 150;
+
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center; /* 3 botões: centraliza cada um na sua coluna */
+  gap: 6px;
+
+  padding: 10px 8px;
+  box-sizing: border-box;
+
+  background: #0B0E14;
+  border-top: 1px solid #00ffff;
+}
+
+.btn-badge {
+  position: relative;
+
+  width: 70px;
+  height: 50px;
+
+  font-family: 'Orbitron', monospace;
+  font-size: 1px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+  touch-action: manipulation;
+  text-align: center;
+
+  border-radius: 4px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-badge-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+
+.btn-badge:active {
+  transform: scale(0.95);
+}
+
+.btn-badge--tarefas,
+.btn-badge--vanguard,
+.btn-badge--hangar {
+  color: #fff;
+  border: 0.7px solid transparent;
+  background:
+    linear-gradient(#131F24) padding-box,
+    linear-gradient(90deg, #00ffff, #ff00ff) border-box;
+}
+
+.btn-badge .badge-sub {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.btn-badge--vanguard.msec-ativo,
+.btn-badge--vanguard {
+  animation: none;
+}
+.btn-badge--tarefas {
+    position: relative;
+    
+
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    color: #fff;
+    font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+    cursor: pointer;
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+    transition: all 0.3s ease;
+}
+
+/* Interior escuro do botão */
+.btn-badge--tarefas::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+
+    background: #101622;
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    z-index: 0;
+}
+
+/* Conteúdo fica por cima do fundo */
+.btn-badge--tarefas > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* Texto */
+.btn-badge--tarefas > span:last-child {
+    color: #fff;
+    
+    font-weight: 800;
+    
+    text-transform: uppercase;
+    
+}
+
+/* Hover */
+.btn-badge--tarefas:hover {
+    transform: translateY(-2px) scale(1.02);
+    
+    filter: brightness(1.15);
+}
+
+/* Clique */
+.btn-badge--tarefas:active {
+    transform: translateY(1px) scale(0.98);
+}
+.btn-badge--vanguard,
+.btn-badge--hangar {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    
+    border: none;
+
+    background: linear-gradient(
+        135deg,
+        #00f0ff 0%,
+        #00d2ff 40%,
+        #b026ff 80%,
+        #e026ff 100%
+    );
+
+    color: #fff;
+    font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+    cursor: pointer;
+
+    clip-path: polygon(
+        16px 0,
+        100% 0,
+        100% calc(100% - 16px),
+        calc(100% - 16px) 100%,
+        0 100%,
+        0 16px
+    );
+
+    
+    transition: all 0.3s ease;
+}
+
+/* Interior */
+.btn-badge--vanguard::before,
+.btn-badge--hangar::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+
+    background: #101622;
+
+    clip-path: polygon(
+        15px 0,
+        100% 0,
+        100% calc(100% - 15px),
+        calc(100% - 15px) 100%,
+        0 100%,
+        0 15px
+    );
+
+    z-index: 0;
+}
+
+/* Conteúdo */
+.btn-badge--vanguard > *,
+.btn-badge--hangar > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Texto */
+.btn-badge--vanguard > span:last-child,
+.btn-badge--hangar > span:last-child {
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    
+}
+
+/* Hover */
+.btn-badge--vanguard:hover,
+.btn-badge--hangar:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.15);
+}
+
+/* Clique */
+.btn-badge--vanguard:active,
+.btn-badge--hangar:active {
+    transform: translateY(1px) scale(0.98);
+}
+  .btn-badge .badge-sub {
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .btn-badge--vanguard.msec-ativo,
+  .btn-badge--vanguard {
+    animation: none;
+  }
+
+
+  #btn-primary {
+    order: 1;
+    width: 60%;
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #000;
+    background: linear-gradient(90deg, #ff2d9c, #00ffff);
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.1s, box-shadow 0.2s, background 0.15s, opacity 0.3s;
+    
+    position: relative;
+    bottom:18vh;
+    left:50%;
+    transform:translate(-50%);
+    overflow: hidden;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  #btn-primary::after {
+    content: '';
+    position: absolute;
+    top:0; left:-40%;
+    width: 35%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.65), transparent);
+    transform: translateX(0%) skewX(-20deg);
+    animation: btnShine 3.4s ease-in-out infinite;
+    will-change: transform;
+    pointer-events: none;
+  }
+  @keyframes btnShine {
+    0%        { transform: translateX(0%) skewX(-20deg); }
+    55%, 100% { transform: translateX(480%) skewX(-20deg); }
+  }
+  #btn-primary:active { transform: scale(0.96); }
+  #btn-primary.btn-locked { opacity: 0.4; background: linear-gradient(135deg, #444, #222); box-shadow: none; }
+  #btn-primary.btn-locked::after { display: none; }
+  #btn-primary:disabled { opacity: 0.35; pointer-events: none; }
+  #btn-primary:disabled::after { display: none; }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,1);
+    transform: scale(0);
+    animation: rippleAnim 0.55s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes rippleAnim {
+    to { transform: scale(2.6); opacity: 0; }
+  }
+
+  #tarefasOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4vh 4vw;
+    background: rgba(2,2,10,0.75);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  #tarefasOverlay.aberto {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .tarefas-modal {
+    position: relative;
+    width: min(480px, 87vw);
+    height: min(760px, 83vh);
+    background: #050510;
+    border: 0.5px solid #a855f7;
+    border-radius: 10px;
+    overflow: hidden;
+    transform: scale(0.92) translateY(14px);
+    transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  #tarefasOverlay.aberto .tarefas-modal {
+    transform: scale(1) translateY(0);
+  }
+  .tarefas-modal iframe {
+    width: 100%; height: 100%;
+    border: none;
+    display: block;
+    background: #050510;
+  }
+  #tarefasFechar {
+    position: absolute;
+    top: 10px; right: 10px;
+    z-index: 10;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 2px solid #a855f7;
+    background: rgba(5,5,16,0.85);
+    color: #a855f7;
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s;
+  }
+  #tarefasFechar:active { transform: scale(0.88); }
+
+  #authGate {
+    position: fixed; inset: 0;
+    z-index: 10000;
+    background: #000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px;
+    transition: opacity 0.4s ease;
+  }
+  #authGate.saindo { opacity: 0; pointer-events: none; }
+
+
+  /* =========================================
+   NEON RAIDERS - AUTH GATE SPINNER (hexágono)
+========================================= */
+
+  .hex-loader {
+    width: 56px; height: 56px;
+    position: relative;
+    margin: 0 auto;
+  }
+  .hex-loader .hex {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: #000;
+    border: 2px solid #00ffff;
+  }
+  .hex-loader .hex:nth-child(1) {
+    animation: hexStepCW 3.4s cubic-bezier(0.16,1,0.3,1) infinite;
+  }
+  .hex-loader .hex:nth-child(2) {
+    inset: 12px;
+    opacity: 0.7;
+    animation: hexStepCCW 2.6s cubic-bezier(0.16,1,0.3,1) infinite;
+  }
+  .hex-loader .hex:nth-child(3) {
+    inset: 22px;
+    background: #00ffff;
+    box-shadow: 0 0 14px #00ffff;
+    animation: hexStepCW 1.8s cubic-bezier(0.16,1,0.3,1) infinite;
+  }
+  /* Gira em estágios: acelera, segura um instante, acelera de novo —
+     nunca para de vez, só pausa entre os "tiques". */
+  @keyframes hexStepCW {
+    0%, 15%   { transform: rotate(0deg); }
+    25%, 45%  { transform: rotate(90deg); }
+    55%, 75%  { transform: rotate(180deg); }
+    85%, 100% { transform: rotate(360deg); }
+  }
+  @keyframes hexStepCCW {
+    0%, 15%   { transform: rotate(0deg); }
+    25%, 45%  { transform: rotate(-90deg); }
+    55%, 75%  { transform: rotate(-180deg); }
+    85%, 100% { transform: rotate(-360deg); }
+  }
+
+  #authGate .texto-gate {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 3px; color: #ffffff55;
+  }
+
+  /* ── MENU HAMBÚRGUER + PAINEL LATERAL ──
+     Não achei essas classes definidas em nenhum outro <style> deste
+     arquivo (podem estar em boss.css, carregado por <link> no topo) —
+     então defini aqui do zero, no mesmo estilo visual do resto da
+     página, só pra não depender de CSS externo que eu não posso ver. */
+  #btnMenu {
+  position: fixed;
+  top: 51px;
+  right:0;
+  left: auto;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width:38px;
+  height:38px;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  background: transparent;
+  border: 1px solid #00ffff;
+  color:#dedede;
+  clip-path: polygon(
+    16px 0,
+    100% 0,
+    100% calc(100% - 16px),
+    calc(100% - 16px) 100%,
+    0 100%,
+    0 16px
+  );
+}
+  #btnMenu:active { transform: scale(0.92); }
+  #btnMenu .menu-linha {
+    width: 18px; height: 2px;
+    border-radius: 2px;
+    transition: transform 0.25s, opacity 0.2s, background 0.15s;
+  }
+  #btnMenu.aberto .menu-linha:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  #btnMenu.aberto .menu-linha:nth-child(2) { opacity: 0; }
+  #btnMenu.aberto .menu-linha:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  #menuOverlay {
+    position: fixed; inset: 0;
+    z-index: 190;
+    background: rgba(0,0,0,0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #menuOverlay.ativo { opacity: 1; pointer-events: auto; }
+
+  #menuPainel {
+    position: fixed;
+    top: 0; right: 0;
+    z-index: 501;
+    width: min(247px, 78vw);
+    height: 100vh;
+    background: #000;
+    border-left: 1.5px solid rgba(0,255,255,0.35);
+    box-shadow: -10px 0 40px rgba(0,0,0,0.6);
+    padding: 60px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(.4,1.2,.5,1);
+  }
+  #menuPainel.aberto { transform: translateX(0); }
+
+  .menu-secao-titulo {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--cor-mapa, #00ffff);
+    margin-bottom: 8px;
+    opacity: 0.85;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .menu-item-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: #ffffffaa;
+    letter-spacing: 1px;
+  }
+  .btn-toggle {
+    font-family: 'Orbitron', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #00ff88;
+    background: rgba(0,255,136,0.1);
+    border: 1.5px solid #00ff8877;
+    border-radius: 6px;
+    padding: 3px 10px;
+    cursor: pointer;
+  }
+  .btn-toggle.off { color: #ff6666; background: rgba(255,60,60,0.08); border-color: #ff666677; }
+  .menu-slider { width: 100%; }
+.controle-opcoes {
+  display: flex;
+  gap: 8px;
+}
+
+.controle-card {
+  flex: 1;
+  position: relative;
+
+  padding: 28px 28px;
+  border-radius: 12px;
+  border: none;
+
+  background:#252525;
+  );
+
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 3px;
+
+  cursor: pointer;
+
+  /* Barrigão 😎 */
+  transform: scaleY(0.70);
+  transition: .15s ease;
+
+  perspective: 2400px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Brilho superior */
+.controle-card::before {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  border: none;
+}
+
+.controle-card.ativo {
+  background:#252522;
+}
+
+.controle-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: #ffffffaa;
+}
+
+  /* Top 3 pequeno dentro do painel do menu */
+  #top3Mini { display: flex; flex-direction: column; gap: 3px; }
+  .top3-linha {
+    display: grid;
+    grid-template-columns: 14px 1fr 46px;
+    gap: 4px;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: #ffffffaa;
+    padding: 2px 0;
+  }
+  .top3-linha .top3-pos { color: #ffffff66; }
+  .top3-linha .top3-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top3-linha .top3-pts { text-align: right; color: #00ffff; }
+  .top3-linha.top1 .top3-pos { color: #ffd700; }
+  .top3-linha.top2 .top3-pos { color: #c0c0c0; }
+  .top3-linha.top3 .top3-pos { color: #cd7f32; }
+</style>
+</head>
+<body>
+
+<div id="authGate">
+
+<div class="spinner-gate hex-loader">
+  <div class="hex"></div>
+  <div class="hex"></div>
+  <div class="hex"></div>
+</div>
+
+  <div class="texto-gate">VERIFICANDO SESSÃO...</div>
+</div>
+
+<canvas id="bgCanvas"></canvas>
+<div id="scanOverlay"></div>
+<div id="ambientGlow"></div>
+<div id="flashNegado"></div>
+<div id="negadoToast">MAPA TRAVADO</div>
+<div id="warpOverlay"><div class="warp-anel"></div></div>
+<div class="hud-corner tl" id="hudTL"></div>
+<div class="hud-corner tr" id="hudTR"></div>
+<div class="hud-corner bl" id="hudBL"></div>
+<div class="hud-corner br" id="hudBR"></div>
+
+<div id="startScreen">
+  <div class="nr-topo-titulo">
+    <canvas id="planetaCanvas"></canvas>
+    <h1 class="titulo-jogo" id="tituloJogo">
+      <span class="linha1">NEON</span>
+      <span class="linha2">RAIDERS</span>
+    </h1>
+  </div>
+  
+  <div class="status-ticker" id="statusTicker">SISTEMA ONLINE v2.0.0</div>
+  <div class="streak-badge" id="streakBadge"></div>
+
+  <div class="mapa-stack" id="mapaStack">
+    <div class="mapa-cards-area" id="mapaCardsArea">
+      <button class="btn-seta btn-seta--lateral btn-seta--esq" id="anterior"><img src="1789162635044.png"></button>
+      <button class="btn-seta btn-seta--lateral btn-seta--dir" id="proximo"><img src="1789162635044.png"></button>
+    </div>
+    <div class="seletor-mapa" id="seletorMapa">
+      <div class="mapa-dots" id="mapaDots"></div>
+    </div>
+  </div>
+
+  <div class="botoes-wrap">
+    <button id="btn-primary">JOGAR</button>
+  </div>
+
+</div>
+
+<div class="badges-grid">
+
+  <button class="btn-badge btn-badge--tarefas" onclick="window.location.href='conquistas.html'">
+  <span class="btn-badge-icon">
+    <img src="icone1.png" alt="">
+  </span>
+  <span>MISS</span>
+</button>
+
+  <button class="btn-badge btn-badge--vanguard" onclick="window.location.href='loja-vanguard.html'">
+    <span class="btn-badge-icon">
+      <img src="icone3.png" alt="">
+    </span>
+    <span>VANG</span>
+  </button>
+
+  <button class="btn-badge btn-badge--hangar" onclick="window.location.href='loja.html'">
+    <span class="btn-badge-icon">
+      <img src="icone4.png" alt="">
+    </span>
+    <span>HANG</span>
+  </button>
+
+</div>
+
+<button id="btnMenu" aria-label="Configurações">
+  <svg viewBox="0 0 24 24" width="25" height="25">
+    <path
+      d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.37-.31-.6-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98L14.5 2.42C14.47 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.5.42L9.12 5.07c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.48 0-.6.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.37.31.6.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.23.08.48 0 .6-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"
+      fill="currentColor"
+    />
+  </svg>
+</button>
+
+<div id="menuPainel">
+
+  <div class="menu-secao">
+    <div class="menu-secao-titulo">🏆 TOP 3</div>
+    <div id="top3Mini"><div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:#ffffff55;">carregando...</div></div>
+  </div>
+
+  <div class="menu-secao">
+    <div class="menu-secao-titulo">🎵 SONS</div>
+    <div class="menu-item">
+      <span class="menu-item-label">MÚSICA</span>
+      <button id="btnToggleMusica" class="btn-toggle">OFF/ON</button>
+    </div>
+    <div class="menu-item">
+      <input type="range" id="sliderMusica" min="0" max="100" value="100" class="menu-slider">
+    </div>
+  </div>
+
+  <div class="menu-secao">
+    <div class="menu-secao-titulo">🎮 CONTROLE</div>
+    <div class="controle-opcoes">
+      <button class="controle-card ativo" id="btnControleDireto" data-modo="direto">
+        <img src="1782871312120.png" style="width:55px;margin-bottom:4px;" onerror="this.style.display='none'">
+        <div class="controle-label">DIRETO</div>
+      </button>
+      <button class="controle-card" id="btnControleRelativo" data-modo="relativo">
+        <img src="1782871840676.png" style="width:55px;margin-bottom:4px;" onerror="this.style.display='none'">
+        <div class="controle-label">RELATIVO</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu-secao">
+    <div class="menu-secao-titulo">🔐 CONTA</div>
+    <button id="btnSairConta" style="width:100%;font-family:'Orbitron',monospace;font-size:6px;font-weight:700;letter-spacing:2px;padding:6px;border-radius:10px;cursor:pointer;touch-action:manipulation;color:#ff6688;background:rgba(255,50,80,0.08);border:1.5px solid #ff446655;">SAIR DA CONTA</button>
+  </div>
+
+</div>
+
+<div id="menuOverlay"></div>
+
+<div id="tarefasOverlay">
+  <div class="tarefas-modal">
+    <button id="tarefasFechar" aria-label="Fechar tarefas">✕</button>
+    <iframe id="tarefasFrame" src="about:blank" title="Tarefas"></iframe>
+  </div>
+</div>
+
+<audio id="bgMusic" loop><source src="prettyjohn1-suspense-cyberpunk-517449.mp3" type="audio/mp3"></audio>
+<audio id="bgproximo"><source src="tiro1.mp3" type="audio/mp3"></audio>
+<audio id="bganterior"><source src="tiro1.mp3" type="audio/mp3"></audio>
+<audio id="bginiciar"><source src="ui-confirm.wav" type="audio/wav"></audio>
+
+<script src="dados.js"></script>
+<script type="module" src="loja.js"></script>
+
+<script>
+const MAPAS = [
+  { nome: 'CYBERPUNK', tema: 'SETOR NEON',      cor: '#00ffff', fundo: 'cyber'  },
+  { nome: 'GLACIAL',   tema: 'ZONA DE GELO',    cor: '#88ccff', fundo: 'gelo'   },
+  { nome: 'INFERNAL',  tema: 'NÚCLEO DE FOGO',  cor: '#ff6600', fundo: 'fogo'   },
+  { nome: 'SOMBRIO',   tema: 'DIMENSÃO SOMBRA', cor: '#aa44ff', fundo: 'sombra' },
+  { nome: 'ROBÓTICO',  tema: 'GRID DIGITAL',    cor: '#00ff88', fundo: 'digital'},
+  { nome: 'VOID',      tema: 'O VAZIO ETERNO',  cor: '#ff00ff', fundo: 'void'   },
+];
+
+var TOTAL_MAPAS = 6;
+var _mapaMenu = 1;
+var _mapaAtualBloqueado = false;
+
+function getMapaDesbloqueado() {
+  return Number(localStorage.getItem("mapaDesbloqueado")) || 1;
+}
+
+function getMapaDestaqueDia() {
+  var hoje = new Date();
+  var diaDoAno = Math.floor((hoje - new Date(hoje.getFullYear(), 0, 0)) / 86400000);
+  return (diaDoAno % TOTAL_MAPAS) + 1;
+}
+var MAPA_DESTAQUE = getMapaDestaqueDia();
+
+function vibrar(padrao) {
+  try { if (navigator.vibrate) navigator.vibrate(padrao); } catch (e) {}
+}
+
+var _audioCtx = null;
+function beepNegado() {
+  try {
+    _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    var t = _audioCtx.currentTime;
+    [220, 160].forEach(function(freq, i) {
+      var osc = _audioCtx.createOscillator();
+      var gain = _audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, t + i * 0.09);
+      gain.gain.setValueAtTime(0.05, t + i * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.12);
+      osc.connect(gain).connect(_audioCtx.destination);
+      osc.start(t + i * 0.09);
+      osc.stop(t + i * 0.09 + 0.13);
+    });
+  } catch (e) {}
+}
+
+var _negadoTimeoutFlash = null, _negadoTimeoutToast = null;
+var _hudCorners = null;
+function mostrarAcessoNegado(mapaExigido) {
+  if (!_hudCorners) {
+    _hudCorners = [document.getElementById('hudTL'), document.getElementById('hudTR'), document.getElementById('hudBL'), document.getElementById('hudBR')];
+  }
+  var tela = document.getElementById('startScreen');
+  tela.classList.remove('tremendo'); void tela.offsetWidth; tela.classList.add('tremendo');
+
+  var flash = document.getElementById('flashNegado');
+  flash.classList.remove('ativo'); void flash.offsetWidth; flash.classList.add('ativo');
+
+  var toast = document.getElementById('negadoToast');
+  toast.textContent = 'DESBLOQUEIE O MAPA ' + (mapaExigido < 10 ? '0' + mapaExigido : mapaExigido) + ' PRIMEIRO';
+  clearTimeout(_negadoTimeoutToast);
+  toast.classList.add('ativo');
+  _negadoTimeoutToast = setTimeout(function() { toast.classList.remove('ativo'); }, 1800);
+
+  _hudCorners.forEach(function(c) { c.classList.add('alerta'); });
+  clearTimeout(_negadoTimeoutFlash);
+  _negadoTimeoutFlash = setTimeout(function() {
+    _hudCorners.forEach(function(c) { c.classList.remove('alerta'); });
+  }, 900);
+
+  vibrar([40, 60, 40]);
+  beepNegado();
+}
+
+function dispararShockwave(cor) {
+  var onda = document.createElement('div');
+  onda.className = 'shockwave';
+  onda.style.setProperty('--sw-cor', cor);
+  document.body.appendChild(onda);
+  onda.addEventListener('animationend', function() { onda.remove(); });
+}
+
+
+var _mapaRecemDesbloqueado = 0;
+function verificarMapaRecemDesbloqueado() {
+  var atual = getMapaDesbloqueado();
+  var visto = Number(localStorage.getItem('ultimoMapaVistoNoMenu')) || 1;
+  if (atual > visto) {
+    _mapaRecemDesbloqueado = atual;
+  }
+  localStorage.setItem('ultimoMapaVistoNoMenu', atual);
+}
+
+var _coresConfete = ['#00ffff', '#ffd700', '#ff00ff', '#00ff88', '#ff6600', '#aa44ff'];
+function dispararConfete(qtd) {
+  for (var i = 0; i < qtd; i++) {
+    (function() {
+      var c = document.createElement('div');
+      c.className = 'confete';
+      c.style.left = (Math.random() * 100) + 'vw';
+      c.style.background = _coresConfete[Math.floor(Math.random() * _coresConfete.length)];
+      var duracao = 1.7 + Math.random() * 1.1;
+      c.style.animationDuration = duracao + 's';
+      c.style.animationDelay = (Math.random() * 0.4) + 's';
+      document.body.appendChild(c);
+      setTimeout(function() { c.remove(); }, (duracao + 0.5) * 1000);
+    })();
+  }
+}
+
+function atualizarStreakDiario() {
+  var hoje = new Date().toISOString().slice(0, 10);
+  var ultima = localStorage.getItem('streakUltimaData');
+  var streak = Number(localStorage.getItem('streakDias')) || 0;
+  if (ultima !== hoje) {
+    var ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    var ontemStr = ontem.toISOString().slice(0, 10);
+    streak = (ultima === ontemStr) ? streak + 1 : 1;
+    localStorage.setItem('streakDias', streak);
+    localStorage.setItem('streakUltimaData', hoje);
+  }
+  return streak;
+}
+
+var NAVES_NOMES = { padrao: 'PADRÃO' };
+function nomeNave(id) {
+  if (!id) return 'PADRÃO';
+  if (NAVES_NOMES[id]) return NAVES_NOMES[id];
+  return String(id).replace(/[-_]/g, ' ').toUpperCase();
+}
+function atualizarLabelNave() {
+  var el = document.getElementById('naveAtualLabel');
+  if (el) el.textContent = nomeNave(localStorage.getItem('naveAtual'));
+}
+
+function embaralharNumero(el, textoFinal) {
+  if (!el) return;
+  var chars = '0123456789#$%&';
+  var passos = 6, i = 0;
+  var intervalo = setInterval(function() {
+    if (i >= passos) { el.textContent = textoFinal; clearInterval(intervalo); return; }
+    el.textContent = textoFinal.replace(/[0-9]/g, function() { return chars[Math.floor(Math.random() * chars.length)]; });
+    i++;
+  }, 32);
+}
+
+function tocarCliqueUI() {
+  try {
+    var som = new Audio("click.mp3");
+    som.volume = 0.5;
+    som.currentTime = 0;
+    som.play();
+  } catch (e) {}
+}
+
+// Som de "arrastar" — sweep de frequência descendente, bem diferente
+// do beep seco do clique, pra dar a sensação de movimento.
+function tocarSwipeUI() {
+  try {
+    var som = new Audio("swipe.mp3");
+    som.volume = 0.5;
+    som.currentTime = 0;
+    som.play();
+  } catch (e) {}
+}
+
+function criarSpark(x, y, cor) {
+  var s = document.createElement('div');
+  s.className = 'spark-toque';
+  s.style.left = x + 'px';
+  s.style.top = y + 'px';
+  s.style.background = cor;
+  s.style.boxShadow = '0 0 6px ' + cor;
+  document.body.appendChild(s);
+  setTimeout(function() { s.remove(); }, 600);
+}
+
+var _ultimaInteracao = Date.now();
+['pointerdown', 'touchstart', 'keydown'].forEach(function(evento) {
+  document.addEventListener(evento, function() { _ultimaInteracao = Date.now(); }, { passive: true });
+});
+setInterval(function() {
+  if (Date.now() - _ultimaInteracao > 9000) {
+    _ultimaInteracao = Date.now();
+    var mapa = MAPAS[_mapaMenu - 1];
+    if (mapa) dispararShockwave(mapa.cor);
+  }
+}, 4000);
+
+var FRASES_STATUS = [
+  'SISTEMA ONLINE v2.0.0'
+];
+var _statusIdx = 0;
+function girarStatusTicker() {
+  var el = document.getElementById('statusTicker');
+  if (!el) return;
+  el.style.opacity = 0;
+  setTimeout(function() {
+    _statusIdx = (_statusIdx + 1) % FRASES_STATUS.length;
+    el.textContent = FRASES_STATUS[_statusIdx];
+    el.style.transition = 'opacity 0.4s';
+    el.style.opacity = 0.65;
+  }, 380);
+}
+setInterval(girarStatusTicker, 3400);
+
+function aplicarRipple(el) {
+  el.addEventListener('pointerdown', function(e) {
+    var rect = el.getBoundingClientRect();
+    var tam = Math.max(rect.width, rect.height) * 1.4;
+    var r = document.createElement('span');
+    r.className = 'ripple';
+    r.style.width = r.style.height = tam + 'px';
+    r.style.left = (e.clientX - rect.left - tam / 2) + 'px';
+    r.style.top = (e.clientY - rect.top - tam / 2) + 'px';
+    var posEstiloOriginal = getComputedStyle(el).position;
+    if (posEstiloOriginal === 'static') el.style.position = 'relative';
+    el.style.overflow = el.style.overflow || 'hidden';
+    el.appendChild(r);
+    setTimeout(function() { r.remove(); }, 560);
+  });
+}
+
+var _cardsAreaEl = document.getElementById("mapaCardsArea");
+var _cardEls = [];
+
+function criarCards() {
+  var bloqueadoAte = getMapaDesbloqueado();
+  _cardsAreaEl.querySelectorAll(".mapa-card").forEach(function(el) { el.remove(); });
+  _cardEls = MAPAS.map(function(mapa, idx) {
+    var i = idx + 1;
+    var bloqueado = i > bloqueadoAte;
+    var nivelAtual = Number(localStorage.getItem('nivelDesbloqueado_mapa' + i)) || 1;
+    var card = document.createElement("div");
+    card.className = "mapa-card mapa-card-" + i + (bloqueado ? " travada" : "");
+    card.style.setProperty("--card-cor", mapa.cor);
+
+    var destaqueHtml = (i === MAPA_DESTAQUE) ? '<div class="mapa-destaque-badge">⭐ DESTAQUE</div>' : '';
+    var novoHtml = (i === _mapaRecemDesbloqueado) ? '<div class="mapa-novo-badge">🎉 NOVO!</div>' : '';
+
+    var progressoHtml = bloqueado
+      ? '<div class="mapa-progresso">🔒 <span style="opacity:.8;">DESBLOQUEIE O MAPA ' + (i - 1 < 10 ? '0' + (i - 1) : (i - 1)) + '</span></div>'
+      : '<div class="mapa-progresso">NÍVEL <span style="color:var(--card-cor);font-weight:700;">' + nivelAtual + '</span>' +
+        '<span class="barra"><span style="width:' + Math.min(100, nivelAtual * 20) + '%"></span></span></div>';
+
+    card.innerHTML =
+      destaqueHtml +
+      novoHtml +
+      '<div class="card-glow"></div>' +
+      '<div class="mapa-topo">' +
+        '<div class="mapa-numero">MAPA ' + i + '</div>' +
+        '<div class="mapa-status ' + (bloqueado ? "bloqueado" : "desbloqueado") + '">' +
+          (bloqueado ? " BLOQUEADO" : " DESBLOQUEADO") +
+        '</div>' +
+      '</div>' +
+      '<div class="mapa-nome-display">' + mapa.nome + '</div>' +
+      '<div class="mapa-tema-display">' + mapa.tema + '</div>' +
+      progressoHtml;
+    _cardsAreaEl.appendChild(card);
+    return card;
+  });
+}
+
+var _primeiraRenderizacaoCards = true;
+function posicionarCards() {
+  _cardEls.forEach(function(card, idx) {
+    var i = idx + 1;
+    var diff = i - _mapaMenu;
+    var transform, opacity, z;
+
+    if (diff === 0) {
+      transform = "translateY(0px) scale(1.1) rotateY(0deg)";
+      opacity = 1;
+      z = 60;
+    } else if (diff === -1) {
+      // mapa anterior: espia em cima, menor e apagado
+      transform = "translateY(-108px) scale(0.78) rotateY(0deg)";
+      opacity = 1;
+      z = 40;
+    } else if (diff === 1) {
+      // próximo mapa: espia embaixo, menor e apagado
+      transform = "translateY(108px) scale(0.78) rotateY(0deg)";
+      opacity = 0.55;
+      z = 40;
+    } else if (diff < -1) {
+      transform = "translateY(-140px) scale(0.8) rotateY(0deg)";
+      opacity = 0;
+      z = 10;
+    } else {
+      transform = "translateY(140px) scale(0.8) rotateY(0deg)";
+      opacity = 0;
+      z = 10;
+    }
+
+    card.style.transform = transform;
+    card.style.opacity = opacity;
+    card.style.zIndex = z;
+    card.style.pointerEvents = diff === 0 ? "auto" : "none";
+    card.classList.toggle("mapa-card--frente", diff === 0);
+    card.classList.remove("mapa-card--assentado");
+  });
+
+  var frente = _cardEls[_mapaMenu - 1];
+  if (frente) {
+    if (_primeiraRenderizacaoCards) {
+      frente.classList.add("mapa-card--assentado");
+    } else {
+      var aoTerminar = function(e) {
+        if (e.propertyName !== "transform" || e.target !== frente) return;
+        frente.classList.add("mapa-card--assentado");
+        frente.removeEventListener("transitionend", aoTerminar);
+      };
+      frente.addEventListener("transitionend", aoTerminar);
+    }
+  }
+  _primeiraRenderizacaoCards = false;
+}
+
+var _dotEls = [];
+function criarDots() {
+  var wrap = document.getElementById("mapaDots");
+  wrap.innerHTML = "";
+  _dotEls = [];
+  for (var i = 1; i <= TOTAL_MAPAS; i++) {
+    var dot = document.createElement("div");
+    dot.className = "mapa-dot" + (i === _mapaMenu ? " ativo" : "") + (i === MAPA_DESTAQUE ? " destaque" : "");
+    wrap.appendChild(dot);
+    _dotEls.push(dot);
+  }
+}
+
+var _btnPrimaryEl = document.getElementById("btn-primary");
+var _tituloJogoEl = document.getElementById("tituloJogo");
+var _corMapaAtual = "";
+
+function atualizarSeletorMapa() {
+  var bloqueado = _mapaMenu > getMapaDesbloqueado();
+  _mapaAtualBloqueado = bloqueado;
+  var mapa = MAPAS[_mapaMenu - 1];
+  var corAnterior = _corMapaAtual;
+
+  document.documentElement.style.setProperty("--cor-mapa", mapa.cor);
+  _corMapaAtual = mapa.cor;
+  setCorPortalAlvo(mapa.cor);
+
+  _btnPrimaryEl.classList.toggle("btn-locked", bloqueado);
+  _btnPrimaryEl.setAttribute("aria-disabled", bloqueado ? "true" : "false");
+
+  _dotEls.forEach(function(d, i) {
+    d.classList.toggle("ativo", i + 1 === _mapaMenu);
+  });
+
+  var titulo = _tituloJogoEl;
+  if (titulo && corAnterior && corAnterior !== mapa.cor) {
+    titulo.classList.remove('piscando'); void titulo.offsetWidth; titulo.classList.add('piscando');
+    if (!_primeiraRenderizacaoCards) {
+      var frenteEl = _cardEls[_mapaMenu - 1];
+      var numEl = frenteEl && frenteEl.querySelector('.mapa-numero');
+      if (numEl) embaralharNumero(numEl, 'MAPA ' + _mapaMenu);
+    }
+  }
+
+  posicionarCards();
+  iniciarBgMapa(mapa.fundo, mapa.cor);
+}
+
+function irProximo() {
+  if (_mapaMenu >= TOTAL_MAPAS) return;
+  var som = document.getElementById("bgproximo");
+  if (som) { som.currentTime = 0; som.play(); }
+  vibrar(12);
+  _mapaMenu++;
+  atualizarSeletorMapa();
+}
+
+function irAnterior() {
+  if (_mapaMenu <= 1) return;
+  var som = document.getElementById("bganterior");
+  if (som) { som.currentTime = 0; som.play(); }
+  vibrar(12);
+  _mapaMenu--;
+  atualizarSeletorMapa();
+}
+
+document.getElementById("proximo").addEventListener("click", irProximo);
+document.getElementById("anterior").addEventListener("click", irAnterior);
+
+document.getElementById("btn-primary").addEventListener("click", function() {
+  if (_mapaAtualBloqueado) {
+    mostrarAcessoNegado(getMapaDesbloqueado());
+    return;
+  }
+  var iniciar = document.getElementById("bginiciar");
+  if (iniciar) { iniciar.volume = 0.3; iniciar.currentTime = 0; iniciar.play(); }
+  vibrar([15, 30, 15]);
+
+  var warp = document.getElementById("warpOverlay");
+  warp.style.setProperty("--warp-cor", MAPAS[_mapaMenu - 1].cor);
+  warp.classList.add("ativo");
+
+  setTimeout(function() {
+    window.location.href = "modos.html?mapa=" + _mapaMenu;
+  }, 430);
+});
+
+(function configurarSwipe() {
+  var area = document.getElementById("mapaCardsArea");
+  var xInicial = null, yInicial = null, arrastando = false;
+  var timerLongPress = null, longPressDisparado = false;
+  var frenteArrastada = null, ultimoSpark = 0;
+
+  function limparLongPress() {
+    clearTimeout(timerLongPress);
+    timerLongPress = null;
+  }
+
+  area.addEventListener("touchstart", function(e) {
+    if (!e.touches || !e.touches.length) return;
+    xInicial = e.touches[0].clientX;
+    yInicial = e.touches[0].clientY;
+    arrastando = true;
+    longPressDisparado = false;
+    frenteArrastada = _cardEls[_mapaMenu - 1] || null;
+    if (frenteArrastada) frenteArrastada.classList.add("mapa-card--arrastando");
+
+    limparLongPress();
+    timerLongPress = setTimeout(function() {
+      if (_mapaAtualBloqueado) {
+        longPressDisparado = true;
+        mostrarAcessoNegado(getMapaDesbloqueado());
+      }
+    }, 550);
+  }, { passive: true });
+
+  area.addEventListener("touchmove", function(e) {
+    if (!arrastando || xInicial === null || !e.touches || !e.touches.length) return;
+    var toque = e.touches[0];
+    var dx = toque.clientX - xInicial;
+    var dy = toque.clientY - yInicial;
+    if (Math.abs(dx) > 12 || Math.abs(dy) > 12) limparLongPress();
+
+    if (frenteArrastada && Math.abs(dx) > Math.abs(dy)) {
+      var dxClamp = Math.max(-160, Math.min(160, dx));
+      frenteArrastada.style.transform =
+        "translateX(" + (dxClamp * 0.55) + "px) rotateY(" + (-dxClamp * 0.06) + "deg) scale(" + (1 - Math.abs(dxClamp) / 1600) + ")";
+
+      var agora = Date.now();
+      if (agora - ultimoSpark > 70) {
+        ultimoSpark = agora;
+        var mapaAtual = MAPAS[_mapaMenu - 1];
+        criarSpark(toque.clientX, toque.clientY, mapaAtual ? mapaAtual.cor : '#00ffff');
+      }
+    }
+  }, { passive: true });
+
+  area.addEventListener("touchend", function(e) {
+    limparLongPress();
+    if (frenteArrastada) frenteArrastada.classList.remove("mapa-card--arrastando");
+    if (!arrastando || xInicial === null) { arrastando = false; frenteArrastada = null; return; }
+    arrastando = false;
+    if (longPressDisparado) { xInicial = null; yInicial = null; frenteArrastada = null; posicionarCards(); return; }
+    var toque = (e.changedTouches && e.changedTouches[0]) || null;
+    if (!toque) { frenteArrastada = null; return; }
+    var dx = toque.clientX - xInicial;
+    var dy = toque.clientY - yInicial;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      if (dx < 0) irProximo(); else irAnterior();
+    } else {
+      posicionarCards();
+    }
+    xInicial = null; yInicial = null;
+    frenteArrastada = null;
+  }, { passive: true });
+})();
+
+document.addEventListener("keydown", function(e) {
+  var tarefasAberto = document.getElementById("tarefasOverlay").classList.contains("aberto");
+  if (tarefasAberto) return;
+  if (e.key === "ArrowRight") irProximo();
+  else if (e.key === "ArrowLeft") irAnterior();
+  else if (e.key === "Enter") document.getElementById("btn-primary").click();
+});
+
+var planetaCanvas = document.getElementById("planetaCanvas");
+var planetaCtx = planetaCanvas.getContext("2d");
+var planetaDpr = Math.min(window.devicePixelRatio || 1, 2);
+var planetaTempo = 0;
+var planetaUltimoFrame = performance.now();
+
+var corPortalAtualRGB = hexParaRgb(MAPAS[0].cor);
+var corPortalAlvoRGB  = hexParaRgb(MAPAS[0].cor);
+
+// Heurística simples de qualidade: aparelhos com poucos núcleos de CPU
+// (comum em Android de entrada rodando WebView) ganham menos partículas
+// nos dois canvases de fundo, o que é o maior custo de CPU/GPU da tela.
+var _fatorQualidade = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ? 0.6 : 1;
+
+var planetaParticulas = Array.from({ length: Math.round(35 * _fatorQualidade) }, function() { return resetPlanetaParticula({}); });
+
+function resetPlanetaParticula(part) {
+  part.angle = Math.random() * Math.PI * 2;
+  part.dist = Math.random() * 40 + 90;
+  part.speed = Math.random() * 0.015 + 0.008;
+  part.radialSpeed = Math.random() * 0.7 + 0.4;
+  part.size = Math.random() * 1.8 + 0.6;
+  part.alpha = Math.random() * 0.5 + 0.5;
+  return part;
+}
+
+function hexParaRgb(hex) {
+  hex = hex.replace('#', '');
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16)
+  };
+}
+
+function rgbParaCss(rgb, alpha) {
+  return 'rgba(' + Math.round(rgb.r) + ',' + Math.round(rgb.g) + ',' + Math.round(rgb.b) + ',' + alpha + ')';
+}
+
+function setCorPortalAlvo(hex) {
+  corPortalAlvoRGB = hexParaRgb(hex);
+}
+
+function resizePlanetaCanvas() {
+  planetaDpr = Math.min(window.devicePixelRatio || 1, 2);
+  var rect = planetaCanvas.getBoundingClientRect();
+  planetaCanvas.width = rect.width * planetaDpr;
+  planetaCanvas.height = rect.height * planetaDpr;
+}
+resizePlanetaCanvas();
+
+function desenharPlaneta() {
+  var w = planetaCanvas.width, h = planetaCanvas.height;
+  var cx = w / 2, cy = h / 2;
+  var r = Math.min(w, h) * 0.34;
+
+  planetaCtx.clearRect(0, 0, w, h);
+  planetaCtx.save();
+  planetaCtx.translate(cx, cy);
+  planetaCtx.globalCompositeOperation = 'lighter';
+
+  var respiro = 1 + Math.sin(planetaTempo * 1.3) * 0.06;
+  var nucleo = planetaCtx.createRadialGradient(0, 0, 0, 0, 0, r * 0.75 * respiro);
+  nucleo.addColorStop(0, rgbParaCss(corPortalAtualRGB, 0.9));
+  nucleo.addColorStop(0.35, rgbParaCss(corPortalAtualRGB, 0.5));
+  nucleo.addColorStop(1, rgbParaCss(corPortalAtualRGB, 0));
+  planetaCtx.fillStyle = nucleo;
+  planetaCtx.beginPath();
+  planetaCtx.arc(0, 0, r * 0.9 * respiro, 0, Math.PI * 2);
+  planetaCtx.fill();
+
+  for (var i = 0; i < 3; i++) {
+    planetaCtx.save();
+    var spin = planetaTempo * (i % 2 === 0 ? 0.35 : -0.25) + i * 1.4;
+    planetaCtx.rotate(spin);
+    planetaCtx.strokeStyle = rgbParaCss(corPortalAtualRGB, 0.28 - i * 0.06);
+    planetaCtx.lineWidth = (2.5 - i * 0.5) * planetaDpr;
+    planetaCtx.setLineDash([r * 0.25, r * 0.12, r * 0.5, r * 0.15]);
+    planetaCtx.beginPath();
+    planetaCtx.arc(0, 0, r * (0.7 + i * 0.14), 0, Math.PI * 2);
+    planetaCtx.stroke();
+    planetaCtx.restore();
+  }
+
+  planetaParticulas.forEach(function(part) {
+    part.angle += part.speed;
+    part.dist -= part.radialSpeed;
+    if (part.dist < 4) resetPlanetaParticula(part);
+
+    var px = Math.cos(part.angle) * part.dist * planetaDpr;
+    var py = Math.sin(part.angle) * part.dist * planetaDpr;
+
+    planetaCtx.globalAlpha = part.alpha * (part.dist / 130);
+    planetaCtx.fillStyle = rgbParaCss(corPortalAtualRGB, 1);
+    planetaCtx.beginPath();
+    planetaCtx.arc(px, py, part.size * planetaDpr, 0, Math.PI * 2);
+    planetaCtx.fill();
+  });
+  planetaCtx.globalAlpha = 1;
+
+  planetaCtx.restore();
+}
+
+var _animacoesPausadas = false;
+var _planetaAnimId = null;
+var _planetaSkip = 0;
+
+function loopPlaneta() {
+  if (_animacoesPausadas) { _planetaAnimId = null; return; }
+
+  var agora = performance.now();
+  var dt = (agora - planetaUltimoFrame) / 1000;
+  planetaUltimoFrame = agora;
+  planetaTempo += dt;
+
+  var fatorLerp = Math.min(dt * 4, 1);
+  corPortalAtualRGB.r += (corPortalAlvoRGB.r - corPortalAtualRGB.r) * fatorLerp;
+  corPortalAtualRGB.g += (corPortalAlvoRGB.g - corPortalAtualRGB.g) * fatorLerp;
+  corPortalAtualRGB.b += (corPortalAlvoRGB.b - corPortalAtualRGB.b) * fatorLerp;
+
+  _planetaSkip++;
+  if (_planetaSkip % 2 === 0 && !document.hidden) desenharPlaneta();
+
+  _planetaAnimId = requestAnimationFrame(loopPlaneta);
+}
+_planetaAnimId = requestAnimationFrame(loopPlaneta);
+
+var bgCanvas = document.getElementById("bgCanvas");
+var bgCtx = bgCanvas.getContext("2d");
+var bgParticles = [];
+var bgAnimId = null;
+var bgCorAtual = "#00ffff";
+var bgTipoAtual = "cyber";
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+}
+resizeBg();
+
+// Um único resize debounced (via rAF) cuida dos dois canvases.
+// Evita realloc repetido do buffer do canvas em sequência quando o
+// WebView dispara vários eventos de resize seguidos (rotação de tela,
+// teclado abrindo/fechando etc).
+var _resizeRaf = null;
+window.addEventListener("resize", function() {
+  if (_resizeRaf) cancelAnimationFrame(_resizeRaf);
+  _resizeRaf = requestAnimationFrame(function() {
+    _resizeRaf = null;
+    resizeBg();
+    resizePlanetaCanvas();
+  });
+});
+
+function criarParticulasBg(tipo, cor) {
+  bgParticles = [];
+  var W = bgCanvas.width, H = bgCanvas.height;
+  var qtd = Math.round(45 * _fatorQualidade);
+  for (var i = 0; i < qtd; i++) {
+    if (tipo === "cyber") {
+      bgParticles.push({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*2+0.5, spd: Math.random()*0.5+0.2, drift: (Math.random()-0.5)*0.3, alpha: Math.random()*0.5+0.1, pulse: Math.random()*Math.PI*2 });
+    } else if (tipo === "gelo") {
+      bgParticles.push({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*3+1, spd: Math.random()*1+0.3, drift: (Math.random()-0.5)*0.5, alpha: Math.random()*0.4+0.1, pulse: Math.random()*Math.PI*2 });
+    } else if (tipo === "fogo") {
+      bgParticles.push({ x: Math.random()*W, y: H+Math.random()*H, r: Math.random()*2+0.5, spd: Math.random()*2+1, drift: (Math.random()-0.5)*1, alpha: Math.random()*0.6+0.2, pulse: Math.random()*Math.PI*2, color: Math.random()>0.5?"#ff6600":"#ffaa00" });
+    } else if (tipo === "sombra") {
+      bgParticles.push({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*3+1, spd: Math.random()*0.3+0.1, drift: (Math.random()-0.5)*0.4, alpha: Math.random()*0.3+0.05, pulse: Math.random()*Math.PI*2, dir: Math.random()>0.5?1:-1 });
+    } else if (tipo === "digital") {
+      bgParticles.push({ x: Math.random()*W, y: Math.random()*H, w: Math.random()*25+5, h: Math.random()*2+1, spd: Math.random()*3+1, alpha: Math.random()*0.15+0.03 });
+    } else if (tipo === "void") {
+      bgParticles.push({ x: Math.random()*W, y: Math.random()*H, radius: Math.random()*80+20, angle: Math.random()*Math.PI*2, spd: (Math.random()*0.01+0.003)*(Math.random()>0.5?1:-1), alpha: Math.random()*0.1+0.02, size: Math.random()*40+10 });
+    }
+  }
+}
+
+function iniciarBgMapa(tipo, cor) {
+  bgCorAtual = cor;
+  bgTipoAtual = tipo;
+  if (bgAnimId) cancelAnimationFrame(bgAnimId);
+  criarParticulasBg(tipo, cor);
+  animarBg();
+}
+
+var _bgGradCache = null;
+var _vigGradCache = null;
+var _bgSkip = 0;
+
+function animarBg() {
+  if (_animacoesPausadas) { bgAnimId = null; return; }
+
+  bgAnimId = requestAnimationFrame(animarBg);
+  _bgSkip++;
+  if (_bgSkip % 2 !== 0) return;
+
+  var W = bgCanvas.width, H = bgCanvas.height;
+  bgCtx.clearRect(0, 0, W, H);
+
+  var gradKey = bgTipoAtual + "_" + W + "_" + H;
+  if (!_bgGradCache || _bgGradCache.key !== gradKey) {
+    var grad = bgCtx.createRadialGradient(W/2, H/2, H*0.1, W/2, H/2, H*0.9);
+    if (bgTipoAtual === "cyber")   { grad.addColorStop(0,"#02001a"); grad.addColorStop(1,"#000008"); }
+    else if (bgTipoAtual === "gelo")   { grad.addColorStop(0,"#001428"); grad.addColorStop(1,"#000810"); }
+    else if (bgTipoAtual === "fogo")   { grad.addColorStop(0,"#150300"); grad.addColorStop(1,"#080000"); }
+    else if (bgTipoAtual === "sombra") { grad.addColorStop(0,"#0a0015"); grad.addColorStop(1,"#040008"); }
+    else if (bgTipoAtual === "digital"){ grad.addColorStop(0,"#001208"); grad.addColorStop(1,"#000805"); }
+    else if (bgTipoAtual === "void")   { grad.addColorStop(0,"#050005"); grad.addColorStop(1,"#000000"); }
+    _bgGradCache = { key: gradKey, gradient: grad };
+  }
+  bgCtx.fillStyle = _bgGradCache.gradient;
+  bgCtx.save();
+  bgCtx.globalAlpha = 0; // deixa ~18% da imagem de fundo (cidade-cyberpunk.png) aparecer por trás
+  bgCtx.fillRect(0, 0, W, H);
+  bgCtx.restore();
+
+  bgCtx.strokeStyle = bgCorAtual + "0a";
+  bgCtx.lineWidth = 0.5;
+  var gs = 50, off = (Date.now()*0.02)%gs;
+  bgCtx.beginPath();
+  for (var y = -gs+off; y < H; y+=gs) { bgCtx.moveTo(0,y); bgCtx.lineTo(W,y); }
+  for (var x = 0; x < W; x+=gs) { bgCtx.moveTo(x,0); bgCtx.lineTo(x,H); }
+  bgCtx.stroke();
+
+  bgParticles.forEach(function(p) {
+    if (bgTipoAtual === "cyber") {
+      p.y -= p.spd; p.x += p.drift; p.pulse += 0.02;
+      if (p.y < -10) { p.y = H+10; p.x = Math.random()*W; }
+      bgCtx.save(); bgCtx.globalAlpha = p.alpha*(0.7+Math.sin(p.pulse)*0.3);
+      bgCtx.fillStyle = bgCorAtual; bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill(); bgCtx.restore();
+    } else if (bgTipoAtual === "gelo") {
+      p.y += p.spd; p.x += p.drift; p.pulse += 0.015;
+      if (p.y > H+10) { p.y = -10; p.x = Math.random()*W; }
+      bgCtx.save(); bgCtx.globalAlpha = p.alpha*(0.8+Math.sin(p.pulse)*0.2);
+      bgCtx.fillStyle = "#aaddff"; bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill();
+      bgCtx.strokeStyle="#cceeff"; bgCtx.lineWidth=0.5; bgCtx.globalAlpha*=0.4;
+      bgCtx.beginPath(); bgCtx.moveTo(p.x-p.r*1.5,p.y); bgCtx.lineTo(p.x+p.r*1.5,p.y); bgCtx.stroke();
+      bgCtx.beginPath(); bgCtx.moveTo(p.x,p.y-p.r*1.5); bgCtx.lineTo(p.x,p.y+p.r*1.5); bgCtx.stroke();
+      bgCtx.restore();
+    } else if (bgTipoAtual === "fogo") {
+      p.y -= p.spd; p.x += p.drift; p.pulse += 0.04;
+      if (p.y < -10) { p.y = H+10; p.x = Math.random()*W; }
+      bgCtx.save(); bgCtx.globalAlpha = p.alpha*(0.6+Math.sin(p.pulse)*0.4);
+      bgCtx.fillStyle = p.color; bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill(); bgCtx.restore();
+    } else if (bgTipoAtual === "sombra") {
+      p.pulse += 0.006; p.x += Math.sin(p.pulse+p.y*0.01)*p.spd*p.dir; p.y += Math.cos(p.pulse)*p.spd*0.5;
+      if (p.x<-50)p.x=W+50; if (p.x>W+50)p.x=-50; if (p.y<-50)p.y=H+50; if (p.y>H+50)p.y=-50;
+      bgCtx.save(); bgCtx.globalAlpha = Math.max(0,p.alpha*(0.5+Math.sin(p.pulse*2)*0.5));
+      bgCtx.fillStyle = "#8800ff"; bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill(); bgCtx.restore();
+    } else if (bgTipoAtual === "digital") {
+      p.y += p.spd; if (p.y > H+10) { p.y = -10; p.x = Math.random()*W; }
+      bgCtx.save(); bgCtx.globalAlpha = p.alpha; bgCtx.fillStyle = bgCorAtual;
+      bgCtx.fillRect(p.x, p.y, p.w, p.h); bgCtx.restore();
+    } else if (bgTipoAtual === "void") {
+      p.angle += p.spd;
+      var cx = p.x + Math.cos(p.angle)*p.radius, cy = p.y + Math.sin(p.angle)*p.radius;
+      bgCtx.save(); bgCtx.globalAlpha = p.alpha*(0.5+Math.sin(p.angle*2)*0.5);
+      bgCtx.strokeStyle = "#ff00ff"; bgCtx.lineWidth = 1;
+      bgCtx.beginPath(); bgCtx.arc(cx, cy, p.size, 0, Math.PI*2); bgCtx.stroke(); bgCtx.restore();
+    }
+  });
+
+  var vigKey = W + "_" + H;
+  if (!_vigGradCache || _vigGradCache.key !== vigKey) {
+    var vig = bgCtx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.9);
+    vig.addColorStop(0,"transparent"); vig.addColorStop(1,"rgba(0,0,0,0.55)");
+    _vigGradCache = { key: vigKey, gradient: vig };
+  }
+  bgCtx.fillStyle = _vigGradCache.gradient;
+  bgCtx.fillRect(0,0,W,H);
+}
+
+verificarMapaRecemDesbloqueado();
+if (_mapaRecemDesbloqueado > 0) _mapaMenu = _mapaRecemDesbloqueado;
+
+criarCards();
+criarDots();
+atualizarSeletorMapa();
+aplicarRipple(document.getElementById("btn-primary"));
+
+document.querySelectorAll(".btn-badge").forEach(function(b) {
+  b.addEventListener("click", function() { tocarCliqueUI(); vibrar(8); });
+});
+var _btnMenuSom = document.getElementById("btnMenu");
+if (_btnMenuSom) _btnMenuSom.addEventListener("pointerdown", function() { tocarCliqueUI(); });
+
+
+if (_mapaRecemDesbloqueado > 0) {
+  setTimeout(function() {
+    dispararConfete(30);
+    vibrar([20, 40, 20, 40, 20]);
+  }, 750);
+}
+
+atualizarLabelNave();
+var _streakAtual = atualizarStreakDiario();
+var _streakEl = document.getElementById('streakBadge');
+if (_streakEl && _streakAtual > 0) {
+  _streakEl.textContent = 'LOGINS: ' + _streakAtual + (_streakAtual === 1 ? ' DIA' : ' DIAS');
+  setTimeout(function() { _streakEl.classList.add('visivel'); }, 500);
+}
+
+var tarefasOverlay = document.getElementById("tarefasOverlay");
+var tarefasFrame = document.getElementById("tarefasFrame");
+var tarefasFechar = document.getElementById("tarefasFechar");
+var _tarefasCarregado = false;
+
+function abrirTarefas() {
+  if (!_tarefasCarregado) {
+    tarefasFrame.src = "conquistas.html";
+    _tarefasCarregado = true;
+  }
+  tarefasOverlay.classList.add("aberto");
+  _animacoesPausadas = true;
+  document.body.classList.add("animacoes-pausadas");
+}
+
+function fecharTarefas() {
+  tarefasOverlay.classList.remove("aberto");
+  document.body.classList.remove("animacoes-pausadas");
+
+  if (_animacoesPausadas) {
+    _animacoesPausadas = false;
+    if (!_planetaAnimId) { planetaUltimoFrame = performance.now(); _planetaAnimId = requestAnimationFrame(loopPlaneta); }
+    if (!bgAnimId) { bgAnimId = requestAnimationFrame(animarBg); }
+  }
+}
+
+tarefasFechar.addEventListener("click", fecharTarefas);
+
+tarefasOverlay.addEventListener("click", function(e) {
+  if (e.target === tarefasOverlay) fecharTarefas();
+});
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape" && tarefasOverlay.classList.contains("aberto")) fecharTarefas();
+});
+
+window.addEventListener("message", function(e) {
+  if (e.data && e.data.tipo === "fecharTarefas") fecharTarefas();
+});
+
+document.getElementById("btnMenu").addEventListener("click", function() {
+  this.classList.toggle("aberto");
+  document.getElementById("menuPainel").classList.toggle("aberto");
+  document.getElementById("menuOverlay").classList.toggle("ativo");
+});
+
+document.getElementById("menuOverlay").addEventListener("click", function() {
+  document.getElementById("btnMenu").classList.remove("aberto");
+  document.getElementById("menuPainel").classList.remove("aberto");
+  this.classList.remove("ativo");
+});
+
+var musicaEl = document.getElementById("bgMusic");
+var btnToggle = document.getElementById("btnToggleMusica");
+var sliderMusica = document.getElementById("sliderMusica");
+
+btnToggle.addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (musicaEl.paused) {
+    musicaEl.play();
+    musicaEl.volume = sliderMusica.value / 100;
+    this.textContent = "ON";
+    this.classList.remove("off");
+  } else {
+    musicaEl.pause();
+    this.textContent = "OFF";
+    this.classList.add("off");
+  }
+});
+
+sliderMusica.addEventListener("input", function(e) {
+  e.stopPropagation();
+  musicaEl.volume = this.value / 100;
+  if (this.value == 0) {
+    musicaEl.pause();
+    btnToggle.textContent = "OFF";
+    btnToggle.classList.add("off");
+  } else if (musicaEl.paused) {
+    musicaEl.play();
+    btnToggle.textContent = "ON";
+    btnToggle.classList.remove("off");
+  }
+});
+
+var btnControleDireto   = document.getElementById("btnControleDireto");
+var btnControleRelativo = document.getElementById("btnControleRelativo");
+
+function atualizarBotoesControle(modo) {
+  btnControleDireto.classList.toggle("ativo", modo === "direto");
+  btnControleRelativo.classList.toggle("ativo", modo === "relativo");
+}
+
+var modoControleSalvo = localStorage.getItem("modoControle") || "direto";
+atualizarBotoesControle(modoControleSalvo);
+
+btnControleDireto.addEventListener("click", function(e) {
+  e.stopPropagation();
+  localStorage.setItem("modoControle", "direto");
+  atualizarBotoesControle("direto");
+});
+
+btnControleRelativo.addEventListener("click", function(e) {
+  e.stopPropagation();
+  localStorage.setItem("modoControle", "relativo");
+  atualizarBotoesControle("relativo");
+});
+
+atualizarSeletorMapa();
+</script>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getDatabase, ref, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+const firebaseConfig = { apiKey:"AIzaSyBetMNuPB8BDfvcanmgEUIWw3bLNgbi9aM",authDomain:"neon-raiders.firebaseapp.com",projectId:"neon-raiders",storageBucket:"neon-raiders.firebasestorage.app",messagingSenderId:"307351573602",appId:"1:307351573602:web:a1ce6488ed420d5b99ad3b",databaseURL:"https://neon-raiders-default-rtdb.firebaseio.com" };
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const authGateEl = document.getElementById('authGate');
+const authGateTexto = authGateEl.querySelector('.texto-gate');
+
+// ── TOP 3 pequeno, dentro do painel do menu hambúrguer — mesmo dado
+// (branch 'ranking') que o game3d.html já escreve/lê, só que aqui só
+// mostra os 3 primeiros, bem compacto, sem precisar estar logado pra ver
+const top3El = document.getElementById('top3Mini');
+if (top3El) {
+  const qTop3 = query(ref(db, 'ranking'), orderByChild('score'), limitToLast(3));
+  onValue(qTop3, (snap) => {
+    const lista = [];
+    snap.forEach((child) => lista.push(child.val()));
+    lista.sort((a, b) => (b.score || 0) - (a.score || 0));
+    if (lista.length === 0) {
+      top3El.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:8px;color:#ffffff55;">ninguém no ranking ainda</div>';
+      return;
+    }
+    top3El.innerHTML = lista.map((r, i) => {
+      const pos = i + 1;
+      const classe = pos === 1 ? 'top1' : pos === 2 ? 'top2' : 'top3';
+      return '<div class="top3-linha ' + classe + '"><div class="top3-pos">' + pos + '</div><div class="top3-nome">' + (r.name || '???') + '</div><div class="top3-pts">' + (r.score || 0).toLocaleString('pt-BR') + '</div></div>';
+    }).join('');
+  }, (e) => { top3El.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:8px;color:#ff6666;">falha ao carregar</div>'; console.warn('Top3: falha', e); });
+}
+
+function hidratarLocalStorage(perfil, nomeConta) {
+  if (!perfil) {
+    localStorage.setItem('mapaDesbloqueado', 1);
+    localStorage.setItem('naveAtual', 'padrao');
+    localStorage.setItem('navesCompradas', JSON.stringify(['padrao']));
+    localStorage.setItem('moedas', 0);
+    for (var m = 1; m <= 6; m++) localStorage.setItem('nivelDesbloqueado_mapa' + m, 1);
+    localStorage.setItem('joiasMochila', JSON.stringify([]));
+    localStorage.setItem('joiasEquipadas', JSON.stringify({}));
+    localStorage.setItem('vanguardPartes', JSON.stringify({}));
+    localStorage.setItem('vanguardSkinsCompradas', JSON.stringify([]));
+    return;
+  }
+  var p = perfil.progresso || {};
+  var n = perfil.naves || {};
+  var v = perfil.vanguard || {};
+  var c = perfil.configuracoes || {};
+
+  if (typeof p.mapaDesbloqueado !== 'undefined') {
+    var mapaLocalAtual = Number(localStorage.getItem('mapaDesbloqueado')) || 1;
+    localStorage.setItem('mapaDesbloqueado', Math.max(mapaLocalAtual, p.mapaDesbloqueado));
+  }
+  if (typeof p.naveAtual !== 'undefined') localStorage.setItem('naveAtual', p.naveAtual);
+  if (typeof p.navesCompradas !== 'undefined') localStorage.setItem('navesCompradas', JSON.stringify(p.navesCompradas));
+  if (typeof p.moedas !== 'undefined') localStorage.setItem('moedas', p.moedas);
+  if (p.niveisDesbloqueados) {
+    Object.keys(p.niveisDesbloqueados).forEach(function(mapaNum) {
+      var chave = 'nivelDesbloqueado_mapa' + mapaNum;
+      var localAtual = Number(localStorage.getItem(chave)) || 1;
+      localStorage.setItem(chave, Math.max(localAtual, p.niveisDesbloqueados[mapaNum]));
+    });
+  }
+  if (typeof n.joiasMochila !== 'undefined') localStorage.setItem('joiasMochila', JSON.stringify(n.joiasMochila));
+  if (typeof n.joiasEquipadas !== 'undefined') localStorage.setItem('joiasEquipadas', JSON.stringify(n.joiasEquipadas));
+  if (typeof v.partesEquipadas !== 'undefined') localStorage.setItem('vanguardPartes', JSON.stringify(v.partesEquipadas));
+  if (typeof v.skinsCompradas !== 'undefined') localStorage.setItem('vanguardSkinsCompradas', JSON.stringify(v.skinsCompradas));
+  if (typeof c.modoControle !== 'undefined') localStorage.setItem('modoControle', c.modoControle);
+  if (perfil.conquistas && nomeConta) {
+    localStorage.setItem('neonraiders_conquistas_' + nomeConta, JSON.stringify(perfil.conquistas));
+  }
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const nomeConta = user.displayName || user.email || 'Jogador';
+  localStorage.setItem('jogadorNome', nomeConta);
+
+  try {
+    if (authGateTexto) authGateTexto.textContent = 'SINCRONIZANDO DADOS...';
+    const perfil = await window.NRDados.carregarPerfil();
+    hidratarLocalStorage(perfil, nomeConta);
+
+    if (!perfil) {
+      console.warn('[NRDados] Conta sem perfil, criando um novo agora.');
+      await window.NRDados.salvarProgresso({
+        xp: 0, nivel: 1, moedas: 0, joiasGemas: 0, recorde: 0,
+        mapaDesbloqueado: 1, naveAtual: 'padrao', navesCompradas: ['padrao'],
+        niveisDesbloqueados: { "1":1,"2":1,"3":1,"4":1,"5":1,"6":1 },
+      }).catch(() => {});
+      await window.NRDados.salvarNaves({ joiasMochila: [], joiasEquipadas: {} }).catch(() => {});
+      await window.NRDados.salvarVanguard({ partesEquipadas: {}, skinsCompradas: [] }).catch(() => {});
+      await window.NRDados.salvarConfiguracoes({ musica: true, volumeMusica: 100, modoControle: 'direto' }).catch(() => {});
+    }
+
+    var _mapaRecemAntes = _mapaRecemDesbloqueado;
+    if (typeof verificarMapaRecemDesbloqueado === 'function') verificarMapaRecemDesbloqueado();
+    if (_mapaRecemDesbloqueado > 0) _mapaMenu = _mapaRecemDesbloqueado;
+
+    criarCards();
+    criarDots();
+    atualizarSeletorMapa();
+    if (window.NRHudPerfil && typeof window.NRHudPerfil.iniciar === 'function') window.NRHudPerfil.iniciar();
+
+    if (_mapaRecemDesbloqueado > 0 && _mapaRecemDesbloqueado !== _mapaRecemAntes && typeof dispararConfete === 'function') {
+      setTimeout(function() {
+        dispararConfete(30);
+        vibrar([20, 40, 20, 40, 20]);
+      }, 500);
+    }
+  } catch (e) {
+    console.warn('[NRDados] Falha ao carregar perfil, seguindo com dado local:', e);
+  }
+
+  authGateEl.classList.add('saindo');
+  setTimeout(() => { authGateEl.style.display = 'none'; }, 400);
+});
+
+const btnSairConta = document.getElementById('btnSairConta');
+if (btnSairConta) {
+  btnSairConta.addEventListener('click', function(e) {
+    e.stopPropagation();
+    signOut(auth).then(function() {
+      window.location.href = 'login.html';
+    });
+  });
+}
+
+onValue(ref(db, 'sistema/manutencao'), (snap) => {
+  const ativo = snap.exists() && snap.val() === true;
+  let tela = document.getElementById('telaManutencao');
+  if (ativo) {
+    if (!tela) {
+      tela = document.createElement('div');
+      tela.id = 'telaManutencao';
+      tela.style.cssText = 'position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse at center,rgba(0,10,40,0.98) 0%,rgba(0,0,0,1) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:Orbitron,monospace;';
+      tela.innerHTML = '<div style="font-size:clamp(28px,4vw,48px);font-weight:900;color:#ff4466;text-align:center;">EM MANUTENCAO</div><div style="font-family:Share Tech Mono,monospace;font-size:13px;color:#ffffff66;letter-spacing:3px;text-align:center;max-width:300px;line-height:1.8;">O servidor esta em manutencao.<br>Volte em breve!</div><div style="margin-top:12px;font-size:32px;">⚙️</div>';
+      document.body.appendChild(tela);
+    }
+    tela.style.display = 'flex';
+  } else {
+    if (tela) tela.style.display = 'none';
+  }
+});
+</script>
+<div id="fpsCounter" style="position:fixed;top:27px;right:0;z-index:99999;background:#404040; border:none; padding:2px 4px; border-radius:6px 0px 0px 6px; color:#0f0;font-family:'Share Tech Mono',monospace;font-size:1px;pointer-events:none;">fps --</div>
+<script>
+(function() {
+  var el = document.getElementById('fpsCounter');
+  var frames = 0, ultimo = performance.now(), fps = 0;
+  function loop(agora) {
+    frames++;
+    if (agora - ultimo >= 500) {
+      fps = Math.round((frames * 1000) / (agora - ultimo));
+      el.textContent = 'fps: ' + fps;
+      el.style.color = fps >= 50 ? '#22ff66' : (fps >= 30 ? '#ffdd33' : '#ff4444');
+      frames = 0;
+      ultimo = agora;
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+<script src="dados.js"></script>
+<script src="level.js"></script>
+<script src="perfil.js"></script>
+<script src="xp.js"></script>
+<script src="recompensas.js"></script>
+<script src="avatars.js"></script>
+<script src="molduras.js"></script>
+<script src="titulos.js"></script>
+<script src="conquistas.js"></script>
+<script src="animations.js"></script>
+<script src="hud-profile.js"></script>
+<script src="perfil-ui.js"></script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>

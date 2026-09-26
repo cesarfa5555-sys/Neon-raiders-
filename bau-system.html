@@ -1,0 +1,4238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no,
+      viewport-fit=cover">
+
+<title>NEON RAIDERS — Baú Vanguard</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+
+    background:#02070d;
+
+    color:white;
+    font-family:Arial,sans-serif;
+    touch-action:none;
+}
+
+#game{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+
+    background:transparent;
+
+    z-index:1;
+}
+
+canvas{
+    display:block;
+    width:100%;
+    height:100%;
+}
+
+#backgroundImage{
+    position:absolute;
+    inset:0;
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+    object-position:center;
+
+    z-index:0;
+
+    pointer-events:none;
+}
+
+#game canvas{
+    position:absolute;
+    inset:0;
+    z-index:1;
+}
+
+
+/* =========================
+   LOADING
+========================= */
+
+#loading{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #101b28 0%,
+            #060a11 45%,
+            #020306 100%
+        );
+
+    transition:opacity .4s ease;
+}
+
+#loading.hide{
+    opacity:0;
+    pointer-events:none;
+}
+
+.loadingTitle{
+    font-size:25px;
+    font-weight:900;
+    letter-spacing:4px;
+    color:#00f0ff;
+    text-shadow:0 0 15px rgba(0,240,255,.45);
+    margin-bottom:25px;
+    text-align:center;
+}
+
+.loadingBar{
+    width:220px;
+    height:5px;
+    background:#17202a;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+#loadingFill{
+    width:0%;
+    height:100%;
+    background:#00f0ff;
+    box-shadow:0 0 12px #00f0ff;
+    transition:width .15s linear;
+}
+
+#loadingText{
+    margin-top:13px;
+    color:#84919d;
+    font-size:11px;
+    letter-spacing:2px;
+    
+}
+
+
+/* =========================
+   START
+========================= */
+
+#startScreen{
+    position:fixed;
+    inset:0;
+    z-index:100;
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(0,240,255,.08),
+            transparent 38%
+        );
+}
+
+.startBox{
+    width:min(90%,420px);
+    height:90%;
+    padding:30px 24px;
+    text-align:center;
+
+    border:1px solid rgba(0,240,255,.35);
+    border-radius:12px;
+
+    background:rgba(5,10,17,.9);
+
+    box-shadow:
+        0 0 40px rgba(0,240,255,.07),
+        inset 0 0 30px rgba(0,240,255,.025);
+}
+
+.startBox h1{
+    font-size:px;
+    letter-spacing:4px;
+    color:#00f0ff;
+    
+}
+
+.startBox h2{
+    font-size:13px;
+    letter-spacing:3px;
+    color:#c7d0d8;
+    
+}
+
+.startBox p{
+    color:#74818d;
+    font-size:12px;
+    line-height:1.6;
+    
+}
+
+.chestCount{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin:10px auto 18px;
+    padding:8px 14px;
+    border:1px solid rgba(0,240,255,.35);
+    border-radius:999px;
+    background:rgba(20,54,72,.72);
+    color:#e8fbff;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    box-shadow:0 0 16px rgba(0,240,255,.12);
+}
+
+#chestCountIcon{font-size:16px;}
+
+#estoqueAcabouMsg{
+    margin:10px auto 18px;
+    padding:12px 14px;
+    border:1px solid #ff4455;
+    border-radius:8px;
+    background:rgba(40,8,12,.75);
+    color:#ff8f9b;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    line-height:1.6;
+    text-align:center;
+}
+
+.mainButton{
+    width:100%;
+    height:52px;
+
+    border:1px solid #00f0ff;
+    border-radius:6px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0,240,255,.12),
+            rgba(176,38,255,.12)
+        );
+
+    color:white;
+
+    font-size:13px;
+    font-weight:bold;
+    letter-spacing:2px;
+}
+
+
+/* =========================
+   CHEST UI
+========================= */
+
+#chestUI{
+    position:fixed;
+    inset:0;
+    z-index:50;
+
+    display:none;
+    pointer-events:none;
+}
+
+#chestCountHud{
+    position:absolute;
+    top:58px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:7px 14px;
+    border:1px solid rgba(0,240,255,.35);
+    border-radius:999px;
+    background:rgba(11,35,51,.86);
+    color:#e8fbff;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    white-space:nowrap;
+    box-shadow:0 0 18px rgba(0,240,255,.14);
+}
+
+#chestCountHud.empty{
+    border-color:rgba(255,93,117,.65);
+    color:#ffb5c0;
+}
+
+#chestTitle{
+    position:absolute;
+    top:25px;
+    left:0;
+    width:100%;
+
+    text-align:center;
+
+    font-size:18px;
+    font-weight:bold;
+    letter-spacing:3px;
+
+    color:#00f0ff;
+
+    text-shadow:
+        0 0 12px rgba(0,240,255,.4);
+}
+
+#instruction{
+    position:absolute;
+    bottom:115px;
+    left:0;
+    width:100%;
+
+    text-align:center;
+
+    font-size:13px;
+    letter-spacing:2px;
+    color:#cbd4dc;
+}
+
+#openChestButton{
+
+    position:absolute;
+
+    bottom:45px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    width:min(70%,280px);
+    height:52px;
+
+    border:1px solid #00f0ff;
+    border-radius:6px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0,240,255,.16),
+            rgba(176,38,255,.16)
+        );
+
+    color:white;
+
+    font-size:13px;
+    font-weight:bold;
+
+    letter-spacing:2px;
+
+    pointer-events:auto;
+    touch-action:manipulation;
+
+    box-shadow:
+        0 0 20px rgba(0,240,255,.08),
+        inset 0 0 15px rgba(0,240,255,.04);
+
+    transition:
+        transform .12s ease,
+        opacity .2s ease,
+        border-color .2s ease;
+}
+
+#openChestButton:active{
+    transform:
+        translateX(-50%)
+        scale(.97);
+}
+
+#openChestButton:disabled{
+    opacity:.45;
+    pointer-events:none;
+}
+
+
+/* =========================
+   ROULETTE
+========================= */
+
+#roulette{
+    position:fixed;
+    inset:0;
+
+    z-index:200;
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+
+    background:rgba(2,5,9,.96);
+}
+
+#rouletteTitle{
+    position:absolute;
+    top:35px;
+
+    font-size:18px;
+    letter-spacing:4px;
+    color:#00f0ff;
+}
+
+#rouletteWindow{
+    position:relative;
+
+    width:100%;
+    height:190px;
+
+    overflow:hidden;
+
+    display:flex;
+    align-items:center;
+}
+
+#rouletteTrack{
+    position:absolute;
+    left:0;
+
+    display:flex;
+    align-items:center;
+
+    gap:10px;
+
+    will-change:transform;
+}
+
+.rewardCard{
+    flex:none;
+
+    width:125px;
+    height:145px;
+
+    border:1px solid rgba(174,211,226,.14);
+    border-radius:8px;
+
+    background:
+        linear-gradient(180deg, rgba(35,58,78,.98), rgba(12,24,38,.98));
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:12px;
+
+    transition:
+        transform .12s ease,
+        border-color .12s ease,
+        box-shadow .12s ease;
+}
+
+.rewardCard.pointerActive{
+    background:linear-gradient(180deg,rgba(38,78,101,.98),rgba(12,29,43,.98));
+}
+
+.rewardCard.active{
+    transform:translateY(-18px) scale(1.05);
+    background:linear-gradient(180deg,rgba(47,100,125,.98),rgba(12,39,55,.98));
+
+    border-color:#00f0ff;
+
+    box-shadow:
+        0 0 20px rgba(0,240,255,.2),
+        inset 0 0 15px rgba(0,240,255,.05);
+}
+
+.rewardIcon{
+    width:58px;
+    height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    filter:drop-shadow(0 0 10px rgba(0,240,255,.22));
+}
+.rewardIcon img{width:48px;height:48px;object-fit:contain;}
+
+.rewardName{
+    text-align:center;
+
+    padding:0 8px;
+
+    font-size:10px;
+    font-weight:bold;
+    letter-spacing:1px;
+
+    color:#dbe4ea;
+}
+
+#pointer{
+    position:absolute;
+    z-index:10;
+
+    top:0;
+    bottom:0;
+
+    left:50%;
+
+    width:2px;
+
+    background:#00f0ff;
+
+    box-shadow:
+        0 0 14px #00f0ff;
+}
+
+#pointer::before{
+    content:"";
+
+    position:absolute;
+
+    top:0;
+    left:50%;
+
+    transform:
+        translateX(-50%);
+
+    border-left:8px solid transparent;
+    border-right:8px solid transparent;
+    border-top:14px solid #00f0ff;
+}
+
+
+/* =========================
+   RESULTADO
+========================= */
+
+#result{
+    position:fixed;
+    inset:0;
+
+    z-index:300;
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(2,5,9,.97);
+}
+
+.resultBox{
+    width:min(88%,360px);
+
+    padding:35px 25px;
+
+    text-align:center;
+
+    border:1px solid rgba(0,240,255,.4);
+    border-radius:10px;
+
+    background:#080e16;
+}
+
+.resultBox h2{
+    color:#00f0ff;
+    letter-spacing:4px;
+    margin-bottom:25px;
+}
+
+#resultIcon{
+    width:90px;
+    height:90px;
+
+    margin:0 auto 15px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:65px;
+}
+
+#resultIcon img{
+    width:72px;
+    height:72px;
+
+    object-fit:contain;
+    display:block;
+}
+
+#resultName{
+    font-size:18px;
+    font-weight:bold;
+    letter-spacing:2px;
+    margin-bottom:30px;
+}
+
+#continueButton{
+    width:100%;
+    height:48px;
+
+    border:1px solid #00f0ff;
+
+    background:
+        rgba(0,240,255,.08);
+
+    color:white;
+
+    border-radius:5px;
+
+    font-weight:bold;
+    letter-spacing:2px;
+}
+
+
+/* =========================
+   ERRO
+========================= */
+
+#errorBox{
+    position:fixed;
+
+    left:15px;
+    right:15px;
+    bottom:15px;
+
+    z-index:2000;
+
+    display:none;
+
+    padding:15px;
+
+    border:1px solid #ff4455;
+    border-radius:7px;
+
+    background:rgba(20,5,8,.96);
+
+    color:#ff9ca5;
+
+    font-size:12px;
+    line-height:1.5;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:600px){
+
+    .startBox h1{
+        font-size:23px;
+    }
+
+    #chestTitle{
+        font-size:15px;
+    }
+
+    .rewardCard{
+        width:105px;
+        height:130px;
+    }
+
+    .rewardIcon{
+        font-size:34px;
+    }
+
+    .rewardName{
+        font-size:9px;
+    }
+
+    #openChestButton{
+        width:min(78%,280px);
+    }
+
+}
+
+
+/* =====================================================
+   CAMPO DE FORÇA HEXAGONAL
+===================================================== */
+
+#forceField{
+    position:fixed;
+    inset:0;
+
+    z-index:0;
+
+    overflow:hidden;
+
+    pointer-events:none;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(0,120,160,.16) 0%,
+            rgba(0,40,65,.10) 38%,
+            rgba(1,5,10,.95) 100%
+        );
+}
+
+
+/* MALHA DE HEXÁGONOS */
+
+.hexGrid{
+
+    position:absolute;
+    inset:-20%;
+
+    opacity:.55;
+
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='84' viewBox='0 0 96 84'%3E%3Cpath d='M24 2 L72 2 L94 42 L72 82 L24 82 L2 42 Z' fill='none' stroke='%2300eaff' stroke-width='1'/%3E%3C/svg%3E");
+
+    background-size:
+        96px 84px;
+
+    transform:
+        perspective(600px)
+        rotateX(5deg)
+        scale(1.15);
+
+    filter:
+        drop-shadow(
+            0 0 4px
+            rgba(0,220,255,.35)
+        );
+
+    animation:
+        hexMove 18s linear infinite;
+}
+
+
+/* BRILHO CENTRAL */
+
+.energyGlow{
+
+    position:absolute;
+
+    width:70%;
+    height:70%;
+
+    left:15%;
+    top:15%;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(0,238,255,.13) 0%,
+            rgba(0,150,255,.06) 30%,
+            transparent 70%
+        );
+
+    filter:blur(25px);
+
+    animation:
+        shieldPulse 3s ease-in-out infinite;
+}
+
+
+/* LINHAS DE ENERGIA */
+
+.energyLine{
+
+    position:absolute;
+
+    height:1px;
+
+    width:120%;
+
+    left:-10%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(0,240,255,.0),
+            rgba(0,240,255,.65),
+            rgba(0,240,255,.0),
+            transparent
+        );
+
+    box-shadow:
+        0 0 8px rgba(0,240,255,.5);
+
+    opacity:.5;
+}
+
+
+.line1{
+    top:28%;
+
+    transform:
+        rotate(-8deg);
+
+    animation:
+        energyScan 4s linear infinite;
+}
+
+
+.line2{
+    top:52%;
+
+    transform:
+        rotate(4deg);
+
+    animation:
+        energyScan 5s linear infinite;
+}
+
+
+.line3{
+    top:74%;
+
+    transform:
+        rotate(-5deg);
+
+    animation:
+        energyScan 6s linear infinite;
+}
+
+
+/* MOVIMENTO DOS HEXÁGONOS */
+
+@keyframes hexMove{
+
+    from{
+        background-position:
+            0 0;
+    }
+
+    to{
+        background-position:
+            96px 84px;
+    }
+
+}
+
+
+/* PULSAÇÃO */
+
+@keyframes shieldPulse{
+
+    0%,
+    100%{
+        opacity:.55;
+        transform:scale(.95);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.05);
+    }
+
+}
+
+
+/* VARREDURA */
+
+@keyframes energyScan{
+
+    0%{
+        transform:
+            translateX(-30%)
+            rotate(-8deg);
+
+        opacity:0;
+    }
+
+    20%{
+        opacity:.7;
+    }
+
+    80%{
+        opacity:.7;
+    }
+
+    100%{
+        transform:
+            translateX(30%)
+            rotate(-8deg);
+
+        opacity:0;
+    }
+
+}
+
+
+.rewardIcon img{
+    width:52px;
+    height:52px;
+    object-fit:contain;
+    display:block;
+}
+
+</style>
+</head>
+<script type="module" src="manutencao.js"></script>
+
+<body>
+
+
+<!-- CAMPO DE FORÇA HEXAGONAL -->
+
+<div id="forceField">
+
+    <div class="hexGrid"></div>
+
+    <div class="energyGlow"></div>
+
+    <div class="energyLine line1"></div>
+    <div class="energyLine line2"></div>
+    <div class="energyLine line3"></div>
+
+</div>
+
+
+<div id="game"></div>
+
+
+<!-- LOADING -->
+
+<div id="loading">
+
+    <div class="loadingTitle">
+        BAÚ VANGUARD
+    </div>
+
+    <div class="loadingBar">
+        <div id="loadingFill"></div>
+    </div>
+
+    <div id="loadingText">
+        INICIANDO...
+    </div>
+
+</div>
+
+
+<!-- TELA INICIAL -->
+
+<div id="startScreen">
+
+    <div class="startBox">
+
+        <h1>
+            BAÚ VANGUARD
+        </h1>
+
+        <h2>
+            GIRE E GANHE MOEDAS
+        </h2>
+
+        <p id="oddsText">
+            500 MOEDAS — 75%&nbsp;&nbsp;·&nbsp;&nbsp;1.000 MOEDAS — 20%&nbsp;&nbsp;·&nbsp;&nbsp;7.500 MOEDAS — 5%
+        </p>
+
+        <div class="chestCount" id="startChestCount">
+            <span id="chestCountIcon">▣</span>
+            <span>BAÚS DISPONÍVEIS: <strong id="startChestCountValue">—</strong></span>
+        </div>
+
+        <div class="chestCount" id="moedasJogadorLinha">
+            <span>◈</span>
+            <span>SUAS MOEDAS: <strong id="moedasJogadorValue">—</strong></span>
+        </div>
+
+        <button
+            class="mainButton"
+            id="startButton">
+
+            COMPRAR — 1.000 ◈
+
+        </button>
+
+        <div id="estoqueAcabouMsg" style="display:none;">
+            ESTOQUE DE BAÚS ACABOU.<br>ESPERE O RESET.
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- UI DO BAÚ -->
+
+<div id="chestUI">
+
+    <div id="chestTitle">
+        BAÚ VANGUARD
+    </div>
+
+    <div id="chestCountHud">
+        BAÚ PRONTO PRA ABRIR
+    </div>
+
+    <div id="instruction">
+        TOQUE NO BOTÃO PARA ABRIR
+    </div>
+
+    <button id="openChestButton">
+        ABRIR BAÚ
+    </button>
+
+</div>
+
+
+<!-- ROULETTE -->
+
+<div id="roulette">
+
+    <div id="rouletteTitle">
+        RECOMPENSA
+    </div>
+
+    <div id="rouletteWindow">
+
+        <div id="pointer"></div>
+
+        <div id="rouletteTrack"></div>
+
+    </div>
+
+</div>
+
+
+<!-- RESULTADO -->
+
+<div id="result">
+
+    <div class="resultBox">
+
+        <h2>
+            VOCÊ GANHOU
+        </h2>
+
+        <div id="resultIcon">
+            💠
+        </div>
+
+        <div id="resultName">
+            RECOMPENSA
+        </div>
+
+        <button id="continueButton">
+            CONTINUAR
+        </button>
+
+    </div>
+
+</div>
+
+
+<div id="errorBox"></div>
+
+<!-- Camada de dados do jogo (Firebase Auth + Realtime Database).
+     Precisa carregar como script normal (não-módulo), ANTES do
+     módulo abaixo, pra window.NRDados já existir quando o módulo
+     rodar — mesmo padrão usado em loja.html/menu.html. -->
+<script src="dados.js"></script>
+
+<script type="module">
+
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+
+
+/* =====================================================
+   CONFIGURAÇÃO
+===================================================== */
+
+
+/* =====================================================
+   ELEMENTOS
+===================================================== */
+
+const game =
+document.getElementById("game");
+
+const loading =
+document.getElementById("loading");
+
+const loadingFill =
+document.getElementById("loadingFill");
+
+const loadingText =
+document.getElementById("loadingText");
+
+const startScreen =
+document.getElementById("startScreen");
+
+const startButton =
+document.getElementById("startButton");
+
+const startChestCountValue =
+document.getElementById("startChestCountValue");
+
+const moedasJogadorValue =
+document.getElementById("moedasJogadorValue");
+
+const estoqueAcabouMsg =
+document.getElementById("estoqueAcabouMsg");
+
+const oddsText =
+document.getElementById("oddsText");
+
+const chestCountHud =
+document.getElementById("chestCountHud");
+
+const chestUI =
+document.getElementById("chestUI");
+
+const openChestButton =
+document.getElementById("openChestButton");
+
+const instruction =
+document.getElementById("instruction");
+
+const roulette =
+document.getElementById("roulette");
+
+const rouletteTrack =
+document.getElementById("rouletteTrack");
+
+const result =
+document.getElementById("result");
+
+const resultIcon =
+document.getElementById("resultIcon");
+
+const resultName =
+document.getElementById("resultName");
+
+const continueButton =
+document.getElementById("continueButton");
+
+const errorBox =
+document.getElementById("errorBox");
+
+
+/* =====================================================
+   TRATAMENTO DE ERRO
+===================================================== */
+
+window.addEventListener(
+    "error",
+    event => {
+
+        console.error(
+            event.error ||
+            event.message
+        );
+
+        errorBox.textContent =
+        "ERRO: " +
+        (
+            event.error?.message ||
+            event.message ||
+            "Erro desconhecido"
+        );
+
+        errorBox.style.display =
+        "block";
+
+        loading.classList.add(
+            "hide"
+        );
+
+    }
+);
+
+
+window.addEventListener(
+    "unhandledrejection",
+    event => {
+
+        console.error(
+            event.reason
+        );
+
+        errorBox.textContent =
+        "ERRO: " +
+        (
+            event.reason?.message ||
+            event.reason ||
+            "Erro desconhecido"
+        );
+
+        errorBox.style.display =
+        "block";
+
+        loading.classList.add(
+            "hide"
+        );
+
+    }
+);
+
+
+/* =====================================================
+   ÁUDIO — GERADO PELO JAVASCRIPT
+===================================================== */
+
+let audioContext = null;
+
+
+function initAudio(){
+
+    try{
+
+        if(!audioContext){
+
+            audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+        }
+
+        if(
+            audioContext.state ===
+            "suspended"
+        ){
+
+            audioContext.resume();
+
+        }
+
+    }
+    catch(error){
+
+        console.log(
+            "Áudio indisponível",
+            error
+        );
+
+    }
+
+}
+
+
+function beep(
+    frequency,
+    duration,
+    volume = 0.08,
+    type = "sine"
+){
+
+    try{
+
+        initAudio();
+
+        if(!audioContext)
+            return;
+
+        const oscillator =
+        audioContext.createOscillator();
+
+        const gain =
+        audioContext.createGain();
+
+        oscillator.type =
+        type;
+
+        oscillator.frequency.setValueAtTime(
+            frequency,
+            audioContext.currentTime
+        );
+
+        gain.gain.setValueAtTime(
+            volume,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioContext.currentTime +
+            duration
+        );
+
+        oscillator.connect(
+            gain
+        );
+
+        gain.connect(
+            audioContext.destination
+        );
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime +
+            duration
+        );
+
+    }
+    catch(error){
+
+        console.log(
+            "Erro no áudio:",
+            error
+        );
+
+    }
+
+}
+
+
+/* DESBLOQUEIO */
+
+function playUnlock(){
+
+    beep(
+        600,
+        .12,
+        .08,
+        "square"
+    );
+
+    setTimeout(
+        () => {
+
+            beep(
+                900,
+                .16,
+                .08,
+                "square"
+            );
+
+        },
+        100
+    );
+
+}
+
+
+/* ABERTURA */
+
+function playOpen(){
+
+    beep(
+        180,
+        .35,
+        .09,
+        "sawtooth"
+    );
+
+    setTimeout(
+        () => {
+
+            beep(
+                420,
+                .25,
+                .07,
+                "sine"
+            );
+
+        },
+        120
+    );
+
+}
+
+
+/* ENERGIA */
+
+function playEnergy(){
+
+    beep(
+        500,
+        .15,
+        .06,
+        "sine"
+    );
+
+    setTimeout(
+        () => {
+
+            beep(
+                750,
+                .18,
+                .07,
+                "sine"
+            );
+
+        },
+        100
+    );
+
+    setTimeout(
+        () => {
+
+            beep(
+                1100,
+                .30,
+                .09,
+                "sine"
+            );
+
+        },
+        200
+    );
+
+}
+
+
+/* TICK */
+
+function playTick(){
+
+    beep(
+        850,
+        .045,
+        .045,
+        "square"
+    );
+
+}
+
+
+/* RECOMPENSA */
+
+function playReward(){
+
+    beep(
+        600,
+        .12,
+        .07,
+        "sine"
+    );
+
+    setTimeout(
+        () => {
+
+            beep(
+                850,
+                .12,
+                .07,
+                "sine"
+            );
+
+        },
+        100
+    );
+
+    setTimeout(
+        () => {
+
+            beep(
+                1200,
+                .35,
+                .10,
+                "sine"
+            );
+
+        },
+        200
+    );
+
+}
+
+
+/* =====================================================
+   RECOMPENSAS
+===================================================== */
+
+const rewards = [
+
+    {
+        id:"coins-500",
+        name:"500 MOEDAS",
+        icon:"◈",
+        peso:75
+    },
+
+    {
+        id:"coins-1000",
+        name:"1.000 MOEDAS",
+        icon:"◈",
+        peso:20
+    },
+
+    {
+        id:"coins-7500",
+        name:"7.500 MOEDAS",
+        icon:"◈",
+        peso:5
+    }
+
+];
+
+// Soma dos pesos acima — usado no sorteio ponderado (ver
+// sortearIndicePonderado, perto de startRoulette). Maior valor em
+// moedas = peso menor = mais difícil de sair.
+const pesoTotalRewards = rewards.reduce(
+    function(soma, r){ return soma + r.peso; },
+    0
+);
+
+function sortearIndicePonderado(){
+    let alvo = Math.random() * pesoTotalRewards;
+    for(let i = 0; i < rewards.length; i++){
+        alvo -= rewards[i].peso;
+        if(alvo <= 0) return i;
+    }
+    return rewards.length - 1;
+}
+
+
+/* =====================================================
+   CENA
+===================================================== */
+
+const scene =
+new THREE.Scene();
+
+scene.background =
+null;
+
+scene.fog =
+new THREE.FogExp2(
+    0x07121c,
+    0.09
+);
+
+
+/* =====================================================
+   CÂMERA
+===================================================== */
+
+const camera =
+new THREE.PerspectiveCamera(
+    45,
+    window.innerWidth /
+    window.innerHeight,
+    0.1,
+    100
+);
+
+camera.position.set(
+    0,
+    1.4,
+    4.2
+);
+
+camera.lookAt(
+    0,
+    -0.05,
+    0
+);
+
+
+/* =====================================================
+   RENDERER
+===================================================== */
+
+const renderer =
+new THREE.WebGLRenderer({
+
+    // Em telas de alta densidade, o pixel ratio já suaviza a imagem;
+    // desligar MSAA libera GPU para manter o FPS.
+    antialias:window.devicePixelRatio < 1.5,
+
+    alpha:true,
+
+    powerPreference:
+    "high-performance"
+
+});
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+const renderPixelRatio = Math.min(window.devicePixelRatio, 1.0);
+
+renderer.setPixelRatio(
+    renderPixelRatio
+);
+
+renderer.outputColorSpace =
+THREE.SRGBColorSpace;
+
+// Sombras dinâmicas desligadas para reduzir o custo de GPU no celular.
+renderer.shadowMap.enabled =
+false;
+
+renderer.toneMapping =
+THREE.ACESFilmicToneMapping;
+
+renderer.toneMappingExposure =
+1.35;
+
+game.appendChild(
+    renderer.domElement
+);
+
+
+/* =====================================================
+   ILUMINAÇÃO
+===================================================== */
+
+const ambientLight =
+new THREE.AmbientLight(
+    0x2e709d,
+    2.05
+);
+
+scene.add(
+    ambientLight
+);
+
+
+const keyLight =
+new THREE.DirectionalLight(
+    0x79f5ff,
+    2.1
+);
+
+keyLight.position.set(
+    3,
+    5,
+    4
+);
+
+keyLight.castShadow =
+false;
+
+scene.add(
+    keyLight
+);
+
+// Preenchimento frontal: revela a armadura azul sem apagar os neons.
+const frontFillLight =
+new THREE.DirectionalLight(
+    0x56dfff,
+    2.3
+);
+
+frontFillLight.position.set(
+    0,
+    1.0,
+    3.1
+);
+
+frontFillLight.target.position.set(
+    0,
+    .25,
+    0
+);
+
+scene.add(frontFillLight.target);
+
+scene.add(
+    frontFillLight
+);
+
+
+const fillLight =
+new THREE.DirectionalLight(
+    0xd48aff,
+    1.35
+);
+
+fillLight.position.set(
+    -4,
+    -1,
+    -3
+);
+
+scene.add(
+    fillLight
+);
+
+
+const interiorLight =
+new THREE.PointLight(
+    0x00eaff,
+    0.85,
+    4.2
+);
+
+interiorLight.position.set(
+    0,
+    .4,
+    0
+);
+
+scene.add(
+    interiorLight
+);
+
+
+const coreLight =
+new THREE.PointLight(
+    0xd36cff,
+    .65,
+    3.2
+);
+
+coreLight.position.set(
+    0,
+    .3,
+    0
+);
+
+scene.add(
+    coreLight
+);
+
+const interiorPinkLight =
+new THREE.PointLight(
+    0xff2bd6,
+    0,
+    3.4
+);
+
+interiorPinkLight.position.set(
+    0,
+    .28,
+    .18
+);
+
+scene.add(
+    interiorPinkLight
+);
+
+
+/* =====================================================
+   MATERIAIS
+===================================================== */
+
+const darkMetalMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x1c5480,
+    emissive:0x061a31,
+    emissiveIntensity:.22,
+    roughness:.35,
+    metalness:.82
+
+});
+
+
+const armorPlateMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x347cac,
+    emissive:0x071d38,
+    emissiveIntensity:.18,
+    roughness:.25,
+    metalness:.86
+
+});
+
+
+const brightMetalMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x79bfe8,
+    roughness:.2,
+    metalness:.95
+
+});
+
+
+const accentMetalMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x3a76a8,
+    emissive:0x061b35,
+    emissiveIntensity:.14,
+    roughness:.15,
+    metalness:.9
+
+});
+
+
+const neonCyanMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x00eaff,
+    emissive:0x00eaff,
+    emissiveIntensity:1.35,
+    roughness:.1
+
+});
+
+
+const neonPurpleMat =
+new THREE.MeshStandardMaterial({
+
+    color:0xff2bd6,
+    emissive:0xff2bd6,
+    emissiveIntensity:1.2,
+    roughness:.1
+
+});
+
+
+const interiorMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x0b2747,
+    roughness:.8,
+    metalness:.2
+
+});
+
+
+const coreCrystalMat =
+new THREE.MeshStandardMaterial({
+
+    color:0x42f4ff,
+    emissive:0x00d9ff,
+    emissiveIntensity:2.1,
+    wireframe:true
+
+});
+
+
+const coreInnerMat =
+new THREE.MeshStandardMaterial({
+
+    color:0xffffff,
+    emissive:0x00eaff,
+    emissiveIntensity:2.8
+
+});
+
+
+/* =====================================================
+   BAÚ PRINCIPAL
+===================================================== */
+
+const chestGroup =
+new THREE.Group();
+
+scene.add(
+    chestGroup
+);
+
+
+/* =====================================================
+   CORPO
+===================================================== */
+
+const bodyGroup =
+new THREE.Group();
+
+
+const bottomPanel =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.48,
+        .06,
+        .88
+    ),
+    interiorMat
+);
+
+bottomPanel.position.set(
+    0,
+    .03,
+    0
+);
+
+bodyGroup.add(
+    bottomPanel
+);
+
+
+/* PAREDES */
+
+const frontWall =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.48,
+        .62,
+        .08
+    ),
+    darkMetalMat
+);
+
+frontWall.position.set(
+    0,
+    .35,
+    .41
+);
+
+bodyGroup.add(
+    frontWall
+);
+
+
+const backWall =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.48,
+        .62,
+        .08
+    ),
+    darkMetalMat
+);
+
+backWall.position.set(
+    0,
+    .35,
+    -.41
+);
+
+bodyGroup.add(
+    backWall
+);
+
+
+const leftWall =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .08,
+        .62,
+        .74
+    ),
+    darkMetalMat
+);
+
+leftWall.position.set(
+    -.70,
+    .35,
+    0
+);
+
+bodyGroup.add(
+    leftWall
+);
+
+
+const rightWall =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .08,
+        .62,
+        .74
+    ),
+    darkMetalMat
+);
+
+rightWall.position.set(
+    .70,
+    .35,
+    0
+);
+
+bodyGroup.add(
+    rightWall
+);
+
+
+/* =====================================================
+   REFORÇOS
+===================================================== */
+
+const cornerPositions = [
+
+    [-.72,.35,.42],
+    [.72,.35,.42],
+    [-.72,.35,-.42],
+    [.72,.35,-.42]
+
+];
+
+
+cornerPositions.forEach(
+    pos => {
+
+        const pillar =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .12,
+                .66,
+                .12
+            ),
+            armorPlateMat
+        );
+
+        pillar.position.set(
+            ...pos
+        );
+
+        bodyGroup.add(
+            pillar
+        );
+
+
+        const bolt =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .02,
+                .02,
+                .14,
+                8
+            ),
+            brightMetalMat
+        );
+
+        bolt.position.set(
+            pos[0],
+            .62,
+            pos[2]
+        );
+
+        bodyGroup.add(
+            bolt
+        );
+
+    }
+);
+
+
+/* =====================================================
+   ARMADURA FRONTAL
+===================================================== */
+
+const frontArmor =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .6,
+        .42,
+        .04
+    ),
+    armorPlateMat
+);
+
+frontArmor.position.set(
+    0,
+    .35,
+    .44
+);
+
+bodyGroup.add(
+    frontArmor
+);
+
+
+/* =====================================================
+   NEON FRONTAL
+===================================================== */
+
+const neonTop =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.2,
+        .025,
+        .02
+    ),
+    neonCyanMat
+);
+
+neonTop.position.set(
+    0,
+    .58,
+    .45
+);
+
+bodyGroup.add(
+    neonTop
+);
+
+
+const neonLeft =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .025,
+        .35,
+        .02
+    ),
+    neonCyanMat
+);
+
+neonLeft.position.set(
+    -.58,
+    .35,
+    .45
+);
+
+bodyGroup.add(
+    neonLeft
+);
+
+
+const neonRight =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .025,
+        .35,
+        .02
+    ),
+    neonCyanMat
+);
+
+neonRight.position.set(
+    .58,
+    .35,
+    .45
+);
+
+bodyGroup.add(
+    neonRight
+);
+
+
+/* =====================================================
+   FECHADURA
+===================================================== */
+
+const lockBase =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .22,
+        .26,
+        .06
+    ),
+    brightMetalMat
+);
+
+lockBase.position.set(
+    0,
+    .35,
+    .46
+);
+
+bodyGroup.add(
+    lockBase
+);
+
+
+const lockCore =
+new THREE.Mesh(
+    new THREE.CylinderGeometry(
+        .06,
+        .06,
+        .08,
+        16
+    ),
+    accentMetalMat
+);
+
+lockCore.rotation.x =
+Math.PI / 2;
+
+lockCore.position.set(
+    0,
+    .35,
+    .47
+);
+
+bodyGroup.add(
+    lockCore
+);
+
+
+const lockGlow =
+new THREE.Mesh(
+    new THREE.SphereGeometry(
+        .03,
+        12,
+        12
+    ),
+    neonCyanMat
+);
+
+lockGlow.position.set(
+    0,
+    .35,
+    .51
+);
+
+bodyGroup.add(
+    lockGlow
+);
+
+
+const lockRing =
+new THREE.Mesh(
+    new THREE.TorusGeometry(
+        .12,
+        .012,
+        8,
+        24
+    ),
+    neonPurpleMat
+);
+
+lockRing.position.set(
+    0,
+    .35,
+    .45
+);
+
+bodyGroup.add(
+    lockRing
+);
+
+
+/* =====================================================
+   ENTRADA DE CHAVE — PREPARADA PARA SISTEMA FUTURO
+===================================================== */
+
+const keyEntryPlate =
+new THREE.Mesh(
+    new THREE.BoxGeometry(.30, .31, .035),
+    accentMetalMat
+);
+
+keyEntryPlate.position.set(
+    0,
+    .35,
+    .485
+);
+
+bodyGroup.add(keyEntryPlate);
+
+const keyEntryRing =
+new THREE.Mesh(
+    new THREE.TorusGeometry(.105, .016, 10, 32),
+    neonPurpleMat
+);
+
+keyEntryRing.position.set(
+    0,
+    .405,
+    .515
+);
+
+keyEntryRing.rotation.x =
+0;
+
+bodyGroup.add(keyEntryRing);
+
+const keyEntrySlot =
+new THREE.Mesh(
+    new THREE.BoxGeometry(.038, .115, .025),
+    interiorMat
+);
+
+keyEntrySlot.position.set(
+    0,
+    .32,
+    .52
+);
+
+bodyGroup.add(keyEntrySlot);
+
+const keyEntryTeeth =
+new THREE.Mesh(
+    new THREE.BoxGeometry(.085, .025, .025),
+    interiorMat
+);
+
+keyEntryTeeth.position.set(
+    .025,
+    .275,
+    .52
+);
+
+bodyGroup.add(keyEntryTeeth);
+
+const keyEntryGlow =
+new THREE.Mesh(
+    new THREE.TorusGeometry(.14, .008, 6, 20),
+    neonCyanMat
+);
+
+keyEntryGlow.position.set(
+    0,
+    .405,
+    .52
+);
+
+keyEntryGlow.rotation.x =
+0;
+
+bodyGroup.add(keyEntryGlow);
+
+
+/* =====================================================
+   ALÇAS
+===================================================== */
+
+[-.76,.76].forEach(
+    x => {
+
+        const mount =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .05,
+                .12,
+                .14
+            ),
+            brightMetalMat
+        );
+
+        mount.position.set(
+            x,
+            .4,
+            0
+        );
+
+        bodyGroup.add(
+            mount
+        );
+
+
+        const handle =
+        new THREE.Mesh(
+            new THREE.TorusGeometry(
+                .09,
+                .018,
+                8,
+                16
+            ),
+            armorPlateMat
+        );
+
+        handle.rotation.y =
+        Math.PI / 2;
+
+        handle.position.set(
+            x * 1.02,
+            .35,
+            0
+        );
+
+        bodyGroup.add(
+            handle
+        );
+
+    }
+);
+
+
+/* =====================================================
+   DOBRADIÇAS
+===================================================== */
+
+const hingeY =
+.66;
+
+const hingeZ =
+-.42;
+
+
+const hingePin =
+new THREE.Mesh(
+    new THREE.CylinderGeometry(
+        .02,
+        .02,
+        1.1,
+        16
+    ),
+    brightMetalMat
+);
+
+hingePin.rotation.z =
+Math.PI / 2;
+
+hingePin.position.set(
+    0,
+    hingeY,
+    hingeZ
+);
+
+bodyGroup.add(
+    hingePin
+);
+
+
+[-.45,.45].forEach(
+    x => {
+
+        const hingeBase =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .08,
+                .1,
+                .08
+            ),
+            armorPlateMat
+        );
+
+        hingeBase.position.set(
+            x,
+            hingeY - .02,
+            hingeZ
+        );
+
+        bodyGroup.add(
+            hingeBase
+        );
+
+    }
+);
+
+
+/* =====================================================
+   LID PIVOT
+===================================================== */
+
+const lidPivot =
+new THREE.Group();
+
+lidPivot.position.set(
+    0,
+    hingeY,
+    hingeZ
+);
+
+
+/* =====================================================
+   TAMPA
+===================================================== */
+
+const lidGroup =
+new THREE.Group();
+
+lidPivot.add(
+    lidGroup
+);
+
+
+const lidBaseFrame =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.54,
+        .08,
+        .86
+    ),
+    armorPlateMat
+);
+
+lidBaseFrame.position.set(
+    0,
+    .04,
+    .42
+);
+
+lidGroup.add(
+    lidBaseFrame
+);
+
+
+const lidTopBody =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.4,
+        .18,
+        .74
+    ),
+    darkMetalMat
+);
+
+lidTopBody.position.set(
+    0,
+    .15,
+    .42
+);
+
+lidGroup.add(
+    lidTopBody
+);
+
+
+const lidTopPlate =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.1,
+        .06,
+        .52
+    ),
+    armorPlateMat
+);
+
+lidTopPlate.position.set(
+    0,
+    .25,
+    .42
+);
+
+lidGroup.add(
+    lidTopPlate
+);
+
+
+/* =====================================================
+   NEON DA TAMPA
+===================================================== */
+
+const lidNeonCenter =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .8,
+        .02,
+        .03
+    ),
+    neonCyanMat
+);
+
+lidNeonCenter.position.set(
+    0,
+    .29,
+    .42
+);
+
+lidGroup.add(
+    lidNeonCenter
+);
+
+
+const lidNeonFront =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .7,
+        .02,
+        .03
+    ),
+    neonPurpleMat
+);
+
+lidNeonFront.position.set(
+    0,
+    .28,
+    .25
+);
+
+lidGroup.add(
+    lidNeonFront
+);
+
+
+const lidNeonBack =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .7,
+        .02,
+        .03
+    ),
+    neonPurpleMat
+);
+
+lidNeonBack.position.set(
+    0,
+    .28,
+    .59
+);
+
+lidGroup.add(
+    lidNeonBack
+);
+
+
+/* =====================================================
+   TRAVA
+===================================================== */
+
+const lidLatch =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .2,
+        .12,
+        .05
+    ),
+    brightMetalMat
+);
+
+lidLatch.position.set(
+    0,
+    .01,
+    .86
+);
+
+lidGroup.add(
+    lidLatch
+);
+
+
+const lidLatchCyan =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        .12,
+        .05,
+        .02
+    ),
+    neonCyanMat
+);
+
+lidLatchCyan.position.set(
+    0,
+    .01,
+    .88
+);
+
+lidGroup.add(
+    lidLatchCyan
+);
+
+
+/* =====================================================
+   BRAÇOS DAS DOBRADIÇAS
+===================================================== */
+
+[-.45,.45].forEach(
+    x => {
+
+        const arm =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .06,
+                .08,
+                .1
+            ),
+            brightMetalMat
+        );
+
+        arm.position.set(
+            x,
+            .02,
+            .04
+        );
+
+        lidGroup.add(
+            arm
+        );
+
+    }
+);
+
+
+/* =====================================================
+   INTERIOR DA TAMPA
+===================================================== */
+
+const lidInnerPanel =
+new THREE.Mesh(
+    new THREE.BoxGeometry(
+        1.3,
+        .01,
+        .7
+    ),
+    interiorMat
+);
+
+lidInnerPanel.position.set(
+    0,
+    -.005,
+    .42
+);
+
+lidGroup.add(
+    lidInnerPanel
+);
+
+
+const lidInnerEmitter =
+new THREE.Mesh(
+    new THREE.CylinderGeometry(
+        .18,
+        .18,
+        .01,
+        16
+    ),
+    neonCyanMat
+);
+
+lidInnerEmitter.position.set(
+    0,
+    -.01,
+    .42
+);
+
+lidGroup.add(
+    lidInnerEmitter
+);
+
+
+/* =====================================================
+   NÚCLEO
+===================================================== */
+
+const coreGroup =
+new THREE.Group();
+
+coreGroup.position.set(
+    0,
+    .12,
+    0
+);
+
+
+const corePedestal =
+new THREE.Mesh(
+    new THREE.CylinderGeometry(
+        .22,
+        .28,
+        .1,
+        16
+    ),
+    armorPlateMat
+);
+
+corePedestal.position.y =
+.01;
+
+coreGroup.add(
+    corePedestal
+);
+
+
+const coreOuter =
+new THREE.Mesh(
+    new THREE.OctahedronGeometry(
+        .14,
+        0
+    ),
+    coreCrystalMat
+);
+
+coreOuter.position.y =
+.22;
+
+coreGroup.add(
+    coreOuter
+);
+
+
+const coreInner =
+new THREE.Mesh(
+    new THREE.IcosahedronGeometry(
+        .07,
+        0
+    ),
+    coreInnerMat
+);
+
+coreInner.position.y =
+.22;
+
+coreGroup.add(
+    coreInner
+);
+
+
+const ring1 =
+new THREE.Mesh(
+    new THREE.TorusGeometry(
+        .2,
+        .01,
+        8,
+        32
+    ),
+    neonCyanMat
+);
+
+ring1.position.y =
+.22;
+
+ring1.rotation.x =
+Math.PI / 3;
+
+coreGroup.add(
+    ring1
+);
+
+
+const ring2 =
+new THREE.Mesh(
+    new THREE.TorusGeometry(
+        .24,
+        .01,
+        8,
+        32
+    ),
+    neonPurpleMat
+);
+
+ring2.position.y =
+.22;
+
+ring2.rotation.z =
+Math.PI / 4;
+
+coreGroup.add(
+    ring2
+);
+
+
+/* =====================================================
+   PORTAL INTERNO REMASTERIZADO
+===================================================== */
+
+const interiorPortal =
+new THREE.Mesh(
+    new THREE.TorusGeometry(.31, .018, 8, 24),
+    neonCyanMat
+);
+
+interiorPortal.position.set(
+    0,
+    .20,
+    0
+);
+
+interiorPortal.rotation.x =
+Math.PI / 2;
+
+bodyGroup.add(interiorPortal);
+
+const interiorPortalPink =
+new THREE.Mesh(
+    new THREE.TorusGeometry(.255, .012, 8, 24),
+    neonPurpleMat
+);
+
+interiorPortalPink.position.set(
+    0,
+    .205,
+    0
+);
+
+interiorPortalPink.rotation.x =
+Math.PI / 2;
+
+bodyGroup.add(interiorPortalPink);
+
+const innerEnergyColumn =
+new THREE.Mesh(
+    new THREE.CylinderGeometry(.045, .10, .52, 16, 1, true),
+    neonCyanMat
+);
+
+innerEnergyColumn.position.set(
+    0,
+    .34,
+    0
+);
+
+bodyGroup.add(innerEnergyColumn);
+
+
+/* =====================================================
+   PARTÍCULAS
+===================================================== */
+
+function createParticleTexture(){
+
+    const canvas =
+    document.createElement(
+        "canvas"
+    );
+
+    canvas.width =
+    20;
+
+    canvas.height =
+    20;
+
+    const ctx =
+    canvas.getContext("2d");
+
+    const gradient =
+    ctx.createRadialGradient(
+        10,
+        10,
+        0,
+        10,
+        10,
+        10
+    );
+
+    gradient.addColorStop(
+        0,
+        "rgba(0,243,255,1)"
+    );
+
+    gradient.addColorStop(
+        .4,
+        "rgba(0,200,255,.5)"
+    );
+
+    gradient.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    ctx.fillStyle =
+    gradient;
+
+    ctx.fillRect(
+        0,
+        0,
+        20,
+        20
+    );
+
+    return new THREE.CanvasTexture(
+        canvas
+    );
+
+}
+
+
+const particleCount =
+36;
+
+const particlePositions =
+new Float32Array(
+    particleCount * 3
+);
+
+const particleData =
+[];
+
+
+for(
+    let i = 0;
+    i < particleCount;
+    i++
+){
+
+    particlePositions[i * 3] =
+    (Math.random() - .5) * .7;
+
+    particlePositions[i * 3 + 1] =
+    .2 + Math.random() * .4;
+
+    particlePositions[i * 3 + 2] =
+    (Math.random() - .5) * .5;
+
+
+    particleData.push({
+
+        vx:(Math.random()-.5)*.003,
+
+        vy:.004 + Math.random()*.006,
+
+        vz:(Math.random()-.5)*.003,
+
+        baseY:.15,
+
+        maxY:.85 + Math.random()*.3
+
+    });
+
+}
+
+
+const particleGeo =
+new THREE.BufferGeometry();
+
+particleGeo.setAttribute(
+    "position",
+    new THREE.BufferAttribute(
+        particlePositions,
+        3
+    )
+);
+
+
+const particleMat =
+new THREE.PointsMaterial({
+
+    size:.06,
+
+    map:createParticleTexture(),
+
+    transparent:true,
+
+    blending:
+    THREE.AdditiveBlending,
+
+    depthWrite:false,
+
+    opacity:0
+
+});
+
+
+const particleSystem =
+new THREE.Points(
+    particleGeo,
+    particleMat
+);
+
+
+/* =====================================================
+   GRUPO APENAS DO BAÚ
+===================================================== */
+
+const chestModel =
+new THREE.Group();
+
+chestModel.add(
+    bodyGroup
+);
+
+chestModel.add(
+    lidPivot
+);
+
+chestModel.add(
+    particleSystem
+);
+
+chestGroup.add(
+    chestModel
+);
+
+bodyGroup.add(
+    coreGroup
+);
+
+
+/* =====================================================
+   SOMBRAS
+===================================================== */
+
+chestGroup.traverse(
+    object => {
+
+        if(object.isMesh){
+
+            object.castShadow =
+            true;
+
+            object.receiveShadow =
+            true;
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   POSIÇÃO / ESCALA
+===================================================== */
+
+chestGroup.scale.set(
+    0.90,
+    0.90,
+    0.90
+);
+
+chestGroup.position.set(
+    0,
+    -0.30,
+    0
+);
+
+chestModel.rotation.y =
+Math.PI * .15;
+
+
+/* =====================================================
+   ESTADO
+===================================================== */
+
+let chestState =
+"closed";
+
+let openProgress =
+0;
+
+const animDuration =
+0.85;
+
+let chestOpened =
+false;
+
+/* =====================================================
+   ESTOQUE DA LOJA (real, compartilhado entre todos os jogadores)
+   O antigo "99 por padrão" virou o valor inicial do estoque de
+   verdade, guardado em usuarios/../ não — fica em um nó global do
+   Realtime Database (estoqueBauVanguard/quantidade), porque é a
+   LOJA que tem estoque, não cada jogador. Ver comprarBau() mais
+   abaixo pra como ele é decrementado com segurança (transação).
+
+   "chestCount" aqui deixou de ser um estoque — agora é só uma flag
+   local (0 ou 1): 1 significa "esse jogador já pagou por um giro e
+   ele está pronto pra abrir nesta visita à tela".
+===================================================== */
+
+const PRECO_BAU_MOEDAS = 950;
+let estoqueGlobal = null; // null = ainda não carregou do Firebase
+let chestCount = 0;
+
+function saveChestCount(){
+    // Não existe mais estoque por aparelho/localStorage — o estoque
+    // de verdade é o nó global no Firebase, mexido só via comprarBau().
+}
+
+
+/* =====================================================
+   LOJA — ESTOQUE GLOBAL E COMPRA
+   Estoque compartilhado entre TODOS os jogadores (não é mais por
+   aparelho) — fica em estoqueBauVanguard/quantidade no Realtime
+   Database. O preço é pago em moedas reais do jogador, pelo mesmo
+   campo que loja.js já usa (usuarios/{uid}/progresso/moedas).
+===================================================== */
+
+async function buscarEstoqueEMoedas(){
+    let moedasAtuais = Number(localStorage.getItem("moedas")) || 0;
+
+    if(!window.NRDados){
+        estoqueGlobal = 0;
+        atualizarTelaInicial(moedasAtuais);
+        return;
+    }
+
+    try{
+        const { db, dbMod } = await window.NRDados._getFirebase();
+        const snapEstoque = await dbMod.get(dbMod.ref(db, "estoqueBauVanguard/quantidade"));
+        estoqueGlobal = snapEstoque.exists() ? Number(snapEstoque.val()) : 0;
+    }
+    catch(erro){
+        console.warn("Não foi possível ler o estoque de baús:", erro);
+        estoqueGlobal = 0;
+    }
+
+    try{
+        const perfil = await window.NRDados.carregarPerfil(true);
+        if(perfil && perfil.progresso && typeof perfil.progresso.moedas === "number"){
+            moedasAtuais = perfil.progresso.moedas;
+        }
+    }
+    catch(erro){}
+
+    atualizarTelaInicial(moedasAtuais);
+}
+
+function atualizarTelaInicial(moedasAtuais){
+    startChestCountValue.textContent = estoqueGlobal === null ? "—" : estoqueGlobal;
+    moedasJogadorValue.textContent = moedasAtuais;
+
+    const semEstoque = (estoqueGlobal !== null) && (estoqueGlobal <= 0);
+    const semMoedas = moedasAtuais < PRECO_BAU_MOEDAS;
+
+    if(semEstoque){
+        startButton.style.display = "none";
+        estoqueAcabouMsg.style.display = "block";
+        return;
+    }
+
+    startButton.style.display = "";
+    estoqueAcabouMsg.style.display = "none";
+    startButton.disabled = semMoedas;
+    startButton.textContent = semMoedas
+        ? "MOEDAS INSUFICIENTES"
+        : "COMPRAR — " + PRECO_BAU_MOEDAS.toLocaleString("pt-BR") + " ◈";
+}
+
+// Cobra o preço em moedas e desconta 1 do estoque global, cada um com
+// sua própria transação atômica do Realtime Database (evita clique
+// duplo gastando moedas 2x, e evita dois jogadores furarem o estoque
+// comprando ao mesmo tempo). Sem Cloud Functions nesse projeto, as
+// duas escritas não são uma coisa só de verdade — por isso, se o
+// estoque falhar DEPOIS das moedas já terem sido cobradas, devolve as
+// moedas na sequência.
+async function comprarBau(){
+    if(!window.NRDados) return { ok:false, erro:"Sistema indisponível." };
+
+    let moedasLocais = Number(localStorage.getItem("moedas")) || 0;
+    if(moedasLocais < PRECO_BAU_MOEDAS){
+        return { ok:false, erro: "Moedas insuficientes." };
+    }
+
+    try {
+        const { db, dbMod, auth } = await window.NRDados._getFirebase();
+        const uid = auth.currentUser ? auth.currentUser.uid : await window.NRDados.uid();
+        const moedasRef = dbMod.ref(db, "usuarios/" + uid + "/progresso/moedas");
+        const estoqueRef = dbMod.ref(db, "estoqueBauVanguard/quantidade");
+
+        let erroMoedas = null;
+        const txMoedas = await dbMod.runTransaction(moedasRef, function(atual){
+            // Se o nó ainda não existir no Firebase, usa o saldo do localStorage
+            const saldoBase = (atual !== null && atual !== undefined) ? Number(atual) : moedasLocais;
+            const atuais = isNaN(saldoBase) ? 0 : saldoBase;
+
+            if(atuais < PRECO_BAU_MOEDAS){
+                erroMoedas = "Moedas insuficientes.";
+                return; // Aborta se realmente não tiver saldo
+            }
+            return atuais - PRECO_BAU_MOEDAS;
+        });
+
+        if(!txMoedas.committed){
+            return { ok:false, erro: erroMoedas || "Não foi possível cobrar as moedas. Tente de novo." };
+        }
+
+        let erroEstoque = null;
+        const txEstoque = await dbMod.runTransaction(estoqueRef, function(atual){
+            const estoqueBase = (atual !== null && atual !== undefined) ? Number(atual) : estoqueGlobal;
+            const atuais = isNaN(estoqueBase) ? 0 : estoqueBase;
+
+            if(atuais <= 0){
+                erroEstoque = "Estoque de baús acabou. Espere o reset.";
+                return;
+            }
+            return atuais - 1;
+        });
+
+        if(!txEstoque.committed){
+            // Estorno se o estoque falhar
+            try {
+                await dbMod.runTransaction(moedasRef, function(atual){
+                    return (Number(atual) || 0) + PRECO_BAU_MOEDAS;
+                });
+            } catch(e){}
+            return { ok:false, erro: erroEstoque || "Estoque indisponível — suas moedas foram devolvidas." };
+        }
+
+        // Sincroniza localmente
+        const novoSaldo = Number(txMoedas.snapshot.val());
+        try { localStorage.setItem("moedas", novoSaldo); } catch(e){}
+        try { await window.NRDados.carregarPerfil(true); } catch(e){}
+        if(txEstoque.snapshot.exists()){
+            estoqueGlobal = Number(txEstoque.snapshot.val());
+        }
+
+        return { ok:true };
+
+    } catch(err) {
+        console.error("Erro na transação:", err);
+        // Fallback local se o Firebase falhar/estiver offline no Spck Editor
+        moedasLocais = Math.max(0, moedasLocais - PRECO_BAU_MOEDAS);
+        localStorage.setItem("moedas", moedasLocais);
+        try { await window.NRDados.salvarProgresso({ moedas: moedasLocais }); } catch(e){}
+        return { ok:true };
+    }
+}
+
+
+async function creditarMoedas(quantidade){
+    if(!window.NRDados) return;
+    const perfil = await window.NRDados.carregarPerfil(true);
+    const atual = (perfil && perfil.progresso && typeof perfil.progresso.moedas === "number")
+        ? perfil.progresso.moedas
+        : (Number(localStorage.getItem("moedas")) || 0);
+    const novo = atual + quantidade;
+    try{ localStorage.setItem("moedas", novo); } catch(e){}
+    await window.NRDados.salvarProgresso({ moedas: novo });
+}
+
+
+/* =====================================================
+   EASING
+===================================================== */
+
+function easeInOutCubic(t){
+
+    return t < .5
+
+        ? 4 * t * t * t
+
+        : 1 -
+          Math.pow(
+              -2 * t + 2,
+              3
+          ) / 2;
+
+}
+
+
+/* =====================================================
+   UI
+===================================================== */
+
+function updateChestUI(){
+
+    chestCountHud.classList.toggle("empty", chestCount === 0);
+
+    if(chestCount === 0 && chestState === "closed"){
+        instruction.textContent = "NENHUM BAÚ PAGO NESTA VISITA";
+        openChestButton.disabled = true;
+        openChestButton.textContent = "SEM BAÚS";
+        return;
+    }
+
+    if(chestState === "opening"){
+
+        instruction.textContent =
+        "ABRINDO BAÚ...";
+
+        openChestButton.disabled =
+        true;
+
+    }
+
+    else if(chestState === "open"){
+
+        instruction.textContent =
+        "BAÚ ABERTO";
+
+        openChestButton.disabled =
+        true;
+
+    }
+
+    else if(chestState === "closing"){
+
+        instruction.textContent =
+        "FECHANDO BAÚ...";
+
+        openChestButton.disabled =
+        true;
+
+    }
+
+    else{
+
+        instruction.textContent =
+        "TOQUE NO BOTÃO PARA ABRIR";
+
+        openChestButton.disabled =
+        false;
+
+    }
+
+}
+
+
+/* =====================================================
+   ABRIR
+===================================================== */
+
+function startOpening(){
+
+    if(
+        chestState === "open" ||
+        chestState === "opening"
+    ){
+
+        return;
+
+    }
+
+    chestState =
+    "opening";
+
+    updateChestUI();
+
+}
+
+
+/* =====================================================
+   FECHAR
+===================================================== */
+
+function startClosing(){
+
+    if(
+        chestState === "closed" ||
+        chestState === "closing"
+    ){
+
+        return;
+
+    }
+
+    chestState =
+    "closing";
+
+    updateChestUI();
+
+}
+
+
+/* =====================================================
+   BOTÃO ABRIR
+===================================================== */
+
+openChestButton.addEventListener(
+    "click",
+    function(event){
+
+        event.preventDefault();
+
+        if(chestOpened)
+            return;
+
+        if(chestCount <= 0){
+            updateChestUI();
+            return;
+        }
+
+        if(chestState !== "closed")
+            return;
+
+        chestOpened =
+        true;
+
+        initAudio();
+
+        playUnlock();
+
+        startOpening();
+
+    }
+);
+
+
+/* =====================================================
+   QUANDO TERMINA DE ABRIR
+===================================================== */
+
+function chestFinishedOpening(){
+
+    if(
+        chestState ===
+        "open"
+    ){
+
+        playEnergy();
+
+        setTimeout(
+            startRoulette,
+            350
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ROULETTE
+===================================================== */
+
+let winnerIndex =
+0;
+
+let rouletteRunning =
+false;
+
+let rouletteStart =
+0;
+
+let rouletteDuration =
+4200;
+
+let rouletteStartX =
+0;
+
+let rouletteTargetX =
+0;
+
+let lastTickIndex =
+-1;
+
+let cards =
+[];
+
+
+function buildRoulette(){
+
+    rouletteTrack.innerHTML =
+    "";
+
+    cards =
+    [];
+
+    const totalSets =
+    8;
+
+    for(
+        let set = 0;
+        set < totalSets;
+        set++
+    ){
+
+        for(
+            let i = 0;
+            i < rewards.length;
+            i++
+        ){
+
+            const reward =
+            rewards[i];
+
+            const card =
+            document.createElement(
+                "div"
+            );
+
+            card.className =
+            "rewardCard";
+
+            card.innerHTML = `
+
+    <div class="rewardIcon">
+        ${reward.icon}
+    </div>
+
+    <div class="rewardName">
+        ${reward.name}
+    </div>
+
+`;
+
+            rouletteTrack.appendChild(
+                card
+            );
+
+            cards.push(
+                card
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =====================================================
+   COMEÇAR ROULETTE
+===================================================== */
+
+function startRoulette(){
+
+    if(chestCount <= 0){
+        updateChestUI();
+        return;
+    }
+
+    // O consumo acontece no momento em que o giro começa.
+    chestCount -= 1;
+    saveChestCount();
+    updateChestUI();
+
+    chestUI.style.display =
+    "none";
+
+    roulette.style.display =
+    "flex";
+
+    buildRoulette();
+
+    winnerIndex =
+    sortearIndicePonderado();
+
+    const finalIndex =
+    rewards.length * 6 +
+    winnerIndex;
+
+    const targetCard =
+    cards[finalIndex];
+
+    if(!targetCard)
+        return;
+
+    const cardWidth =
+    targetCard.offsetWidth;
+
+    const gap =
+    10;
+
+    const cardPosition =
+    finalIndex *
+    (
+        cardWidth +
+        gap
+    );
+
+    const center =
+    window.innerWidth / 2;
+
+    rouletteStartX =
+    center;
+
+    rouletteTargetX =
+    center -
+    cardPosition -
+    cardWidth / 2;
+
+    rouletteTrack.style.transform =
+    `translateX(${rouletteStartX}px)`;
+
+    rouletteStart =
+    performance.now();
+
+    rouletteRunning =
+    true;
+
+    lastTickIndex =
+    -1;
+
+}
+
+
+/* =====================================================
+   ATUALIZAR ROULETTE
+===================================================== */
+
+function easeOutCubic(t){
+
+    return 1 -
+    Math.pow(
+        1 - t,
+        3
+    );
+
+}
+
+
+function updateRoulette(now){
+
+    if(!rouletteRunning)
+        return;
+
+    const elapsed =
+    now -
+    rouletteStart;
+
+    let progress =
+    elapsed /
+    rouletteDuration;
+
+    if(progress >= 1){
+
+        progress =
+        1;
+
+        rouletteRunning =
+        false;
+
+        rouletteTrack.style.transform =
+        `translateX(${rouletteTargetX}px)`;
+
+        activateWinningCard();
+
+        setTimeout(
+            showResult,
+            650
+        );
+
+        return;
+
+    }
+
+    const eased =
+    easeOutCubic(
+        progress
+    );
+
+    const currentX =
+    rouletteStartX +
+    (
+        rouletteTargetX -
+        rouletteStartX
+    ) *
+    eased;
+
+    rouletteTrack.style.transform =
+    `translateX(${currentX}px)`;
+
+    // Usa a posição matemática para não perder cards entre frames.
+    const pointerX = window.innerWidth / 2;
+    const firstCard = cards[0];
+    if(!firstCard) return;
+
+    const cardWidth = firstCard.offsetWidth;
+    const step = cardWidth + 10;
+    const activeIndex = Math.max(0, Math.min(
+        cards.length - 1,
+        Math.round((pointerX - currentX - cardWidth / 2) / step)
+    ));
+
+    cards.forEach((card, index) => {
+        card.classList.toggle("pointerActive", index === activeIndex);
+    });
+
+    // Se a animação avançar mais de um card em um frame, emite todos os ticks.
+    if(activeIndex > lastTickIndex){
+        for(let index = Math.max(0, lastTickIndex + 1); index <= activeIndex; index++){
+            playTick();
+        }
+        lastTickIndex = activeIndex;
+    }
+
+}
+
+
+/* =====================================================
+   VENCEDOR
+===================================================== */
+
+function activateWinningCard(){
+
+    cards.forEach(
+        card => {
+
+            card.classList.remove(
+                "active",
+                "pointerActive"
+            );
+
+        }
+    );
+
+    const finalIndex =
+    rewards.length * 6 +
+    winnerIndex;
+
+    if(cards[finalIndex]){
+
+        cards[finalIndex]
+        .classList.add(
+            "active"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   RESULTADO
+===================================================== */
+
+function showResult(){
+
+    playReward();
+
+    roulette.style.display =
+    "none";
+
+    result.style.display =
+    "flex";
+
+    const reward =
+    rewards[winnerIndex];
+
+    /* =========================
+       ÍCONE DA RECOMPENSA
+    ========================= */
+
+    resultIcon.textContent =
+    reward.icon;
+
+
+    /* =========================
+       NOME
+    ========================= */
+
+    resultName.textContent =
+    reward.name;
+
+
+    /* =========================
+       ENTREGAR RECOMPENSA
+    ========================= */
+
+    giveReward(
+        reward
+    );
+
+}
+
+
+/* =====================================================
+   RECOMPENSA
+===================================================== */
+
+function giveReward(reward){
+
+    console.log(
+        "RECOMPENSA GANHA:",
+        reward
+    );
+
+    const quantidade = Number(reward.id.replace("coins-", "")) || 0;
+    if(quantidade > 0){
+        creditarMoedas(quantidade).catch(function(erro){
+            console.error("Falha ao creditar moedas do baú:", erro);
+            if(errorBox){
+                errorBox.textContent = "O prêmio foi liberado mas houve uma falha ao creditá-lo. Recarregue a página — o baú já foi consumido, então não será cobrado de novo.";
+                errorBox.style.display = "block";
+            }
+        });
+    }
+
+}
+
+
+/* =====================================================
+   CONTINUAR
+===================================================== */
+
+continueButton.addEventListener(
+    "click",
+    function(){
+
+        result.style.display =
+        "none";
+
+        startScreen.style.display =
+        "flex";
+
+        chestOpened =
+        false;
+
+        chestState =
+        "closed";
+
+        chestCount =
+        0;
+
+        openProgress =
+        0;
+
+        instruction.textContent =
+        "TOQUE NO BOTÃO PARA ABRIR";
+
+        openChestButton.disabled =
+        false;
+
+        openChestButton.textContent =
+        "ABRIR BAÚ";
+
+        lidPivot.rotation.x =
+        0;
+
+        interiorLight.intensity =
+        0;
+
+        coreLight.intensity =
+        .2;
+
+        particleMat.opacity =
+        0;
+
+        rouletteTrack.innerHTML =
+        "";
+
+        cards =
+        [];
+
+        // Atualiza estoque/moedas na tela inicial pra refletir a
+        // compra que acabou de acontecer (e o prêmio que acabou de
+        // ser creditado)
+        buscarEstoqueEMoedas();
+
+    }
+);
+
+
+/* =====================================================
+   BOTÃO COMPRAR
+===================================================== */
+
+startButton.addEventListener(
+    "click",
+    async function(){
+
+        if(startButton.disabled)
+            return;
+
+        startButton.disabled =
+        true;
+
+        const textoOriginal =
+        startButton.textContent;
+
+        startButton.textContent =
+        "PROCESSANDO...";
+
+        const resultadoCompra =
+        await comprarBau();
+
+        if(!resultadoCompra.ok){
+            startButton.textContent = textoOriginal;
+            startButton.disabled = false;
+            if(errorBox){
+                errorBox.textContent = resultadoCompra.erro;
+                errorBox.style.display = "block";
+                setTimeout(function(){ errorBox.style.display = "none"; }, 4000);
+            }
+            buscarEstoqueEMoedas();
+            return;
+        }
+
+        chestCount =
+        1;
+
+        startScreen.style.display =
+        "none";
+
+        chestUI.style.display =
+        "block";
+
+        chestState =
+        "closed";
+
+        chestOpened =
+        false;
+
+        updateChestUI();
+
+    }
+);
+
+
+/* =====================================================
+   LOOP PRINCIPAL
+===================================================== */
+
+let previousTime =
+performance.now();
+
+
+function animate(now){
+
+    requestAnimationFrame(
+        animate
+    );
+
+    const delta =
+    Math.min(
+        (now - previousTime) /
+        1000,
+        .1
+    );
+
+    previousTime =
+    now;
+
+
+    /* ABERTURA / FECHAMENTO */
+
+    if(
+        chestState ===
+        "opening"
+    ){
+
+        openProgress +=
+        delta /
+        animDuration;
+
+        if(openProgress >= 1){
+
+            openProgress =
+            1;
+
+            chestState =
+            "open";
+
+            updateChestUI();
+
+            chestFinishedOpening();
+
+        }
+
+    }
+
+
+    else if(
+        chestState ===
+        "closing"
+    ){
+
+        openProgress -=
+        delta /
+        animDuration;
+
+        if(openProgress <= 0){
+
+            openProgress =
+            0;
+
+            chestState =
+            "closed";
+
+            updateChestUI();
+
+        }
+
+    }
+
+
+    const eased =
+    easeInOutCubic(
+        openProgress
+    );
+
+
+    /* TAMPA */
+
+    const maxAngle =
+    Math.PI *
+    .62;
+
+    lidPivot.rotation.x =
+    -maxAngle *
+    eased;
+
+
+    /* LUZ INTERNA */
+
+    interiorLight.intensity =
+    eased *
+    4.5;
+
+    coreLight.intensity =
+    .2 +
+    eased *
+    2.8;
+
+
+    /* NÚCLEO */
+
+    const timeSec =
+    now *
+    .001;
+
+    const pulse =
+    1 +
+    Math.sin(
+        timeSec *
+        4
+    ) *
+    .08 +
+    eased *
+    .15;
+
+    coreOuter.scale.set(
+        pulse,
+        pulse,
+        pulse
+    );
+
+    coreOuter.rotation.y +=
+    delta *
+    .8;
+
+    coreOuter.rotation.x +=
+    delta *
+    .4;
+
+    ring1.rotation.z +=
+    delta *
+    1.2;
+
+    ring2.rotation.y -=
+    delta *
+    1.5;
+
+    interiorPortal.rotation.z +=
+    delta *
+    1.1;
+
+    interiorPortalPink.rotation.z -=
+    delta *
+    1.6;
+
+    innerEnergyColumn.scale.y =
+    .82 + eased * .35 + Math.sin(timeSec * 5) * .08;
+
+    keyEntryGlow.scale.setScalar(
+        1 + Math.sin(timeSec * 3) * .08
+    );
+
+    if((now | 0) % 33 < 16){
+        interiorPinkLight.intensity =
+        eased * (1.8 + Math.sin(timeSec * 4) * .35);
+    }
+
+
+    /* PARTÍCULAS */
+
+    if(openProgress > .01){
+
+        particleMat.opacity =
+        Math.min(
+            openProgress *
+            .9,
+            1
+        );
+
+        const pos =
+        particleGeo
+        .attributes
+        .position
+        .array;
+
+        for(
+            let i = 0;
+            i < particleCount;
+            i++
+        ){
+
+            const p =
+            particleData[i];
+
+            pos[i * 3] +=
+            p.vx;
+
+            pos[i * 3 + 1] +=
+            p.vy;
+
+            pos[i * 3 + 2] +=
+            p.vz;
+
+            if(
+                pos[i * 3 + 1] >
+                p.maxY
+            ){
+
+                pos[i * 3] =
+                (Math.random()-.5)*.7;
+
+                pos[i * 3 + 1] =
+                p.baseY;
+
+                pos[i * 3 + 2] =
+                (Math.random()-.5)*.5;
+
+            }
+
+        }
+
+        particleGeo
+        .attributes
+        .position
+        .needsUpdate =
+        true;
+
+    }
+
+    else{
+
+        particleMat.opacity =
+        0;
+
+    }
+
+
+    /* ROULETTE */
+
+    updateRoulette(
+        now
+    );
+
+
+    /* RENDER */
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+requestAnimationFrame(
+    animate
+);
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+loadingFill.style.width =
+"100%";
+
+loadingText.textContent =
+"BAÚ PRONTO";
+
+
+setTimeout(
+    function(){
+
+        loading.classList.add(
+            "hide"
+        );
+
+        setTimeout(
+            function(){
+
+                loading.style.display =
+                "none";
+
+                startScreen.style.display =
+                "flex";
+
+            },
+            450
+        );
+
+    },
+    350
+);
+
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        camera.aspect =
+        window.innerWidth /
+        window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+        renderer.setPixelRatio(
+            renderPixelRatio
+        );
+
+    }
+);
+
+
+/* =====================================================
+   INICIALIZAÇÃO — busca estoque real e moedas do jogador assim que
+   a página carrega, pra tela inicial já nascer com os números certos
+===================================================== */
+
+buscarEstoqueEMoedas();
+
+</script>
+
+</body>
+</html>

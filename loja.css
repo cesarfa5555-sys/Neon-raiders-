@@ -1,0 +1,387 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: #000;
+  min-height: 100vh;
+  font-family: 'Orbitron', monospace;
+  overflow-x: hidden;
+  color: #fff;
+}
+
+/* FUNDO */
+.grid-deco {
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+#scanline {
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* HEADER */
+.loja-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px;
+  background: linear-gradient(to bottom, rgba(0,0,20,0.95) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(0,255,255,0.12);
+}
+
+.btn-voltar {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #00ffff;
+  background: rgba(0,255,255,0.08);
+  border: 1.5px solid rgba(0,255,255,0.4);
+  border-radius: 5px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  touch-action: manipulation;
+}
+.btn-voltar:active { transform: scale(0.92); background: rgba(0,255,255,0.18); }
+
+
+.moedas-hud {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,200,0,0.08);
+  border: 1.5px solid rgba(255,200,0,0.4);
+  border-radius: 20px;
+  padding: 6px 14px;
+}
+.moeda-icone {
+  font-size: 16px;
+  color: #ffd700;
+  text-shadow: 0 0 10px #ffd700;
+}
+#moedas-display {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 8px #ffd700aa;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* PREVIEW */
+.preview-section {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  padding: 20px 16px 12px;
+}
+.preview-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(0,255,255,0.04);
+  border: 1px solid rgba(0,255,255,0.15);
+  border-radius: 12px;
+  padding: 14px 22px;
+  width: 100%;
+  max-width: 420px;
+}
+#previewCanvas {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  background: rgba(0,0,30,0.7);
+  border: 1px solid rgba(0,255,255,0.1);
+  image-rendering: pixelated;
+}
+.preview-info { flex: 1; }
+.preview-nome {
+  font-size: clamp(14px, 4vw, 18px);
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #00ffff;
+  text-shadow: 0 0 12px #00ffff88;
+  margin-bottom: 10px;
+}
+.preview-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: #ffffff55;
+  letter-spacing: 2px;
+  width: 48px;
+}
+.stat-bar-bg {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* GRADE DE NAVES */
+.naves-grid {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  padding: 8px 14px 100px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* CARD DE NAVE */
+.nave-card {
+  background: rgba(0,5,25,0.85);
+  border: 1.5px solid rgba(0,255,255,0.12);
+  border-radius: 10px;
+  padding: 14px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.2s, transform 0.12s;
+  position: relative;
+  overflow: hidden;
+}
+.nave-card:active { transform: scale(0.96); }
+
+.nave-card.equipada {
+  border-color: #00ffff;
+  box-shadow: 0 0 18px rgba(0,255,255,0.2), inset 0 0 30px rgba(0,255,255,0.04);
+}
+.nave-card.comprada {
+  border-color: rgba(0,255,100,0.4);
+}
+.nave-card.bloqueada {
+  border-color: rgba(255,255,255,0.06);
+  opacity: 0.75;
+}
+
+/* brilho de raridade no topo do card */
+.raridade-faixa {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 10px 10px 0 0;
+}
+
+.nave-canvas-wrap {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,20,0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.nave-canvas-wrap canvas {
+  image-rendering: pixelated;
+}
+
+.nave-nome {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-align: center;
+}
+.nave-raridade-txt {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.nave-preco {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: #ffd700;
+  text-shadow: 0 0 6px #ffd70066;
+}
+.nave-preco .moeda-icone-mini { font-size: 11px; }
+
+.nave-status-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-align: center;
+}
+.badge-equipada {
+  background: rgba(0,255,255,0.15);
+  color: #00ffff;
+  border: 1px solid rgba(0,255,255,0.4);
+}
+.badge-comprada {
+  background: rgba(0,255,100,0.1);
+  color: #00ff88;
+  border: 1px solid rgba(0,255,100,0.3);
+}
+.badge-bloqueada {
+  background: rgba(255,255,255,0.04);
+  color: #ffffff44;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0,10,40,0.95);
+  border: 1.5px solid rgba(0,255,255,0.3);
+  color: #00ffff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 11px 22px;
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 200;
+  text-align: center;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.erro {
+  border-color: rgba(255,50,80,0.5);
+  color: #ff4466;
+  font-size: 9px;
+}
+.toast.sucesso {
+  border-color: rgba(0,255,100,0.5);
+  color: #00ff88;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ABAS — NAVES / JOIAS
+   ════════════════════════════════════════════════════════════════ */
+.loja-abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px 0;
+  justify-content: center;
+}
+
+.aba-btn {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(0,255,255,0.2);
+  background: rgba(0,255,255,0.04);
+  color: #ffffff55;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.aba-btn.ativa {
+  border-color: #00ffff;
+  background: rgba(0,255,255,0.1);
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff88;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SEÇÃO DE JOIAS — vitrine única (as 4 antigas, com mochila e
+   modais de compra/equipar, saíram do jogo por completo)
+   ════════════════════════════════════════════════════════════════ */
+#secaoJoias {
+  padding: 16px;
+}
+
+#secaoJoias.hidden { display: none; }
+
+.joias-titulo {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #ff00ff66;
+  margin-bottom: 14px;
+  text-align: center;
+  background:none;
+  border: 2px solid #ff00ff66;
+  padding:4px;
+  border-radius:4px;
+}
+
+.joia-showcase {
+  position: relative;
+  width: min(280px, 80vw);
+  aspect-ratio: 4 / 5;
+  margin: 20px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.joia-showcase canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.joia-showcase-tag {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #ffd700;
+  text-shadow: 0 0 10px #ffd70088;
+  background: rgba(5,5,15,0.85);
+  border: 1px solid rgba(255,215,0,0.35);
+  border-radius: 999px;
+  padding: 6px 18px;
+  white-space: nowrap;
+}
