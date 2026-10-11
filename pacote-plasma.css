@@ -1,0 +1,22 @@
+/* ══ CARTÃO "NAVE + PILOTO" (pacote especial) — fica em cima da joia Nexus, na aba JOIAS ══
+   Para mudar o preço mexa em PACOTE_PLASMA_PRECO no loja.js. Cores: --pc1 (ciano) e --pc2 (violeta). */
+.pacote-plasma { --pc1: #3de7ff; --pc2: #b26bff; --c: 18px; position: relative; margin: 14px 12px 8px; cursor: pointer; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(178, 107, 255, .45)); }
+.pacote-plasma::before { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, var(--pc1), var(--pc2) 60%, #ff4af0);
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+.pacote-plasma-miolo { position: relative; margin: 2px; padding: 10px 12px 12px; color: #eaf4ff;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 38%), radial-gradient(120% 90% at 50% 0%, rgba(120, 70, 255, .28), rgba(5, 8, 24, 0) 70%), #060a1c;
+  clip-path: polygon(calc(var(--c) - 2px) 0, calc(100% - var(--c) + 2px) 0, 100% calc(var(--c) - 2px), 100% calc(100% - var(--c) + 2px), calc(100% - var(--c) + 2px) 100%, calc(var(--c) - 2px) 100%, 0 calc(100% - var(--c) + 2px), 0 calc(var(--c) - 2px)); }
+.pacote-plasma-topo { display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: 2px; }
+.pacote-plasma-topo b { color: var(--pc1); font-weight: 700; } .pacote-plasma-topo span { color: var(--pc2); font-weight: 700; text-shadow: 0 0 8px rgba(178, 107, 255, .7); }
+.pacote-plasma-cena { position: relative; width: 100%; aspect-ratio: 2 / 1; margin: 4px 0 2px; }
+.pacote-plasma-cena canvas { width: 100%; height: 100%; display: block; }
+.pacote-plasma-carregando { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 11px; letter-spacing: 3px; color: var(--pc1); animation: pacotePulso 1.2s ease-in-out infinite; }
+@keyframes pacotePulso { 50% { opacity: .35; } }
+.pacote-plasma-titulo { text-align: center; font-size: 19px; font-weight: 900; letter-spacing: 3px; background: linear-gradient(90deg, var(--pc1), #fff 50%, var(--pc2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pacote-plasma-sub { text-align: center; margin-top: 4px; font-size: 10px; line-height: 1.5; letter-spacing: 1px; color: #9fb2d8; font-family: 'Share Tech Mono', monospace; }
+.pacote-plasma-sub em { color: var(--pc1); font-style: normal; }
+.pacote-plasma-preco { margin: 10px auto 0; width: max-content; min-width: 62%; text-align: center; padding: 10px 18px; font-size: 15px; font-weight: 700; letter-spacing: 2px; color: #fff;
+  background: linear-gradient(120deg, rgba(61, 231, 255, .25), rgba(178, 107, 255, .35)); border: 1px solid rgba(178, 107, 255, .8); box-shadow: 0 0 14px rgba(178, 107, 255, .45); }
+.pacote-plasma-preco.comprado { background: rgba(60, 255, 150, .14); border-color: rgba(60, 255, 150, .8); box-shadow: 0 0 12px rgba(60, 255, 150, .35); color: #b8ffd8; }
+.pacote-plasma:active { transform: scale(.985); }

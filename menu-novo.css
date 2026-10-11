@@ -1,0 +1,249 @@
+/* ══════════════════════════════════════════════════════════════════
+   MENU-NOVO.CSS — visual novo do menu principal (Neon Raiders)
+   Reproduz a imagem de referência: perfil e moedas no topo, logo, botão JOGAR grande,
+   SELECIONAR MAPA / ONLINE / RANKED à direita e CONQUISTAS / VANGUARD / HANGAR embaixo.
+   Só vale com <html class="nr-menu-novo"> e <body class="nr-menu-novo"> (já está no menu.html).
+   Para voltar ao menu antigo é só tirar essas duas classes.
+
+   MEDIDAS: tudo é calculado em "u". A imagem de referência tem 1024 px de largura, então
+   100u = largura da referência (1u ≈ 10,24 px dela). O menu se ajusta a qualquer celular:
+   a largura manda (1u = 1vw), mas em telas muito largas/baixas limita pela altura.
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --u: min(1vw, calc(100vh / 150));
+  --sx: calc(50vw - 50 * var(--u));          /* borda esquerda do "palco" (100u de largura, centrado) */
+  --nr-ciano: #19dcff; --nr-azul: #3b86ff; --nr-violeta: #a24bff; --nr-magenta: #ff3fe0;
+  --nr-fonte: 'Orbitron', 'Chakra Petch', sans-serif;
+  /* ── TAMANHOS DOS 3 BOTÕES DA DIREITA (SELECIONAR MAPA · ONLINE · RANKED) — mude AQUI ──
+     --nr-opt-w / --nr-opt-h = largura e altura do cartão · --nr-opt-titulo = tamanho do texto grande ("SELECIONAR MAPA", "ONLINE", "RANKED")
+     --nr-opt-sub = tamanho do texto pequeno ("TODOS OS MAPAS E NÍVEIS", "MULTIPLAYER", "TOP 3 GLOBAL"). Números maiores = letras maiores. */
+  --nr-opt-w: 56; --nr-opt-h: 13; --nr-opt-gap: 2.2; --nr-opt-titulo: 2.1; --nr-opt-sub: 1.4;
+}
+@supports (height: 100dvh) { :root { --u: min(1vw, calc(100dvh / 150)); } }
+
+/* ── FUNDO ─────────────────────────────────────────────────────────
+   Coloque a imagem de fundo na pasta do jogo com UM destes nomes (o primeiro que existir vale):
+   menu-fundo.webp · menu-fundo.jpg · menu-fundo.png. Se nenhum existir, usa o fundo antigo. */
+html.nr-menu-novo, body.nr-menu-novo {
+  background-color: #02030c;
+  background-image: url('menu-fundo.webp'), url('menu-fundo.jpg'), url('menu-fundo.png'), url('1789060700251.png');
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* ── O QUE DO MENU ANTIGO FICA ESCONDIDO (continua no HTML: o JS antigo usa tudo isso) ── */
+body.nr-menu-novo .nr-topo-titulo, body.nr-menu-novo .status-ticker, body.nr-menu-novo .streak-badge,
+body.nr-menu-novo .botoes-wrap, body.nr-menu-novo #btntop3, body.nr-menu-novo #btnMulti,
+body.nr-menu-novo #bgCanvas, body.nr-menu-novo #scanOverlay, body.nr-menu-novo #ambientGlow,
+body.nr-menu-novo .hud-corner, body.nr-menu-novo #startScreen > .mapa-stack { display: none !important; }
+
+/* ══ PERFIL (cartão injetado pelo hud-profile.js) ══════════════════ */
+html body.nr-menu-novo #nrHudProfileCard {
+  position: fixed !important; z-index: 160 !important;
+  top: calc(var(--u) * 1.8) !important; left: calc(var(--sx) + var(--u) * 2.8) !important;
+  width: calc(var(--u) * 40.2); max-width: none !important; height: calc(var(--u) * 15);
+  display: flex; align-items: center;
+  filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(25, 220, 255, .38));
+}
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-bg {                       /* painel com cantos cortados à direita, borda fina ciano */
+  top: calc(var(--u) * .7) !important; bottom: calc(var(--u) * .7) !important; left: calc(var(--u) * 6) !important; right: 0 !important;
+  border: 0 !important; border-radius: 0 !important;
+  background: linear-gradient(100deg, #27e0ff, #1cc4ff 55%, #4a9bff) !important;
+  clip-path: polygon(0 0, calc(100% - var(--u) * 2.4) 0, 100% calc(var(--u) * 2.4), 100% calc(100% - var(--u) * 2.4), calc(100% - var(--u) * 2.4) 100%, 0 100%);
+}
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-bg::before {
+  content: ""; position: absolute; inset: calc(var(--u) * .16);
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 45%), linear-gradient(100deg, rgba(5, 24, 52, .9), rgba(4, 16, 42, .86));
+  clip-path: polygon(0 0, calc(100% - var(--u) * 2.3) 0, 100% calc(var(--u) * 2.3), 100% calc(100% - var(--u) * 2.3), calc(100% - var(--u) * 2.3) 100%, 0 100%);
+}
+html body.nr-menu-novo #nrHudProfileCard canvas {                          /* avatar redondo com anel violeta → magenta */
+  width: calc(var(--u) * 14.9) !important; height: calc(var(--u) * 14.9) !important; border-radius: 50%;
+  border: calc(var(--u) * .5) solid transparent;
+  background: linear-gradient(#0a1130, #0a1130) padding-box, linear-gradient(210deg, #7a6cff 0%, #b13bff 55%, #e040fb 100%) border-box;
+  box-shadow: 0 0 calc(var(--u) * 1.4) rgba(176, 70, 255, .55);
+}
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-info { padding: 0 0 0 calc(var(--u) * 2.4) !important; gap: calc(var(--u) * .5) !important; justify-content: center; }
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-nome {
+  font: 700 calc(var(--u) * 2.5) / 1.1 var(--nr-fonte) !important; letter-spacing: calc(var(--u) * .12); color: #f2f7ff !important;
+  text-transform: uppercase; max-width: calc(var(--u) * 19) !important;
+}
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-nivel { font: 700 calc(var(--u) * 3) / 1.1 var(--nr-fonte) !important; color: #1de2ff !important; text-shadow: 0 0 calc(var(--u) * .6) rgba(29, 226, 255, .5); }
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-xpbar-track {
+  width: calc(var(--u) * 18.3) !important; height: calc(var(--u) * 1.15) !important; border-radius: 99px;
+  background: #0b1030 !important; border: calc(var(--u) * .1) solid rgba(80, 130, 255, .45);
+}
+html body.nr-menu-novo #nrHudProfileCard .nr-hp-xpbar-fill { background: linear-gradient(90deg, #b13bff, #8a6bff 60%, #8fa0ff) !important; box-shadow: 0 0 calc(var(--u) * .6) rgba(177, 59, 255, .7) !important; border-radius: 99px; }
+
+/* ══ MOEDAS (créditos + tech points) E ENGRENAGEM ══════════════════ */
+.nr-topo-dir { position: fixed; z-index: 160; top: calc(var(--u) * 2.9); left: calc(var(--sx) + var(--u) * 58.2); width: calc(var(--u) * 39.6); height: calc(var(--u) * 8.3); align-items: center; display: flex; gap: calc(var(--u) * 1.1); }
+.nr-moedas {
+  position: relative; flex: 0 0 calc(var(--u) * 31.4); height: calc(var(--u) * 6.4);
+  filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(40, 190, 255, .32));
+}
+.nr-moedas::before, .nr-moedas::after { content: ""; position: absolute; clip-path: polygon(0 0, calc(100% - var(--u) * 2.2) 0, 100% calc(var(--u) * 2.2), 100% 100%, calc(var(--u) * 2.2) 100%, 0 calc(100% - var(--u) * 2.2)); }
+.nr-moedas::before { inset: 0; background: linear-gradient(100deg, #1fe0ff, #2f9bff 62%, #ff3fe0); }
+.nr-moedas::after  { inset: calc(var(--u) * .16); background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 50%), rgba(4, 16, 40, .9); clip-path: polygon(0 0, calc(100% - var(--u) * 2.1) 0, 100% calc(var(--u) * 2.1), 100% 100%, calc(var(--u) * 2.1) 100%, 0 calc(100% - var(--u) * 2.1)); }
+.nr-moeda-linha { position: absolute; z-index: 2; left: calc(var(--u) * 2.3); right: calc(var(--u) * 2.4); top: 50%; transform: translateY(-50%); display: flex; align-items: center; font-family: var(--nr-fonte); font-size: calc(var(--u) * 1.65); color: #f2f7ff; white-space: nowrap; }
+.nr-moeda-linha svg { width: calc(var(--u) * 3.4); height: calc(var(--u) * 3.4); flex: 0 0 auto; margin-right: calc(var(--u) * 1.6); }
+.nr-moeda-linha .nr-val { margin-left: auto; font-size: calc(var(--u) * 1.95); font-weight: 700; letter-spacing: calc(var(--u) * .1); color: #dff6ff; text-shadow: 0 0 calc(var(--u) * .5) rgba(39, 220, 255, .45); }
+.nr-engrenagem { position: relative; flex: 0 0 calc(var(--u) * 7.1); height: calc(var(--u) * 8.3); filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(40, 190, 255, .32)); z-index: 210; }
+.nr-engrenagem::before, .nr-engrenagem::after { content: ""; position: absolute; pointer-events: none; clip-path: polygon(0 0, calc(100% - var(--u) * 1.8) 0, 100% calc(var(--u) * 1.8), 100% 100%, calc(var(--u) * 1.8) 100%, 0 calc(100% - var(--u) * 1.8)); }
+.nr-engrenagem::before { inset: 0; background: linear-gradient(120deg, #27e0ff, #3d9bff 65%, #b6a2ff); }
+.nr-engrenagem::after  { inset: calc(var(--u) * .16); background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 50%), rgba(4, 16, 40, .9); clip-path: polygon(0 0, calc(100% - var(--u) * 1.7) 0, 100% calc(var(--u) * 1.7), 100% 100%, calc(var(--u) * 1.7) 100%, 0 calc(100% - var(--u) * 1.7)); }
+html body.nr-menu-novo #btnMenu {                                           /* o botão de configurações de sempre, agora dentro da moldura */
+  position: absolute !important; inset: 0 !important; top: 0 !important; right: auto !important; left: 0 !important; width: 100% !important; height: 100% !important;
+  z-index: 3; display: flex; align-items: center; justify-content: center; clip-path: none !important; border: 0 !important; background: transparent !important; color: #22d3ff !important;
+}
+html body.nr-menu-novo #btnMenu svg { width: calc(var(--u) * 4.4); height: calc(var(--u) * 4.4); filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(34, 211, 255, .6)); }
+
+/* ══ LOGO (SVG em linha) ═══════════════════════════════════════════ */
+.nr-logo { position: fixed; z-index: 150; left: calc(var(--sx) + var(--u) * 16.6); top: calc(var(--u) * 17.1); width: calc(var(--u) * 68.4); height: auto; pointer-events: none; overflow: visible; }
+
+/* ══ BOTÃO JOGAR ═══════════════════════════════════════════════════ */
+#nrJogar {
+  position: fixed; z-index: 165; left: calc(var(--sx) + var(--u) * 25.2); top: calc(var(--u) * 47.9);
+  width: calc(var(--u) * 49.6); height: calc(var(--u) * 19.8); padding: 0; border: 0; background: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  filter: drop-shadow(0 0 calc(var(--u) * 1.1) rgba(30, 200, 255, .55)) drop-shadow(0 calc(var(--u) * .6) calc(var(--u) * 1.6) rgba(150, 60, 255, .35));
+  transition: transform .12s ease, filter .2s ease;
+  animation: nrJogarPulso 3.6s ease-in-out infinite;
+}
+#nrJogar svg { width: 100%; height: 100%; display: block; overflow: visible; }
+#nrJogar:active { transform: scale(.965); filter: drop-shadow(0 0 calc(var(--u) * 1.6) rgba(30, 220, 255, .9)); }
+#nrJogar.nr-bloqueado { filter: grayscale(.85) brightness(.7) drop-shadow(0 0 calc(var(--u) * .6) rgba(120, 130, 160, .35)); animation: none; }
+@keyframes nrJogarPulso { 0%, 100% { filter: drop-shadow(0 0 calc(var(--u) * .9) rgba(30, 200, 255, .45)) drop-shadow(0 calc(var(--u) * .6) calc(var(--u) * 1.6) rgba(150, 60, 255, .30)); }
+                          50%      { filter: drop-shadow(0 0 calc(var(--u) * 1.5) rgba(30, 220, 255, .75)) drop-shadow(0 calc(var(--u) * .6) calc(var(--u) * 2) rgba(170, 70, 255, .45)); } }
+/* "espelho tecnológico": um facho de luz diagonal cruza o botão de tempos em tempos */
+#nrJogar .nr-facho { animation: nrFacho 4.8s cubic-bezier(.45, .05, .25, 1) infinite; }
+@keyframes nrFacho { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 42% { transform: translateX(640px); opacity: 1; } 50%, 100% { transform: translateX(700px); opacity: 0; } }
+#nrJogar .nr-linhas { opacity: .5; animation: nrLinhas 5s linear infinite; }
+@keyframes nrLinhas { 0% { transform: translateY(0); } 100% { transform: translateY(8px); } }
+
+/* ══ BOTÕES DA DIREITA (SELECIONAR MAPA · ONLINE · RANKED) ═════════ */
+.nr-opcoes { position: fixed; z-index: 160; left: calc(var(--sx) + var(--u) * (97.4 - var(--nr-opt-w))); bottom: calc(var(--u) * 33); width: calc(var(--u) * var(--nr-opt-w)); display: flex; flex-direction: column; gap: calc(var(--u) * var(--nr-opt-gap)); }
+.nr-opt { position: relative; height: calc(var(--u) * var(--nr-opt-h)); }
+.nr-opt { --c: calc(var(--u) * 2.6); filter: drop-shadow(0 0 calc(var(--u) * .7) rgba(var(--rgb), .4)); }
+.nr-opt--mapa   { --rgb: 25, 220, 255; --c1: #1fe8ff; --c2: #19c4ff; --sub: #1fc9ee; --seta: #19e6ff; }
+.nr-opt--online { --rgb: 60, 140, 255; --c1: #19dcff; --c2: #8a73ff; --sub: #78aaff; --seta: #aab6ff; }
+.nr-opt--ranked { --rgb: 224, 64, 251; --c1: #ff3df0; --c2: #b845ff; --sub: #d94cff; --seta: #eaa8ff; }
+.nr-opt-btn {
+  position: absolute; inset: 0; width: 100%; padding: 0; border: 0; cursor: pointer; color: #fff; font-family: var(--nr-fonte); text-align: left;
+  display: flex; align-items: center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  background: linear-gradient(120deg, var(--c1), var(--c2));
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
+  transition: transform .12s ease, filter .15s ease;
+}
+.nr-opt-btn::before {                                                      /* vidro escuro por dentro (borda fina) */
+  content: ""; position: absolute; inset: calc(var(--u) * .2);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0) 42%), linear-gradient(125deg, rgba(var(--rgb), .17), rgba(0,0,0,0) 62%), rgba(3, 10, 28, .80);
+  clip-path: polygon(calc(var(--c) - var(--u) * .2) 0, calc(100% - var(--c) + var(--u) * .2) 0, 100% calc(var(--c) - var(--u) * .2), 100% calc(100% - var(--c) + var(--u) * .2), calc(100% - var(--c) + var(--u) * .2) 100%, calc(var(--c) - var(--u) * .2) 100%, 0 calc(100% - var(--c) + var(--u) * .2), 0 calc(var(--c) - var(--u) * .2));
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.nr-opt-btn::after {                                                       /* facho de espelho */
+  content: ""; position: absolute; inset: calc(var(--u) * .2); pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 34%, rgba(255,255,255,.16) 44%, rgba(255,255,255,.03) 52%, rgba(255,255,255,0) 60%);
+  background-size: 260% 100%; background-position: 130% 0; animation: nrBrilho 7s ease-in-out infinite;
+}
+.nr-opt--online .nr-opt-btn::after { animation-delay: 1.6s; } .nr-opt--ranked .nr-opt-btn::after { animation-delay: 3.2s; }
+@keyframes nrBrilho { 0%, 55% { background-position: 130% 0; } 85%, 100% { background-position: -30% 0; } }
+.nr-opt-btn:active { transform: scale(.975); filter: brightness(1.25); }
+.nr-opt-icone { position: relative; z-index: 2; flex: 0 0 auto; width: calc(var(--u) * 9.4); height: calc(var(--u) * 9.4); margin-left: calc(var(--u) * 3.6); margin-right: calc(var(--u) * 3.2); display: flex; align-items: center; justify-content: center; }
+.nr-opt-icone svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(var(--rgb), .55)); }
+.nr-opt-txt { position: relative; z-index: 2; display: flex; flex-direction: column; gap: calc(var(--u) * 1); min-width: 0; padding-right: calc(var(--u) * 6); }
+.nr-opt-txt b { font-size: calc(var(--u) * var(--nr-opt-titulo)); font-weight: 700; letter-spacing: calc(var(--u) * .06); color: #f4f8ff; line-height: 1; text-shadow: 0 0 calc(var(--u) * .5) rgba(255, 255, 255, .25); white-space: nowrap; }
+.nr-opt-txt small { font-size: calc(var(--u) * var(--nr-opt-sub)); font-weight: 400; letter-spacing: calc(var(--u) * .04); color: var(--sub); line-height: 1; white-space: nowrap; }
+.nr-opt-seta { position: absolute; z-index: 2; right: calc(var(--u) * 2.6); top: 50%; width: calc(var(--u) * 2.2); height: calc(var(--u) * 3.6); transform: translateY(-50%); }
+.nr-opt-seta path { fill: none; stroke: var(--seta); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.nr-opt-deco { position: absolute; z-index: 1; inset: calc(var(--u) * .2); width: calc(100% - var(--u) * .4); height: calc(100% - var(--u) * .4); pointer-events: none; opacity: .55; }
+.nr-opt-deco path { fill: none; stroke: var(--c1); stroke-width: 1; vector-effect: non-scaling-stroke; }
+
+/* "jogada" para a esquerda: o botão dá um tranco para trás e sai voando para a esquerda sumindo */
+.nr-opt.nr-lancar { animation: nrLancar .42s cubic-bezier(.5, 0, .9, .4) forwards; pointer-events: none; }
+@keyframes nrLancar {
+  0%   { transform: translateX(0) skewX(0); opacity: 1; filter: drop-shadow(0 0 calc(var(--u) * .7) rgba(var(--rgb), .4)); }
+  22%  { transform: translateX(calc(var(--u) * 2.2)) skewX(4deg); opacity: 1; }                      /* tranco para trás */
+  100% { transform: translateX(calc(var(--u) * -62)) skewX(-16deg); opacity: 0; filter: blur(calc(var(--u) * .5)) drop-shadow(0 0 calc(var(--u) * 2) rgba(var(--rgb), .8)); }
+}
+.nr-opt.nr-volta { animation: nrVolta .45s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes nrVolta { from { transform: translateX(calc(var(--u) * -30)); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ══ BARRA DE BAIXO (CONQUISTAS · VANGUARD · HANGAR) — usa os .btn-badge de sempre ══ */
+html body.nr-menu-novo .badges-grid {
+  left: var(--sx) !important; transform: none !important; width: calc(var(--u) * 100) !important; bottom: calc(var(--u) * 8.9) !important; height: calc(var(--u) * 12.4);
+  padding: 0 calc(var(--u) * 2.9) 0 calc(var(--u) * 2.9) !important; gap: calc(var(--u) * 1.5) !important; background: transparent !important; border-top: 0 !important; z-index: 160 !important;
+  grid-template-columns: repeat(3, 1fr);
+  filter: drop-shadow(0 0 calc(var(--u) * .6) rgba(40, 190, 255, .3));
+}
+html body.nr-menu-novo .badges-grid::before {                              /* linha fina com pontas cortadas acima dos botões */
+  content: ""; position: absolute; left: calc(var(--u) * 2.4); right: calc(var(--u) * 2.4); top: calc(var(--u) * -2.2); height: calc(var(--u) * 1.4); pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M0,10 L1.4,0 H98.6 L100,10' fill='none' stroke='%231f9bff' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+html body.nr-menu-novo .btn-badge {
+  --c: calc(var(--u) * 2.2); --cor1: #3de7ff; --cor2: #12b8ff; --fundo: 4, 20, 36;
+  width: 100% !important; height: 100% !important; border: 0 !important; border-radius: 0 !important; margin: 0; padding: 0; gap: calc(var(--u) * 1.1);
+  background: linear-gradient(135deg, var(--cor1), var(--cor2)) !important; color: #fff; overflow: hidden;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)) !important;
+}
+html body.nr-menu-novo .btn-badge--tarefas  { --cor1: #3de7ff; --cor2: #14b9ff; --fundo: 4, 20, 36; }
+html body.nr-menu-novo .btn-badge--vanguard { --cor1: #3ff7cf; --cor2: #12d4a6; --fundo: 3, 28, 30; }
+html body.nr-menu-novo .btn-badge--hangar   { --cor1: #ff4af0; --cor2: #b13bff; --fundo: 22, 6, 42; }
+html body.nr-menu-novo .btn-badge::before {                                 /* vidro por dentro: borda fina (~1,5 px) */
+  content: ""; position: absolute; inset: calc(var(--u) * .16) !important; z-index: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.02) 42%, rgba(0,0,0,.22) 100%), radial-gradient(120% 90% at 20% 0%, rgba(var(--fundo), 0) 0%, rgba(var(--fundo), .35) 100%), rgba(var(--fundo), .84) !important;
+  clip-path: polygon(calc(var(--c) - var(--u) * .16) 0, 100% 0, 100% calc(100% - var(--c) + var(--u) * .16), calc(100% - var(--c) + var(--u) * .16) 100%, 0 100%, 0 calc(var(--c) - var(--u) * .16)) !important;
+}
+html body.nr-menu-novo .btn-badge::after {                                  /* facho de espelho que passa de tempos em tempos */
+  content: ""; position: absolute; inset: calc(var(--u) * .16); z-index: 1; pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 36%, rgba(255,255,255,.18) 46%, rgba(255,255,255,.03) 54%, rgba(255,255,255,0) 62%); background-size: 280% 100%; background-position: 140% 0;
+  animation: nrBrilho 7s ease-in-out infinite;
+}
+html body.nr-menu-novo .btn-badge--vanguard::after { animation-delay: 2.2s; } html body.nr-menu-novo .btn-badge--hangar::after { animation-delay: 4.4s; }
+html body.nr-menu-novo .btn-badge-icon { position: relative; z-index: 2; width: calc(var(--u) * 7.2); height: calc(var(--u) * 7.2); display: flex; align-items: center; justify-content: center; }
+html body.nr-menu-novo .btn-badge-icon img { display: none; }
+html body.nr-menu-novo .btn-badge-icon i { display: block; width: 100%; height: 100%; background: linear-gradient(180deg, var(--cor1), var(--cor2)); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(255, 255, 255, .25)); }
+html body.nr-menu-novo .btn-badge-icon svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(224, 64, 251, .6)); }
+html body.nr-menu-novo .btn-badge > span:last-child { position: relative; z-index: 2; font: 700 calc(var(--u) * 2.1) / 1 var(--nr-fonte) !important; letter-spacing: calc(var(--u) * .1); color: #f4f8ff !important; text-transform: uppercase; }
+html body.nr-menu-novo .btn-badge:active { transform: scale(.96) !important; filter: brightness(1.2); }
+
+/* ══ MODAL DO MAPA (o seletor de mapas de sempre, agora numa janela) ══ */
+#nrMapaModal { position: fixed; inset: 0; z-index: 175; display: none; overflow: hidden; align-items: center; justify-content: center; background: rgba(2, 6, 18, .8); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+#nrMapaModal.aberto { display: flex; animation: nrModalEntra .3s ease-out both; }
+@keyframes nrModalEntra { from { opacity: 0; } to { opacity: 1; } }
+.nr-mapa-caixa { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 2); width: 100%; max-height: 100%; }
+.nr-mapa-titulo { margin-bottom: calc(var(--u) * 3); text-align: center; font: 700 calc(var(--u) * 3.2) / 1 var(--nr-fonte); letter-spacing: calc(var(--u) * .3); color: #f4f8ff; text-shadow: 0 0 calc(var(--u) * 1.2) rgba(25, 220, 255, .75); }
+.nr-mapa-titulo small { display: block; margin-top: calc(var(--u) * 1); text-align: center; font-size: calc(var(--u) * 1.7); font-weight: 400; color: #1fc9ee; letter-spacing: calc(var(--u) * .12); }
+/* ── CARTÕES LADO A LADO (estilo "coverflow") ──────────────────────────────────────────────
+   O cartão do meio fica na frente e os vizinhos aparecem atrás, saindo dos dois lados (a posição de cada um é calculada
+   no menu-novo.js, função aplicarLado). Para deixar o cartão do meio MAIS LARGO/ESTREITO mude a largura abaixo (47 = largura
+   do bloco em "u"; o zoom 1.35 aumenta tudo junto, então o cartão fica com ~63u de largura). Não mexe no desenho do cartão. */
+.nr-mapa-slot { position: relative; width: 100%; display: flex; justify-content: center; padding: calc(var(--u) * 5) 0 calc(var(--u) * 14); overflow: visible; }
+.nr-mapa-slot > .mapa-stack { position: relative !important; top: 0 !important; left: auto !important; width: calc(var(--u) * 47) !important; display: block !important; zoom: 1.35; transform: none; perspective: 1400px; }
+.nr-mapa-slot .mapa-card { transition: transform .5s cubic-bezier(.61, .06, .36, 1), opacity .45s ease, filter .45s ease; }
+.nr-mapa-slot .mapa-card:not(.mapa-card--frente) { cursor: pointer; }
+.nr-mapa-voltar { position: relative; width: calc(var(--u) * 30); height: calc(var(--u) * 7); border: 0; cursor: pointer; color: #f4f8ff; font: 700 calc(var(--u) * 2.3) / 1 var(--nr-fonte); letter-spacing: calc(var(--u) * .2);
+  background: linear-gradient(120deg, #1fe8ff, #19c4ff); clip-path: polygon(calc(var(--u) * 1.8) 0, calc(100% - var(--u) * 1.8) 0, 100% calc(var(--u) * 1.8), 100% calc(100% - var(--u) * 1.8), calc(100% - var(--u) * 1.8) 100%, calc(var(--u) * 1.8) 100%, 0 calc(100% - var(--u) * 1.8), 0 calc(var(--u) * 1.8)); }
+.nr-mapa-voltar::before { content: ""; position: absolute; inset: calc(var(--u) * .2); background: rgba(3, 10, 28, .88); clip-path: inherit; z-index: 0; }
+.nr-mapa-voltar span { position: relative; z-index: 1; }
+.nr-mapa-voltar:active { transform: scale(.96); }
+
+/* ══ FPS (novo visual) ═════════════════════════════════════════════
+   O número e a cor (verde ≥ 50 · amarelo ≥ 30 · vermelho) vêm do JS do menu; aqui só o desenho.
+   A borda, a bolinha e o brilho usam "currentColor", então mudam de cor junto com o desempenho. */
+#fpsCounter {
+  position: fixed !important; top: calc(var(--u) * 18.6) !important; left: calc(var(--sx) + var(--u) * 2.8) !important; z-index: 160 !important;
+  display: flex !important; align-items: center; gap: calc(var(--u) * .8);
+  padding: calc(var(--u) * .75) calc(var(--u) * 1.7) calc(var(--u) * .75) calc(var(--u) * 1.4) !important;
+  background: transparent !important; border: 0 !important; border-radius: 0 !important; isolation: isolate;
+  font-family: var(--nr-fonte) !important; font-size: calc(var(--u) * 1.5) !important; line-height: 1;
+  filter: drop-shadow(0 0 calc(var(--u) * .5) currentColor);
+}
+#fpsCounter::before, #fpsCounter::after { content: ""; position: absolute; z-index: -1; clip-path: polygon(calc(var(--u) * .9) 0, 100% 0, 100% calc(100% - var(--u) * .9), calc(100% - var(--u) * .9) 100%, 0 100%, 0 calc(var(--u) * .9)); }
+#fpsCounter::before { inset: 0; background: currentColor; opacity: .85; }                                   /* borda fina na cor do desempenho */
+#fpsCounter::after  { inset: calc(var(--u) * .13); background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0) 50%), rgba(4, 12, 30, .9); opacity: 1; }
+#fpsCounter i { width: calc(var(--u) * .9); height: calc(var(--u) * .9); border-radius: 50%; background: currentColor; box-shadow: 0 0 calc(var(--u) * .8) currentColor; animation: nrFpsPulso 1.6s ease-in-out infinite; }
+@keyframes nrFpsPulso { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.7); } }
+#fpsCounter b { font-size: calc(var(--u) * 2.2); font-weight: 700; letter-spacing: calc(var(--u) * .05); color: #f2f7ff; min-width: calc(var(--u) * 2.6); text-align: right; text-shadow: 0 0 calc(var(--u) * .5) currentColor; }
+#fpsCounter small { font-size: calc(var(--u) * 1.15); font-weight: 700; letter-spacing: calc(var(--u) * .25); color: currentColor; opacity: .9; }

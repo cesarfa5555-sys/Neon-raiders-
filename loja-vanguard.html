@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title></title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body {
+    width:100%; background:#02000a; color:#fff;
+    font-family:'Orbitron',monospace; overflow-x:hidden;
+  }
+
+  #topo {
+    position:relative; width:100%; height:38vh; min-height:260px;
+    background:radial-gradient(ellipse at center, #0d0730 0%, #020006 100%);
+    overflow:hidden;
+  }
+  #previewCanvas { position:absolute; inset:0; width:100%; height:100%; display:none; } /* 2D: sรณ se o 3D falhar */
+  #preview3D { position:absolute; inset:0; width:100%; height:100%; display:none; touch-action:pan-y; }
+  #previaBox {
+    position:absolute; top:6px; right:8px; z-index:2; display:none;
+    flex-direction:column; align-items:flex-end; gap:5px; max-width:58%;
+  }
+  #previaBox .tag {
+    font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:1px; text-align:right;
+    color:#cf54c9; background:rgba(0,0,0,0.55); border:1px solid #cf54c9; border-radius:8px; padding:4px 8px;
+  }
+  #previaBox button {
+    font-family:'Orbitron',monospace; font-size:9px; font-weight:700; letter-spacing:1px;
+    padding:6px 10px; border-radius:8px; border:1px solid #ffffff44; background:rgba(0,0,0,0.55); color:#fff; cursor:pointer;
+  }
+
+  #hudTopo {
+    position:absolute; top:4px; left:0; right:0px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+  #moedasWrap {
+    font-family:'Share Tech Mono',monospace; font-size:10px; color:#ffd700;
+    text-shadow:0 0 10px #ffd70088; letter-spacing:2px;
+    background:rgba(0,0,0,0.4); border:1px solid #ffd70044; border-radius:10px;
+    padding:3px 10px;
+  }
+  #btnmenu {
+    font-family:'Orbitron',monospace; font-size:1px; font-weight:700; letter-spacing:1px;
+    padding:6px 8px; border-radius:10px; background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.15); color:#ffffff88; cursor:pointer;
+    
+  }
+  #btnSair {
+    font-family:'Orbitron',monospace; font-size:1px; font-weight:700; letter-spacing:1px;
+    padding:6px 8px; border-radius:10px; background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.15); color:#ffffff88; cursor:pointer;
+  }
+  #tituloNave {
+    text-align:center; position:absolute; bottom:0px; left:0; right:0;
+  }
+  #tituloNave .n { font-size:clamp(7px,1.1vw,2px); font-weight:900; letter-spacing:3px; color:#40daf2; text-shadow:0 0 14px #40daf2; }
+  #tituloNave .s { font-family:'Share Tech Mono',monospace; font-size:1px; letter-spacing:2px; color:#cf54c9cc;  }
+
+  #statsBar {
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    padding:12px 14px; background:#080415; border-bottom:1px solid #ffffff11;
+  }
+  .stat-chip {
+    font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:1px;
+    padding:6px 10px; border-radius:100px; background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.12); white-space:nowrap;
+  }
+  .stat-chip b { color:#40daf2; }
+
+  #abas {
+    display:flex; overflow-x:auto; gap:6px; padding:12px 14px;
+    background:#050310; border-bottom:1px solid #ffffff11;
+    scroll-snap-type: x proximity;
+  }
+  .aba {
+    flex:0 0 auto; font-family:'Orbitron',monospace; font-size:9px; font-weight:700;
+    letter-spacing:0.5px; padding:9px 11px; border-radius:10px; cursor:pointer;
+    background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.1);
+    color:#ffffff88; white-space:nowrap; transition:all .2s;
+  }
+  .aba.ativa {
+    color:#02000a; background:linear-gradient(135deg,#40daf2,#cf54c9);
+    border-color:transparent; box-shadow:0 0 16px #40daf288;
+  }
+
+  #listaSkins { padding:14px; display:flex; flex-direction:column; gap:10px; padding-bottom:60px; }
+
+  .skin-card {
+    display:flex; align-items:center; gap:12px;
+    background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:14px; padding:12px;
+    transition:border-color .2s, background .2s;
+  }
+  .skin-card { cursor:pointer; }
+  .skin-card.equipada { border-color:#40daf2; background:rgba(64,218,242,0.08); }
+  .skin-card.previa { border-color:#cf54c9; background:rgba(207,84,201,0.10); }
+  .stat-chip.previa-chip { color:#cf54c9; border-color:#cf54c9; }
+
+  .skin-amostra {
+    flex:0 0 auto; width:52px; height:52px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    background:#000; border:1px solid rgba(255,255,255,0.12);
+  }
+  .skin-info { flex:1; min-width:0; }
+  .skin-nome { font-size:12px; font-weight:700; letter-spacing:1px; }
+  .skin-bonus { font-family:'Share Tech Mono',monospace; font-size:10px; color:#8fffb0; margin-top:3px; }
+  .skin-bonus.vazio { color:#ffffff44; }
+
+  .skin-acoes { flex:0 0 auto; display:flex; flex-direction:column; gap:6px; align-items:stretch; }
+  .btn-skin {
+    font-family:'Orbitron',monospace; font-size:9px; font-weight:700; letter-spacing:1px;
+    padding:8px 12px; border-radius:8px; border:none; cursor:pointer; white-space:nowrap;
+  }
+  .btn-comprar { background:linear-gradient(135deg,#ffd700,#ff9d00); color:#000; }
+  .btn-comprar:disabled { background:rgba(255,255,255,0.06); color:#ffffff33; pointer-events:none; }
+  .btn-equipar { background:linear-gradient(135deg,#40daf2,#00aaff); color:#000; }
+  .btn-equipada { background:rgba(64,218,242,0.15); color:#40daf2; border:1px solid #40daf2; pointer-events:none; }
+  .btn-som { background:rgba(207,84,201,0.15); color:#cf54c9; border:1px solid #cf54c9; }
+
+  /* Tela de bloqueio (se alguรฉm cair aqui sem ter comprado a nave) */
+  #telaBloqueada {
+    position:fixed; inset:0; z-index:999; background:#02000a;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:16px; padding:24px; text-align:center;
+  }
+  #telaBloqueada .cadeado { font-size:48px; }
+  #telaBloqueada .msg { font-family:'Share Tech Mono',monospace; font-size:12px; color:#ffffff88; letter-spacing:1px; max-width:280px; line-height:1.6; }
+  #telaBloqueada button {
+    font-family:'Orbitron',monospace; font-size:11px; font-weight:700; letter-spacing:2px;
+    padding:14px 28px; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(135deg,#40daf2,#cf54c9); color:#000;
+  }
+</style>
+</head>
+<script type="module" src="manutencao.js"></script>
+<body>
+<div id="authGateVang" style="position:fixed;inset:0;z-index:99998;background:#050510;display:flex;align-items:center;justify-content:center;">
+  <div style="width:28px;height:28px;border:3px solid rgba(0,255,255,0.15);border-top-color:#00ffff;border-radius:50%;animation:authGateVangGirar 0.8s linear infinite;"></div>
+</div>
+<style>@keyframes authGateVangGirar{to{transform:rotate(360deg);}}</style>
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  const firebaseConfig = { apiKey:"AIzaSyBetMNuPB8BDfvcanmgEUIWw3bLNgbi9aM",authDomain:"neon-raiders.firebaseapp.com",projectId:"neon-raiders",storageBucket:"neon-raiders.firebasestorage.app",messagingSenderId:"307351573602",appId:"1:307351573602:web:a1ce6488ed420d5b99ad3b",databaseURL:"https://neon-raiders-default-rtdb.firebaseio.com" };
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  onAuthStateChanged(getAuth(app), (user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    const gate = document.getElementById('authGateVang');
+    if (gate) gate.style.display = 'none';
+  });
+</script>
+
+<!-- Trava de acesso: sรณ passa quem jรก comprou a nave no hangar -->
+<div id="telaBloqueada" style="display:none;">
+  <div class="cadeado">๐”’</div>
+  <div class="msg">Vocรช precisa comprar a NR-01 Vanguard no Hangar antes de acessar a customizaรงรฃo.</div>
+  <button onclick="window.location.href='loja.html'">โ— IR PRO HANGAR</button>
+</div>
+
+<div id="conteudo" style="display:none;">
+  <div id="topo">
+    <canvas id="preview3D"></canvas>
+    <canvas id="previewCanvas"></canvas>
+    <div id="previaBox">
+      <div class="tag" id="previaTag"></div>
+      <button id="btnVoltarPrevia">โบ VOLTAR ร€S EQUIPADAS</button>
+    </div>
+    <div id="hudTopo">
+      <div id="moedasWrap">โ— <span id="moedasValor">0</span></div>
+      <button id="btnmenu" onclick="window.location.href='menu.html'">โ MENU</button>
+      <button id="btnSair" onclick="window.location.href='loja.html'">โ• SAIR</button>
+    </div>
+    <div id="tituloNave">
+      <div class="n">NR-01 VANGUARD</div>
+      <div class="s">CUSTOMIZAรรO MODULAR</div>
+    </div>
+  </div>
+
+  <div id="statsBar"></div>
+  <div id="abas"></div>
+  <div id="tituloParteAtiva" style="padding:12px 14px 0; font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:2px; color:#ffffff66;"></div>
+  <div id="listaSkins"></div>
+</div>
+
+<script src="dados.js"></script>
+<script src="vanguard-core.js"></script>
+<!-- 3D do preview: mesmo three.js e mesmo modelo do jogo. Se falhar (sem
+     internet / sem WebGL) a loja cai sozinha no preview 2D de antes. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="vanguard3d.js"></script>
+<script>
+let canvas, ctx, dpr;
+
+function getMoedas() { return Number(localStorage.getItem('moedas')) || 0; }
+function setMoedas(v) {
+  localStorage.setItem('moedas', String(Math.max(0,v)));
+  atualizarMoedasUI();
+}
+
+function atualizarMoedasUI() {
+  const el = document.getElementById('moedasValor');
+  if (el) el.textContent = getMoedas();
+}
+
+function renderStatsBar() {
+  // mostra os bรดnus do que estรก na tela (prรฉvia inclusa), nรฃo sรณ do equipado
+  const totais = totaisDeMapa(previewSkins);
+  const LABELS = { dano:'DANO', velocidade:'VELOCIDADE', hp:'HP', cadencia:'CADรNCIA', critico:'CRรTICO' };
+  const el = document.getElementById('statsBar');
+  el.innerHTML = '';
+  if (modo3D && previaDiferente()) {
+    const p = document.createElement('div');
+    p.className = 'stat-chip previa-chip';
+    p.textContent = 'PRรVIA (nรฃo equipada)';
+    el.appendChild(p);
+  }
+  Object.entries(totais).forEach(([k,v]) => {
+    if (v === 0) return;
+    const chip = document.createElement('div');
+    chip.className = 'stat-chip';
+    const sinal = v > 0 ? '+' : '';
+    const valor = (k==='hp') ? `${sinal}${v}` : (k==='critico' ? `${Math.round(v*100)}% (${VANGUARD_CRITICO_MULT}x)` : `${sinal}${Math.round(v*100)}%`);
+    chip.innerHTML = `${LABELS[k]}: <b>${valor}</b>`;
+    el.appendChild(chip);
+  });
+  if (!el.children.length) el.innerHTML = '<div class="stat-chip">Nenhum bรดnus ativo ainda</div>';
+}
+
+let parteAtiva = 'bico';
+
+// Nomes curtos sรณ pras abas (a tela รฉ estreita e "PONTAS DE ASA" nรฃo cabia
+// sem cortar) โ€” o nome completo continua em VANGUARD_NOMES_PARTES pra
+// qualquer outro lugar que precise dele
+const NOMES_ABAS_CURTO = {
+  bico: 'BICO', asas: 'ASAS', pontaAsa: 'PONTAS',
+  cauda: 'CAUDA', casco: 'CASCO',
+};
+
+function renderAbas() {
+  const el = document.getElementById('abas');
+  el.innerHTML = '';
+  VANGUARD_ORDEM_PARTES.forEach(parte => {
+    const btn = document.createElement('div');
+    btn.className = 'aba' + (parte===parteAtiva ? ' ativa' : '');
+    btn.textContent = NOMES_ABAS_CURTO[parte];
+    btn.onclick = () => { parteAtiva = parte; focarParte3D(parte); renderTudo(); };
+    el.appendChild(btn);
+  });
+}
+
+function desenharAmostraSkin(canvas, parte, skin) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.save();
+  ctx.translate(w/2, h/2);
+  const escala = 0.11;
+  ctx.scale(escala, escala);
+  VANGUARD_GEOMETRIA[parte].forEach(([id, familia, pontosBase]) => {
+    const cor = skin.paleta[familia] || VANGUARD_CORES_PADRAO[familia];
+    const pontos = skin.transformar ? pontosBase.map(([x,y]) => {
+      const t = skin.transformar;
+      const ex=t.escalaX??1, ey=t.escalaY??1, ox=t.origemX??0, oy=t.origemY??0;
+      return [(x-ox)*ex+ox, (y-oy)*ey+oy];
+    }) : pontosBase;
+    ctx.fillStyle = cor;
+    ctx.beginPath();
+    ctx.moveTo(pontos[0][0], pontos[0][1]);
+    for (let i=1;i<pontos.length;i++) ctx.lineTo(pontos[i][0], pontos[i][1]);
+    ctx.closePath();
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function renderListaSkins() {
+  document.getElementById('tituloParteAtiva').textContent = 'โ–ถ ' + VANGUARD_NOMES_PARTES[parteAtiva] +
+    (modo3D ? '  ยท  TOQUE NUMA SKIN PRA EXPERIMENTAR' : '');
+  const el = document.getElementById('listaSkins');
+  el.innerHTML = '';
+  const equipadaAtual = vanguardGetSkinEquipada(parteAtiva);
+
+  VANGUARD_SKINS[parteAtiva].forEach(skin => {
+    const card = document.createElement('div');
+    const naPrevia = previewSkins[parteAtiva] && previewSkins[parteAtiva].id === skin.id;
+    card.className = 'skin-card' + (skin.id === equipadaAtual.id ? ' equipada' : (naPrevia ? ' previa' : ''));
+    // tocar no card = experimentar a skin na nave 3D (sem comprar/equipar)
+    card.onclick = () => {
+      if (!modo3D) return;
+      previewSkins[parteAtiva] = skin;
+      aplicarPreview3D();
+      renderTudo();
+    };
+
+    const amostra = document.createElement('canvas');
+    amostra.width = 104; amostra.height = 104;
+    amostra.className = 'skin-amostra';
+    card.appendChild(amostra);
+
+    const info = document.createElement('div');
+    info.className = 'skin-info';
+    const bonusTxt = Object.entries(skin.bonus).map(([k,v]) => vanguardTextoBonus(k, v)).join(' ยท ');
+    info.innerHTML = `
+      <div class="skin-nome">${skin.nome}</div>
+      <div class="skin-bonus ${bonusTxt?'':'vazio'}">${bonusTxt || 'Sem bรดnus โ€” visual padrรฃo'}</div>
+    `;
+    card.appendChild(info);
+
+    const acoes = document.createElement('div');
+    acoes.className = 'skin-acoes';
+
+    if (skin.id === equipadaAtual.id) {
+      const b = document.createElement('button');
+      b.className = 'btn-skin btn-equipada';
+      b.textContent = 'โ“ EQUIPADA';
+      acoes.appendChild(b);
+    } else if (vanguardSkinJaComprada(skin)) {
+      const b = document.createElement('button');
+      b.className = 'btn-skin btn-equipar';
+      b.textContent = 'EQUIPAR';
+      b.onclick = (ev) => {
+        ev.stopPropagation();
+        vanguardSetParteEquipada(parteAtiva, skin.id);
+        previewSkins[parteAtiva] = skin; aplicarPreview3D();
+        renderTudo();
+      };
+      acoes.appendChild(b);
+    } else {
+      const b = document.createElement('button');
+      b.className = 'btn-skin btn-comprar';
+      b.textContent = `โ— ${skin.preco}`;
+      b.disabled = getMoedas() < skin.preco;
+      b.onclick = (ev) => {
+        ev.stopPropagation();
+        const moedas = getMoedas();
+        if (moedas < skin.preco) return;
+        setMoedas(moedas - skin.preco);
+        vanguardComprarSkin(skin.id);
+        vanguardSetParteEquipada(parteAtiva, skin.id, false);
+        // UMA gravaรงรฃo atรดmica: moedas + peรงa comprada + peรงa equipada.
+        // Antes sรณ o localStorage era atualizado โ€” o Firebase mantinha o
+        // saldo antigo (moedas voltavam no prรณximo login) e a peรงa sumia
+        // ao trocar de conta.
+        vanguardSalvarNuvem({ moedas: getMoedas() });
+        previewSkins[parteAtiva] = skin; aplicarPreview3D();
+        renderTudo();
+      };
+      acoes.appendChild(b);
+    }
+
+    if (parteAtiva === 'cauda' && skin.som) {
+      const bs = document.createElement('button');
+      bs.className = 'btn-skin btn-som';
+      bs.textContent = 'โช TESTAR SOM';
+      bs.onclick = (ev) => { ev.stopPropagation(); vanguardTocarSom(skin.som); };
+      acoes.appendChild(bs);
+    }
+
+    card.appendChild(acoes);
+    el.appendChild(card);
+
+    desenharAmostraSkin(amostra, parteAtiva, skin);
+  });
+}
+
+function renderTudo() {
+  atualizarMoedasUI();
+  renderStatsBar();
+  renderAbas();
+  renderListaSkins();
+  atualizarPreviaUI();
+}
+
+// โ”€โ”€ PREVIEW 2D (reserva) โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// Sรณ รฉ usado se o 3D nรฃo subir (sem internet pro three.js ou sem WebGL).
+const estrelas = Array.from({length:60}, () => ({x:Math.random(), y:Math.random(), r:Math.random()*1.4+0.4, a:Math.random()*0.6+0.2}));
+let t=0, ultimo;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio||1, 2);
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width*dpr; canvas.height = rect.height*dpr;
+}
+
+function loop() {
+  const agora = performance.now(); const dt=(agora-ultimo)/1000; ultimo=agora; t+=dt;
+  const w=canvas.width, h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#ffffff';
+  estrelas.forEach(s => {
+    ctx.globalAlpha = s.a*(0.6+Math.sin(t*2+s.x*10)*0.4);
+    ctx.beginPath(); ctx.arc(s.x*w, s.y*h, s.r*dpr, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Quanto MAIOR esse nรบmero, MENOR a nave fica no preview
+  const escalaBase = Math.min(w,h) / 1500;
+  const flutua = Math.sin(t*1.2)*5*dpr;
+  const respira = 1 + Math.sin(t*1.6)*0.015;
+  desenharVanguardModular(ctx, w/2, h*0.46+flutua, escalaBase*respira*dpr, 0, true);
+
+  requestAnimationFrame(loop);
+}
+
+function iniciarPreview2D() {
+  canvas = document.getElementById('previewCanvas');
+  canvas.style.display = 'block';
+  ctx = canvas.getContext('2d');
+  ultimo = performance.now();
+  window.addEventListener('resize', resize);
+  resize();
+  loop();
+}
+
+// โ”€โ”€ PREVIEW 3D + EXPERIMENTAR SKINS โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// A nave รฉ o MESMO modelo do jogo (vanguard3d.js). Tocar numa skin
+// mostra ela na nave na hora (sem comprar); comprar/equipar continua
+// nos botรตes do card. A prรฉvia pode misturar uma skin de cada peรงa.
+let modo3D = false;
+let v3d = null;              // { renderer, scene, camera, nave, ... }
+const previewSkins = {};     // skin que estรก na tela, por peรงa
+
+// Pra que lado a nave gira quando vocรช abre cada aba (rotation.y da nave:
+// 0 = traseira/fogo pra cรขmera, PI = bico pra cรขmera)
+const FOCO_YAW = { bico: Math.PI, asas: 2.5, pontaAsa: 2.3, cauda: 0, casco: 2.7 };
+
+function resetarPreviewParaEquipadas() {
+  VANGUARD_ORDEM_PARTES.forEach(p => { previewSkins[p] = vanguardGetSkinEquipada(p); });
+}
+function previaDiferente() {
+  return VANGUARD_ORDEM_PARTES.some(p => previewSkins[p] && previewSkins[p].id !== vanguardGetSkinEquipada(p).id);
+}
+// soma dos bรดnus das skins de um mapa {parte: skin}
+function totaisDeMapa(mapa) {
+  const tot = { dano:0, velocidade:0, hp:0, cadencia:0, critico:0 };
+  Object.values(mapa).forEach(sk => {
+    Object.entries((sk && sk.bonus) || {}).forEach(([k,v]) => { tot[k] = (tot[k]||0) + v; });
+  });
+  return tot;
+}
+
+function atualizarPreviaUI() {
+  const box = document.getElementById('previaBox');
+  if (!box) return;
+  if (modo3D && previaDiferente()) {
+    const nomes = VANGUARD_ORDEM_PARTES
+      .filter(p => previewSkins[p].id !== vanguardGetSkinEquipada(p).id)
+      .map(p => previewSkins[p].nome);
+    document.getElementById('previaTag').textContent = 'PRรVIA ยท ' + nomes.join(' + ');
+    box.style.display = 'flex';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function aplicarPreview3D() {
+  if (v3d) aplicarSkinsVanguard(v3d.nave, previewSkins);
+}
+function focarParte3D(parte) {
+  if (!v3d) return;
+  v3d.alvo = FOCO_YAW[parte] !== undefined ? FOCO_YAW[parte] : 2.5;
+  v3d.arrasto = 0;
+}
+
+function resize3D() {
+  if (!v3d) return;
+  const r = v3d.canvas.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  v3d.renderer.setSize(r.width, r.height, false);
+  v3d.camera.aspect = r.width / r.height;
+  // telas estreitas: afasta a cรขmera pra a nave (larga) caber
+  v3d.camera.position.z = 6.4 * Math.max(1, 1.4 / v3d.camera.aspect);
+  v3d.camera.updateProjectionMatrix();
+}
+
+function loop3D() {
+  if (!v3d) return;
+  const agora = performance.now();
+  const dt = Math.min(0.05, (agora - v3d.ultimo) / 1000);
+  v3d.ultimo = agora; v3d.t += dt;
+
+  // gira atรฉ o foco da aba (com um balanรงo leve) + o quanto vocรช arrastou
+  const alvo = v3d.alvo + Math.sin(v3d.t * 0.7) * 0.4 + v3d.arrasto;
+  v3d.yaw += (alvo - v3d.yaw) * Math.min(1, dt * 6);
+  v3d.nave.rotation.y = v3d.yaw;
+  v3d.nave.position.y = -0.15 + Math.sin(v3d.t * 1.2) * 0.07;
+
+  atualizarFogoVanguard(v3d.nave, dt, v3d.t);
+  v3d.renderer.render(v3d.scene, v3d.camera);
+  v3d.raf = requestAnimationFrame(loop3D);
+}
+
+function iniciarPreview3D() {
+  if (!(window.THREE && typeof createShipVanguard === 'function' && typeof aplicarSkinsVanguard === 'function')) return false;
+  try {
+    const cv = document.getElementById('preview3D');
+    const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    camera.position.set(0, 2.6, 6.4);
+    camera.lookAt(0, 0, 0);
+
+    // mesmas luzes do jogo, pro casco ter a mesma cara daqui
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const rosa = new THREE.DirectionalLight(0xff44ff, 1.5); rosa.position.set(0, 10, -10); scene.add(rosa);
+    const ciano = new THREE.DirectionalLight(0x00ffff, 1.0); ciano.position.set(0, 5, 5); scene.add(ciano);
+
+    // estrelas ao fundo
+    const N = 90, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      pos[i*3] = (Math.random() - 0.5) * 18;
+      pos[i*3+1] = (Math.random() - 0.5) * 10;
+      pos[i*3+2] = -6 - Math.random() * 6;
+    }
+    const gEst = new THREE.BufferGeometry();
+    gEst.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    scene.add(new THREE.Points(gEst, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, transparent: true, opacity: 0.8 })));
+
+    const nave = createShipVanguard();
+    nave.scale.setScalar(1.05);   // no jogo รฉ 0.75; aqui fica maior pra ver os detalhes
+    scene.add(nave);
+
+    v3d = { canvas: cv, renderer, scene, camera, nave, t: 0, ultimo: performance.now(),
+            yaw: FOCO_YAW[parteAtiva], alvo: FOCO_YAW[parteAtiva], arrasto: 0, raf: 0 };
+    cv.style.display = 'block';
+    modo3D = true;
+    aplicarPreview3D();
+    resize3D();
+    window.addEventListener('resize', resize3D);
+
+    // arrastar pra girar a nave
+    let arrastando = false, ultimoX = 0;
+    cv.addEventListener('pointerdown', e => { arrastando = true; ultimoX = e.clientX; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+    cv.addEventListener('pointermove', e => { if (!arrastando || !v3d) return; v3d.arrasto += (e.clientX - ultimoX) * 0.012; ultimoX = e.clientX; });
+    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { arrastando = false; }));
+
+    // economiza bateria com a aba escondida
+    document.addEventListener('visibilitychange', () => {
+      if (!v3d) return;
+      if (document.hidden) cancelAnimationFrame(v3d.raf);
+      else { v3d.ultimo = performance.now(); v3d.raf = requestAnimationFrame(loop3D); }
+    });
+
+    // se o WebView derrubar o contexto WebGL, volta pro 2D em vez de ficar em branco
+    cv.addEventListener('webglcontextlost', e => {
+      e.preventDefault();
+      if (v3d) cancelAnimationFrame(v3d.raf);
+      v3d = null; modo3D = false;
+      cv.style.display = 'none';
+      resetarPreviewParaEquipadas();
+      iniciarPreview2D();
+      renderTudo();
+    });
+
+    v3d.raf = requestAnimationFrame(loop3D);
+    return true;
+  } catch (e) {
+    console.warn('Loja Vanguard: 3D indisponรญvel, usando preview 2D', e);
+    v3d = null; modo3D = false;
+    return false;
+  }
+}
+
+document.getElementById('btnVoltarPrevia').onclick = () => {
+  resetarPreviewParaEquipadas();
+  aplicarPreview3D();
+  renderTudo();
+};
+
+function iniciarLojaVanguard() {
+  resetarPreviewParaEquipadas();
+  if (!iniciarPreview3D()) iniciarPreview2D();
+  renderTudo();
+}
+
+// โ”€โ”€ TRAVA DE ACESSO โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// Fica no final do arquivo de propรณsito: sรณ roda depois que todas as
+// funรงรตes/variรกveis acima jรก foram declaradas, evitando erro de
+// "acessar antes de inicializar" (TDZ) do JavaScript.
+// Antes de decidir se estรก bloqueada, puxa a conta do Firebase (peรงas,
+// moedas, naves compradas) โ€” necessรกrio depois de trocar de conta/aparelho,
+// senรฃo o localStorage vem vazio e a loja acha que a nave nรฃo foi comprada.
+(async function () {
+  await vanguardHidratarDaNuvem();
+  if (!vanguardEstaDesbloqueada()) {
+    document.getElementById('telaBloqueada').style.display = 'flex';
+  } else {
+    document.getElementById('conteudo').style.display = 'block';
+    iniciarLojaVanguard();
+  }
+})();
+</script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>

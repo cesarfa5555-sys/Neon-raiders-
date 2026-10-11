@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Neon Raiders — Multiplayer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap">
+<style>
+:root{--c:#00ffff;--m:#ff00cc;--bg:#04060d;--ok:#4dff9a;--ruim:#ff5d73}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:radial-gradient(circle at 50% -10%,#0b1f3a,var(--bg) 60%);color:#cfeaff;font:14px 'Share Tech Mono',monospace;min-height:100%}
+body{padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+h1{font:900 17px Orbitron,sans-serif;letter-spacing:3px;color:var(--c);margin:0;text-shadow:0 0 12px var(--c)}
+#ping{font-size:12px;padding:5px 10px;border:1px solid #0ff5;border-radius:20px}
+.card{border:1px solid #0ff4;background:#08142a;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 0 18px #00ffff12 inset}
+.card h2{font:700 12px Orbitron,sans-serif;letter-spacing:2px;color:var(--m);margin:0 0 10px}
+button,select,input{font:inherit;border-radius:10px;border:1px solid #0ff6;background:#0b1d38;color:#fff;padding:12px;min-height:44px}
+button{background:linear-gradient(#073a46,#052730);color:var(--c);font-weight:700;letter-spacing:1px;cursor:pointer}
+button:active{transform:scale(.97)}button.go{background:linear-gradient(#0a5a3a,#073d28);color:var(--ok);border-color:#4dff9a88}
+button.sec{background:#101a2e;color:#9fb8d6;border-color:#fff3}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.row>*{flex:1;min-width:120px}
+input{text-transform:uppercase;letter-spacing:6px;text-align:center;font-size:18px}
+.sala{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #fff1}
+.cod{font:900 34px Orbitron,sans-serif;letter-spacing:8px;color:var(--c);text-align:center;text-shadow:0 0 16px var(--c);margin:4px 0 2px}
+.sub{text-align:center;color:#7d93b0;font-size:12px}
+.jog{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #fff1}
+.jog b{flex:1;font-size:15px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:11px;padding:3px 8px;border-radius:12px;border:1px solid #fff3}.ok{color:var(--ok);border-color:#4dff9a66}.ru{color:var(--ruim)}
+.emotes button{font-size:22px;padding:8px}
+#toast{position:fixed;left:14px;right:14px;bottom:max(16px,env(safe-area-inset-bottom));background:#2a0a14;border:1px solid var(--ruim);color:#ffd0d8;padding:12px;border-radius:10px;display:none;z-index:9}
+#bolha{position:fixed;top:40%;left:50%;transform:translateX(-50%);font-size:60px;pointer-events:none;opacity:0;transition:.4s}
+.hide{display:none}
+</style></head><body>
+<div class="top"><h1>⚡ MULTIPLAYER</h1><span id="ping">ping …</span></div>
+
+<div id="menu">
+  <div class="card"><h2>PARTIDA</h2>
+    <select id="modo" style="width:100%"><option value="coop">CO-OP (até 4 jogadores)</option><option value="pvp">PvP 1v1</option></select>
+    <div class="row" id="escolhaMapa"><select id="mapaMenu"></select><select id="nivelMenu"></select></div>
+    <div class="row"><button id="bCriar">CRIAR SALA</button><button id="bRapida" class="go">PARTIDA RÁPIDA</button></div>
+  </div>
+  <div class="card"><h2>ENTRAR COM CÓDIGO</h2>
+    <div class="row"><input id="codigo" maxlength="5" placeholder="•••••" style="flex:2"><button id="bEntrar">ENTRAR</button></div>
+  </div>
+  <div class="card"><h2>SALAS ABERTAS</h2><div id="salas" class="sub">toque em atualizar</div>
+    <div class="row"><button id="bListar" class="sec">ATUALIZAR LISTA</button></div></div>
+  <div class="row"><button class="sec" onclick="location.href='menu.html'">← VOLTAR AO MENU</button></div>
+</div>
+
+<div id="lobby" class="hide">
+  <div class="card"><div class="sub">CÓDIGO DA SALA — passe pros amigos</div><div class="cod" id="cod">-----</div><div class="sub" id="info"></div></div>
+  <div class="card"><h2>JOGADORES</h2><div id="jogadores"></div></div>
+  <div class="card hide" id="cfg"><h2>CONFIGURAÇÃO (HOST)</h2>
+    <div class="row"><select id="mapa"></select><select id="nivel"></select><select id="rodadas" class="hide"></select></div></div>
+  <div class="card emotes"><h2>EMOTES</h2><div class="row"><button data-e="0">👍</button><button data-e="1">🔥</button><button data-e="2">😂</button><button data-e="3">🆘</button></div></div>
+  <div id="avisoBloq" class="sub hide" style="color:#ff5d73;margin-bottom:8px"></div>
+  <div class="row"><button id="bPronto" class="go">PRONTO</button><button id="bIniciar" class="hide">INICIAR</button><button id="bSair" class="sec">SAIR</button></div>
+</div>
+<div id="bolha"></div><div id="toast"></div>
+
+<script src="dados.js"></script>
+<script src="multiplayer-core.js"></script>
+<script src="config-servidor.js"></script>
+<script src="auto-voltar.js"></script> <!-- saiu da partida sem querer? te leva de volta sozinho -->
+<script>
+// Endereço do servidor (troque aqui se um dia mudar de host)
+var SERVIDOR = window.NR_SERVIDOR || 'wss://neon-raiders-servidor-1.onrender.com'; // (o endereço agora fica em config-servidor.js)
+var $ = function (id) { return document.getElementById(id); };
+function aviso(m, fixo) { var t = $('toast'); t.textContent = '⚠ ' + m; t.style.display = 'block'; clearTimeout(aviso._t); t.onclick = function () { t.style.display = 'none'; };
+  if (!fixo) aviso._t = setTimeout(function () { t.style.display = 'none'; }, 7000); }
+window.onerror = function (m, src, l) { if (window.__lib) { (window.__libErros = window.__libErros || []).push(String(m)); return true; } aviso(m + (src ? ' [' + String(src).split('/').pop() + ':' + l + ']' : '')); };
+window.addEventListener('unhandledrejection', function (e) { aviso((e.reason && e.reason.message) || String(e.reason)); });
+
+(async function () {
+  if (!window.NRMultiplayer) return aviso('Falta o arquivo multiplayer-core.js na mesma pasta do jogo.', true);
+  try { await NRMultiplayer.carregarBiblioteca(); } catch (e) { return aviso(e.message, true); }
+  var M = NRMultiplayer;
+  // Login real do jogo; se não houver sessão em 4s, entra como convidado de teste (o servidor decide se aceita)
+  var nomeTeste = 'Raider' + Math.floor(Math.random() * 900 + 100);
+  M.iniciar({ url: SERVIDOR, nomeTeste: nomeTeste, getToken: function () {
+    return Promise.race([
+      (async function () { await NRDados.uid(); var f = await NRDados._getFirebase(); return await f.auth.currentUser.getIdToken(); })(),
+      new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })
+    ]).catch(function () { return null; });
+  } });
+
+  function seguro(fn) { return async function () { try { await fn.apply(null, arguments); } catch (e) { aviso((e && e.message) || String(e)); } }; }
+  function mostrar(lobby) { $('menu').classList.toggle('hide', lobby); $('lobby').classList.toggle('hide', !lobby); }
+
+  // Ping ao vivo no topo
+  // Agora mostra a MÉDIA das últimas 5 leituras e a oscilação (±jitter), em vez de só a última.
+  // O servidor grátis dorme: se demorar para responder, mostra "acordando o servidor..." e tenta de novo.
+  var histPing = [], pingando = false;
+  async function pingar() {
+    if (pingando) return;
+    pingando = true;
+    var p = $('ping'), acordar = false;
+    var avisoAcordar = setTimeout(function () { p.textContent = 'acordando o servidor...'; p.style.color = '#ffd24d'; }, 3000);
+    try {
+      var r = await M.medirPing(2);
+      if (r.qualidade === 'acordando') { acordar = true; p.textContent = 'acordando o servidor...'; p.style.color = '#ffd24d'; }
+      else if (r.ms == null) { p.textContent = 'offline'; p.style.color = '#ff5d73'; }
+      else {
+        histPing.push(r.ms); if (histPing.length > 5) histPing.shift();
+        var media = Math.round(histPing.reduce(function (a, b) { return a + b; }, 0) / histPing.length);
+        var jitter = Math.max.apply(null, histPing) - Math.min.apply(null, histPing);
+        p.textContent = media + ' ms' + (histPing.length >= 3 ? ' ±' + jitter : '');
+        p.style.color = media < 80 ? '#4dff9a' : media < 160 ? '#ffd24d' : '#ff5d73';
+      }
+    } finally { clearTimeout(avisoAcordar); pingando = false; }
+    if (acordar) setTimeout(pingar, 3000); // ainda acordando: tenta de novo logo
+  }
+  pingar(); setInterval(pingar, 10000);
+
+  for (var i = 1; i <= 6; i++) { $('mapa').add(new Option('MAPA ' + i, i)); $('nivel').add(new Option('NÍVEL ' + i, i)); }
+  for (var r = 1; r <= 5; r++) $('rodadas').add(new Option(r + (r === 1 ? ' RODADA' : ' RODADAS'), r));
+  var souHost = false, euPronto = false, euBloqueado = false, PROG = M.progresso();
+
+  // Opções de mapa/nível com cadeado nas que o jogador ainda não liberou
+  function montarMapaNivel(selMapa, selNivel, mapaAtual, nivelAtual) {
+    selMapa.innerHTML = ''; selNivel.innerHTML = '';
+    for (var m = 1; m <= 6; m++) { var o = new Option((m <= PROG.m ? 'MAPA ' : '🔒 MAPA ') + m, m); o.disabled = m > PROG.m; selMapa.add(o); }
+    var mapa = Math.min(mapaAtual || 1, PROG.m); selMapa.value = mapa;
+    for (var n = 1; n <= 6; n++) { var q = new Option((n <= (PROG.n[mapa - 1] || 1) ? 'NÍVEL ' : '🔒 NÍVEL ') + n, n); q.disabled = n > (PROG.n[mapa - 1] || 1); selNivel.add(q); }
+    selNivel.value = Math.min(nivelAtual || 1, PROG.n[mapa - 1] || 1);
+  }
+  montarMapaNivel($('mapaMenu'), $('nivelMenu'), 1, 1);
+  $('mapaMenu').onchange = function () { montarMapaNivel($('mapaMenu'), $('nivelMenu'), +$('mapaMenu').value, 1); };
+  $('modo').onchange = function () { $('escolhaMapa').classList.toggle('hide', $('modo').value !== 'coop'); };
+
+  $('mapa').onchange = function () { montarMapaNivel($('mapa'), $('nivel'), +$('mapa').value, 1); enviarConfig(); };
+  $('nivel').onchange = $('rodadas').onchange = enviarConfig;
+  function enviarConfig() { M.config({ mapa: +$('mapa').value, nivel: +$('nivel').value, rodadas: +$('rodadas').value }); euPronto = false; }
+
+  M.on('estado', function (s) {
+    mostrar(true); souHost = !!s.souHost;
+    $('cod').textContent = s.codigo;
+    $('info').textContent = (s.modo === 'pvp' ? 'PvP 1v1' : 'CO-OP') + ' · MAPA ' + s.mapa + '-' + s.nivel + (s.modo === 'pvp' ? ' · ' + s.rodadas + (s.rodadas === 1 ? ' RODADA' : ' RODADAS') : '') + ' · ' + s.jogadores.length + '/' + s.max;
+    if (s.modo === 'coop') { montarMapaNivel($('mapa'), $('nivel'), s.mapa, s.nivel); $('mapa').value = s.mapa; $('nivel').value = s.nivel; }
+    else { $('mapa').value = s.mapa; $('nivel').value = s.nivel; }
+    $('rodadas').classList.toggle('hide', s.modo !== 'pvp'); if (s.rodadas) $('rodadas').value = s.rodadas;
+    $('cfg').classList.toggle('hide', !souHost); $('bIniciar').classList.toggle('hide', !souHost);
+    var eu = s.jogadores.filter(function (j) { return j.eu; })[0];
+    if (eu) {
+      euPronto = eu.pronto; euBloqueado = !!eu.bloqueado;
+      $('bPronto').textContent = euBloqueado ? '🔒 BLOQUEADO' : (euPronto ? 'CANCELAR' : 'PRONTO'); $('bPronto').disabled = euBloqueado;
+      $('avisoBloq').classList.toggle('hide', !euBloqueado);
+      $('avisoBloq').textContent = 'Você ainda não liberou o MAPA ' + s.mapa + ' NÍVEL ' + s.nivel + '. Desbloqueie jogando sozinho (ou peça pro dono escolher outro).';
+    }
+    $('jogadores').innerHTML = s.jogadores.map(function (j) {
+      var cor = j.ping < 80 ? 'ok' : j.ping < 160 ? '' : 'ru';
+      return '<div class="jog"><span>' + (j.host ? '👑' : '🚀') + '</span><b>' + esc(j.nome) + (j.eu ? ' (você)' : '') + '</b>' +
+        '<span class="tag">NV ' + j.nivel + '</span><span class="tag ' + cor + '">' + (j.ping || '–') + ' ms</span>' +
+        (j.bloqueado ? '<span class="tag ru">🔒 NÃO LIBERADO</span>' : (j.conectado ? '<span class="tag ' + (j.pronto ? 'ok' : '') + '">' + (j.pronto ? 'PRONTO' : 'ESPERA') + '</span>' : '<span class="tag ru">CAIU</span>')) +
+        (souHost && !j.eu ? '<button class="sec" style="min-height:32px;padding:4px 8px" onclick="NRMultiplayer.expulsar(\'' + j.id + '\')">✕</button>' : '') + '</div>';
+    }).join('');
+  });
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+  M.on('erro', aviso);
+  M.on('emote', function (d) { var b = $('bolha'); b.textContent = ['👍', '🔥', '😂', '🆘'][d.id] || '👍'; b.style.opacity = 1; setTimeout(function () { b.style.opacity = 0; }, 1100); });
+  M.on('iniciar', function (d) {
+    try { sessionStorage.setItem('nrPartidaOnline', JSON.stringify(d)); } catch (e) {}
+    aviso('Partida iniciando...');
+    // Todos entram juntos no jogo; a conexão com a sala é retomada lá (online3d.js)
+    setTimeout(function () { location.href = 'game3d.html?mapa=' + d.mapa + '&nivel=' + d.nivel + '&online=1&modo=' + d.modo + '&seed=' + d.seed + '&jog=' + (d.jog || 1); }, 700);
+  });
+  M.on('saiu', function (d) { mostrar(false); if (d.queda) M.reconectar().then(function (r) { if (r) aviso('Reconectado!'); }); });
+
+  function escolha() { return $('modo').value === 'coop' ? { mapa: +$('mapaMenu').value, nivel: +$('nivelMenu').value } : {}; }
+  // Veio do botão "VOLTAR À SALA" do fim da partida: volta para a mesma sala
+  if (new URLSearchParams(location.search).get('sala') === '1') {
+    seguro(async function () {
+      var r = null;
+      for (var t = 0; t < 4 && !r; t++) { r = await M.reconectar(); if (!r) await new Promise(function (ok) { setTimeout(ok, 1500); }); }
+      if (!r) aviso('Não consegui voltar para a sala (passou de 1 minuto ou ela fechou). Crie ou entre em outra.');
+    })();
+  }
+
+  $('bCriar').onclick = seguro(function () { var e = escolha(); return M.criarSala({ modo: $('modo').value, mapa: e.mapa, nivel: e.nivel }); });
+  $('bRapida').onclick = seguro(function () { var e = escolha(); return M.partidaRapida($('modo').value, e.mapa, e.nivel); });
+  $('bEntrar').onclick = seguro(function () { return M.entrarPorCodigo($('codigo').value); });
+  $('bListar').onclick = seguro(async function () {
+    var l = await M.listarSalas();
+    $('salas').innerHTML = l.length ? l.map(function (s) { return '<div class="sala"><span><b style="color:#00ffff">' + esc(s.codigo) + '</b> ' + (s.modo === 'pvp' ? 'PvP' : 'CO-OP') + ' · ' + esc(s.host) + ' · ' + s.jogadores + '/' + s.max + '</span><button data-c="' + esc(s.codigo) + '" style="min-height:36px;padding:6px 12px">ENTRAR</button></div>'; }).join('') : 'nenhuma sala aberta';
+    [].forEach.call($('salas').querySelectorAll('button'), function (b) { b.onclick = seguro(function () { return M.entrarPorCodigo(b.dataset.c); }); });
+  });
+  $('bPronto').onclick = function () { M.pronto(!euPronto); };
+  $('bIniciar').onclick = function () { M.iniciarPartida(); };
+  $('bSair').onclick = function () { M.sair(); };
+  [].forEach.call(document.querySelectorAll('[data-e]'), function (b) { b.onclick = function () { M.emote(+b.dataset.e); }; });
+})();
+</script></body></html>
