@@ -1,0 +1,30 @@
+/* MENU.CSS — layout do menu principal (retrato). Cores/vidro vêm do base.css */
+#fundo { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+#pagMenu { align-items: stretch; }
+#logo { text-align: center; margin-top: 4px; }
+#logoTitulo { font-size: clamp(30px, 10vw, 46px); font-weight: 900; letter-spacing: 5px; color: #fff; text-shadow: 0 0 10px var(--ciano), 0 0 28px var(--ciano), 0 0 60px var(--rosa); animation: neonPisca 5s infinite; }
+#logoSub { font-size: 11px; letter-spacing: 9px; color: var(--rosa); text-shadow: 0 0 12px var(--rosa); margin-top: -2px; padding-left: 9px; }
+@keyframes neonPisca { 0%, 92%, 100% { opacity: 1; } 93% { opacity: .55; } 95% { opacity: 1; } 97% { opacity: .7; } }
+#heroiBox { flex: 1 1 auto; min-height: 120px; position: relative; margin: 0 -12px; }
+#heroi { position: absolute; inset: 0; width: 100%; height: 100%; }
+#centro { display: flex; flex-direction: column; gap: 10px; align-items: stretch; padding: 0 6px; }
+#btnJogar { font-size: 24px; letter-spacing: 8px; padding: 20px 10px; animation: pulsa 2.4s ease-in-out infinite; }
+@keyframes pulsa { 0%, 100% { box-shadow: 0 0 22px rgba(46, 230, 255, .45); } 50% { box-shadow: 0 0 46px rgba(46, 230, 255, .95), 0 0 80px rgba(176, 77, 255, .5); } }
+#recorde { text-align: center; font-size: 11px; letter-spacing: 3px; color: #9fd8e8; min-height: 14px; }
+#linhaCards { display: flex; gap: 10px; }
+.cartaMenu { flex: 1; padding: 13px 8px; text-align: center; color: #fff; background: var(--vidro); border: 1px solid var(--borda); font-family: 'Orbitron'; cursor: pointer; backdrop-filter: blur(4px); clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); touch-action: manipulation; }
+.cartaMenu b { display: block; font-size: 13px; letter-spacing: 3px; } .cartaMenu small { display: block; margin-top: 4px; font: 700 9px 'Share Tech Mono'; letter-spacing: 2px; color: var(--ciano); }
+.cartaMenu.rosa { border-color: rgba(255, 61, 166, .6); } .cartaMenu.rosa small { color: var(--rosa); }
+.cartaMenu:active { filter: brightness(1.5); transform: scale(.97); }
+#navBaixo { display: flex; gap: 8px; margin-top: 12px; }
+.nav { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 4px; background: rgba(5, 8, 20, .75); border: 1px solid rgba(46, 230, 255, .3); color: #cfe3f5; font: 900 10px 'Orbitron'; letter-spacing: 2px; cursor: pointer; touch-action: manipulation; }
+.nav i { font-style: normal; font-size: 20px; } .nav:active { background: rgba(46, 230, 255, .2); }
+#versao { text-align: center; font-size: 9px; letter-spacing: 3px; color: #5f7898; margin-top: 8px; }
+
+/* ───────── PAISAGEM (layout principal do menu) ───────── */
+@media (orientation: landscape) {
+  #pagMenu { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto; grid-template-areas: "topo topo" "logo hero" "centro hero" "nav nav" "ver ver"; column-gap: 14px; padding-left: calc(12px + env(safe-area-inset-left, 0px)); padding-right: calc(12px + env(safe-area-inset-right, 0px)); }
+  #pagMenu > .barraTopo { grid-area: topo; padding-left: 150px; } #logo { grid-area: logo; text-align: left; margin-top: 0; } #heroiBox { grid-area: hero; margin: 0; min-height: 0; } #centro { grid-area: centro; justify-content: center; padding: 0; gap: 8px; } #navBaixo { grid-area: nav; margin-top: 4px; } #versao { grid-area: ver; margin-top: 2px; }
+  #logoTitulo { font-size: clamp(26px, 6vw, 40px); } #logoSub { text-align: left; padding-left: 4px; letter-spacing: 7px; }
+  #btnJogar { font-size: 20px; padding: 14px 8px; } #recorde { text-align: left; } .cartaMenu { padding: 9px 6px; } .nav { flex-direction: row; justify-content: center; gap: 8px; padding: 6px; } .nav i { font-size: 16px; }
+}

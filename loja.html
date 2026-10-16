@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05050c">
+<title>NEON RAIDERS — Hangar</title>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="loja.css">
+</head>
+<body>
+<canvas id="fundo"></canvas><div id="scan"></div>
+
+<div class="pagina">
+  <div class="barraTopo">
+    <button class="btnIcone" id="btnVoltar" aria-label="Voltar" style="margin-right:auto">◀</button>
+    <div class="pilula"><span class="am">◈</span><b id="moedasTxt">0</b></div>
+  </div>
+  <div id="tituloPg">HANGAR</div>
+
+  <div id="vitrine"><canvas id="prev"></canvas><div id="selo" class="oculto">ADQUIRIDO</div></div>
+
+  <div id="abas">
+    <button class="aba on" data-aba="itens">EQUIPAMENTO</button>
+    <button class="aba" data-aba="melhorias" id="abaMelhorias">MELHORIAS</button>
+  </div>
+
+  <div id="conteudo">
+    <div id="abaItens">
+      <div class="item" id="itemCacador" data-foco="cacador">
+        <div class="ic">🛡️</div>
+        <div class="tx"><h3>CAÇADOR CYBER</h3><p id="descCacador"></p><div class="bonus">+15% VIDA · +8% VELOCIDADE</div></div>
+        <button class="btn ouro" id="btnCacador">COMPRAR</button>
+      </div>
+      <div class="item" id="itemRifle" data-foco="rifle">
+        <div class="ic">🔫</div>
+        <div class="tx"><h3>RIFLE PLASMA</h3><p id="descRifle"></p><div class="bonus">+20% DANO · BRILHO PLASMA</div></div>
+        <button class="btn ouro" id="btnRifle">COMPRAR</button>
+      </div>
+      <p class="nota mono">Sem comprar, você joga com o <b>Operador Padrão</b> (cinza, sem bônus). Tudo que você compra vale no solo e no co-op.</p>
+    </div>
+    <div id="abaUp" class="oculto"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="data.js"></script>
+<script src="dados.js"></script>
+<script src="guarda.js"></script>
+<script src="conta.js"></script>
+<script src="audio.js"></script>
+<script src="modelos.js"></script>
+<script src="menu-cenario.js"></script>
+<script src="loja.js"></script>
+<script type="module" src="manutencao.js"></script>
+<script type="module" src="atualizacao.js"></script>
+<script src="paisagem.js"></script>
+</body>
+</html>

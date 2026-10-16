@@ -1,0 +1,154 @@
+/* ══════════════════════════════════════════════════════════════
+   JOGO.CSS — visual do HUD da partida (neon translúcido, estilo cyberpunk)
+   Cores principais nas variáveis abaixo: mude aqui para mudar tudo.
+   ══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --ciano: #2ee6ff; --rosa: #ff3da6; --amarelo: #ffd23d; --verde: #39ff88; --roxo: #b04dff; --vermelho: #ff3344;
+  --fundo: rgba(8, 10, 24, 0.62); --borda: rgba(46, 230, 255, 0.45);
+  --topo: env(safe-area-inset-top, 0px); --base: env(safe-area-inset-bottom, 0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #05050c; font-family: 'Orbitron', 'Share Tech Mono', monospace; color: #e8f6ff; touch-action: none; overscroll-behavior: none; }
+canvas#cena, canvas#overlay { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+canvas#overlay { pointer-events: none; z-index: 3; }
+.oculto { display: none !important; }
+
+/* camadas de reação a dano */
+#vinhetaDano, #vinhetaVida, #flashTela { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+#vinhetaDano { background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 30, 60, .75) 100%); opacity: 0; transition: opacity .08s; }
+#vinhetaVida { background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 20, 50, .55) 100%); opacity: 0; animation: bate 1s infinite; }
+#vinhetaVida.on { opacity: 1; }
+@keyframes bate { 0%, 100% { filter: brightness(.7); } 50% { filter: brightness(1.4); } }
+#flashTela { background: #fff; opacity: 0; transition: opacity .35s; }
+
+#zonaToque { position: fixed; inset: 0; z-index: 5; }
+#joy { position: fixed; z-index: 6; pointer-events: none; display: none; width: 0; height: 0; }
+#joyBase { position: absolute; width: 112px; height: 112px; left: -56px; top: -56px; border-radius: 50%; border: 2px solid rgba(46, 230, 255, .55); background: radial-gradient(circle, rgba(46, 230, 255, .12), rgba(46, 230, 255, .02) 70%); box-shadow: 0 0 18px rgba(46, 230, 255, .35), inset 0 0 18px rgba(46, 230, 255, .2); }
+#joyBot { position: absolute; width: 50px; height: 50px; left: 0; top: 0; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #aef6ff, #2ee6ff 60%, #0a7f95); box-shadow: 0 0 16px #2ee6ff; }
+
+/* ───────── HUD ───────── */
+#hud { position: fixed; inset: 0; z-index: 8; pointer-events: none; }
+#hud > * { pointer-events: none; }
+#xpBarra { position: absolute; left: 0; right: 0; top: var(--topo); height: 15px; background: rgba(5, 8, 20, .85); border-bottom: 1px solid var(--borda); }
+#xpPreench { height: 100%; width: 0; background: linear-gradient(90deg, #0a7f95, var(--ciano), #aef6ff); box-shadow: 0 0 12px var(--ciano); transition: width .15s; }
+#xpTexto { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 10px; line-height: 15px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 4px #000, 0 0 4px #000; }
+
+#topo { position: absolute; left: 8px; right: 8px; top: calc(var(--topo) + 21px); display: flex; gap: 6px; align-items: stretch; justify-content: center; }
+.pilula { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); backdrop-filter: blur(3px); font-weight: 900; font-size: 15px; box-shadow: inset 0 0 14px rgba(46, 230, 255, .08); }
+.pilula small { font-size: 8px; letter-spacing: 2px; color: var(--ciano); }
+.pilula .ic { font-size: 14px; color: var(--rosa); } .pilula .ic.am { color: var(--amarelo); }
+#boxOnda { flex-wrap: wrap; row-gap: 3px; min-width: 94px; } #boxOnda b { font-size: 19px; color: #fff; text-shadow: 0 0 10px var(--ciano); }
+#ondaTempo { width: 100%; height: 3px; background: rgba(255, 255, 255, .12); border-radius: 2px; overflow: hidden; } #ondaTempoPreench { display: block; height: 100%; width: 0; background: var(--ciano); }
+.btnIcone { pointer-events: auto; width: 38px; background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; color: #fff; font: 900 12px 'Orbitron'; letter-spacing: -1px; }
+
+#vidaBox { position: absolute; left: 10px; top: calc(var(--topo) + 74px); width: 150px; }
+#vidaBarra { position: relative; height: 13px; background: rgba(5, 8, 20, .85); border: 1px solid rgba(57, 255, 136, .55); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); overflow: hidden; }
+#vidaPreench { position: absolute; inset: 0 auto 0 0; width: 100%; background: linear-gradient(90deg, #0fa355, var(--verde)); box-shadow: 0 0 10px var(--verde); transition: width .1s; }
+#vidaPerda { position: absolute; inset: 0 auto 0 0; width: 100%; background: rgba(255, 60, 70, .8); transition: width .6s .25s; z-index: 0; } #vidaPreench { z-index: 1; }
+#vidaTexto { display: block; margin-top: 2px; font: 700 10px 'Share Tech Mono'; letter-spacing: 1px; color: #b9ffd7; text-shadow: 0 0 4px #000; }
+
+#habs { position: absolute; left: 10px; top: calc(var(--topo) + 108px); display: flex; flex-direction: column; gap: 4px; }
+.habIc { display: flex; align-items: center; gap: 4px; padding: 2px 6px 2px 4px; background: rgba(5, 8, 20, .6); border: 1px solid; border-radius: 8px; font-size: 14px; }
+.habIc b { font: 900 9px 'Orbitron'; opacity: .95; }
+.habIc.pas { opacity: .8; }
+
+#chefeBox { position: absolute; left: 18%; right: 18%; top: calc(var(--topo) + 74px); text-align: center; }
+#chefeNome { font-weight: 900; font-size: 11px; letter-spacing: 4px; color: #ff8a96; text-shadow: 0 0 10px var(--vermelho); margin-bottom: 3px; }
+#chefeBarra { height: 11px; background: rgba(20, 5, 10, .9); border: 1px solid var(--vermelho); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+#chefePreench { height: 100%; width: 100%; background: linear-gradient(90deg, #a1001a, var(--vermelho), #ff8a96); box-shadow: 0 0 12px var(--vermelho); transition: width .12s; }
+
+#aliados { position: absolute; right: 8px; top: calc(var(--topo) + 74px); display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.aliado { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: var(--fundo); border-left: 3px solid; font-size: 10px; font-weight: 700; min-width: 100px; }
+.aliado i { display: block; height: 4px; flex: 1; background: rgba(255, 255, 255, .15); } .aliado i em { display: block; height: 100%; background: var(--verde); }
+.aliado.caido { opacity: .6; text-decoration: line-through; }
+
+#banner { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-weight: 900; letter-spacing: 6px; opacity: 0; pointer-events: none; }
+#banner b { display: block; font-size: 34px; text-shadow: 0 0 22px currentColor, 0 0 6px #000; }
+#banner small { font-size: 11px; letter-spacing: 5px; opacity: .85; }
+#banner.mostra { animation: bannerAnim 2.2s ease-out forwards; }
+@keyframes bannerAnim { 0% { opacity: 0; transform: scale(2.2); filter: blur(6px); } 12% { opacity: 1; transform: scale(1); filter: blur(0); } 78% { opacity: 1; } 100% { opacity: 0; transform: scale(.94) translateY(-14px); } }
+#aviso { position: absolute; left: 50%; bottom: calc(var(--base) + 130px); transform: translateX(-50%); background: rgba(5, 8, 20, .88); border: 1px solid var(--amarelo); color: var(--amarelo); padding: 7px 14px; font-size: 11px; font-weight: 700; letter-spacing: 1px; border-radius: 8px; display: none; text-align: center; max-width: 86vw; }
+
+#btnDash { pointer-events: auto !important; position: absolute; right: 16px; bottom: calc(var(--base) + 26px); width: 78px; height: 78px; border-radius: 50%; border: 2px solid var(--ciano); background: radial-gradient(circle at 35% 30%, rgba(46, 230, 255, .35), rgba(8, 10, 24, .75)); color: #fff; font: 900 11px 'Orbitron'; letter-spacing: 1px; box-shadow: 0 0 20px rgba(46, 230, 255, .45); z-index: 9; touch-action: manipulation; }
+#btnDash svg { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); transform: rotate(-90deg); }
+#btnDash circle { fill: none; stroke: #fff; stroke-width: 3; stroke-dasharray: 107; stroke-dashoffset: 0; opacity: .9; }
+#btnDash.carregando { filter: grayscale(.8) brightness(.7); } #btnDash:active { transform: scale(.93); }
+
+/* ───────── TELAS (cartas, pausa, resultado) ───────── */
+.tela { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; background: radial-gradient(ellipse at center, rgba(8, 6, 28, .78), rgba(2, 2, 10, .93)); backdrop-filter: blur(4px); touch-action: manipulation; }
+.cartasTitulo { text-align: center; margin-bottom: 14px; } .cartasTitulo small { display: block; font-size: 10px; letter-spacing: 6px; color: var(--ciano); } .cartasTitulo b { font-size: 28px; color: var(--amarelo); text-shadow: 0 0 20px var(--amarelo); letter-spacing: 3px; }
+#cartasLista { display: flex; flex-direction: column; gap: 10px; width: min(92vw, 430px); }
+.carta { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: linear-gradient(100deg, rgba(14, 18, 44, .95), rgba(8, 10, 26, .95)); border: 2px solid var(--c, var(--ciano)); border-radius: 12px; clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); box-shadow: 0 0 22px color-mix(in srgb, var(--c, #2ee6ff) 35%, transparent); animation: cartaEntra .35s both; cursor: pointer; }
+.carta:nth-child(2) { animation-delay: .08s; } .carta:nth-child(3) { animation-delay: .16s; }
+.carta:active { transform: scale(.97); filter: brightness(1.3); }
+@keyframes cartaEntra { from { opacity: 0; transform: translateX(-40px) scale(.9); } to { opacity: 1; transform: none; } }
+.carta .ic { font-size: 34px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .06); border-radius: 10px; border: 1px solid var(--c); flex: none; }
+.carta .tx { flex: 1; min-width: 0; } .carta h3 { font-size: 13px; letter-spacing: 2px; color: var(--c); } .carta p { font: 700 11px 'Share Tech Mono'; color: #cfe3f5; margin-top: 3px; line-height: 1.35; }
+.carta .nv { font-size: 10px; font-weight: 900; letter-spacing: 1px; margin-top: 4px; color: var(--amarelo); } .carta .nv.nova { color: var(--verde); }
+#cartasTempo { width: min(92vw, 430px); height: 4px; background: rgba(255, 255, 255, .12); margin-top: 14px; border-radius: 2px; overflow: hidden; } #cartasTempoPreench { display: block; height: 100%; width: 100%; background: var(--amarelo); }
+#cartasEsperando { margin-top: 14px; font-size: 10px; letter-spacing: 3px; color: var(--ciano); }
+
+.painel { width: min(88vw, 360px); padding: 22px 20px; background: rgba(8, 10, 28, .94); border: 1px solid var(--borda); clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); box-shadow: 0 0 30px rgba(46, 230, 255, .2); display: flex; flex-direction: column; gap: 12px; text-align: center; }
+.painel.largo { width: min(92vw, 420px); max-height: 94vh; overflow-y: auto; }
+.painel h2 { font-size: 24px; letter-spacing: 4px; text-shadow: 0 0 16px var(--ciano); } .painel small { font-size: 10px; letter-spacing: 4px; color: var(--ciano); }
+.btn { pointer-events: auto; padding: 13px 16px; font: 900 13px 'Orbitron'; letter-spacing: 3px; color: #031018; background: linear-gradient(180deg, #aef6ff, var(--ciano)); border: none; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); box-shadow: 0 0 20px rgba(46, 230, 255, .5); cursor: pointer; touch-action: manipulation; }
+.btn:active { filter: brightness(.8); transform: scale(.98); } .btn.sec { background: rgba(255, 255, 255, .1); color: #fff; box-shadow: none; border: 1px solid var(--borda); } .btn.perigo { background: linear-gradient(180deg, #ff8a96, var(--vermelho)); color: #1a0308; box-shadow: 0 0 18px rgba(255, 51, 68, .45); }
+.linhaVol { display: flex; align-items: center; gap: 10px; font-size: 10px; letter-spacing: 2px; } .linhaVol label { width: 70px; text-align: left; } .linhaVol input { flex: 1; accent-color: var(--ciano); }
+
+#resOnda { font-size: 14px; letter-spacing: 4px; color: var(--amarelo); } #resOnda b { font-size: 38px; text-shadow: 0 0 20px var(--amarelo); }
+#resGrade { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; } .resItem { padding: 8px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(46, 230, 255, .25); } .resItem small { display: block; font-size: 8px; letter-spacing: 2px; color: #8fb9d4; } .resItem b { font-size: 17px; }
+#resRecompensa { padding: 10px; border: 1px solid var(--amarelo); background: rgba(255, 210, 61, .08); font-size: 12px; letter-spacing: 2px; } #resRecompensa b { color: var(--amarelo); font-size: 22px; display: block; text-shadow: 0 0 14px var(--amarelo); }
+#resExtra { font: 700 11px 'Share Tech Mono'; color: #cfe3f5; display: flex; flex-direction: column; gap: 4px; }
+.botoes { display: flex; flex-direction: column; gap: 8px; }
+
+#contagem { position: fixed; inset: 0; z-index: 15; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 120px; color: #fff; text-shadow: 0 0 40px var(--ciano), 0 0 10px #000; pointer-events: none; }
+#contagem.pulsa b { animation: pulsa .9s ease-out; } @keyframes pulsa { from { transform: scale(2.4); opacity: 0; } 20% { opacity: 1; } to { transform: scale(.9); opacity: .9; } }
+
+#carregando { position: fixed; inset: 0; z-index: 50; background: radial-gradient(ellipse at 50% 40%, #150a35, #05050c 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; transition: opacity .6s; }
+#carregando.some { opacity: 0; pointer-events: none; }
+.logoCar { font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #fff; text-shadow: 0 0 24px var(--ciano), 0 0 50px var(--rosa); } .subCar { font-size: 10px; letter-spacing: 8px; color: var(--rosa); margin-top: -8px; }
+#carBarra { width: min(70vw, 280px); height: 5px; background: rgba(255, 255, 255, .1); overflow: hidden; margin-top: 14px; } #carPreench { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--rosa), var(--ciano)); transition: width .25s; }
+#carTexto { font: 700 11px 'Share Tech Mono'; letter-spacing: 2px; color: #9fb9d4; } #carDica { font: 700 11px 'Share Tech Mono'; color: #6f86a3; max-width: 78vw; text-align: center; min-height: 30px; }
+
+/* ───────── LOJA ENTRE AS ONDAS (estilo Brotato) ───────── */
+#lojaTopo { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: min(94vw, 860px); margin-bottom: 10px; }
+#lojaTopo small { display: block; font-size: 10px; letter-spacing: 5px; color: var(--verde); } #lojaTopo b { font-size: 26px; letter-spacing: 3px; text-shadow: 0 0 18px var(--verde); }
+#lojaTopo .pilula b { font-size: 20px; color: var(--amarelo); text-shadow: none; letter-spacing: 1px; } #lojaTopo .pilula small { color: #9fb9d4; letter-spacing: 2px; }
+#lojaTempo { font-weight: 900; font-size: 22px; color: var(--amarelo); }
+#lojaLista { display: flex; gap: 10px; width: min(94vw, 860px); }
+.lojaCarta { flex-direction: column; align-items: stretch; text-align: center; gap: 6px; padding: 10px 8px; flex: 1; min-width: 0; }
+.lojaCarta .ic { margin: 0 auto; } .lojaCarta .preco { margin-top: auto; padding: 7px; font-weight: 900; font-size: 14px; color: #1a1300; background: linear-gradient(180deg, #ffe58a, var(--amarelo)); letter-spacing: 1px; }
+.lojaCarta.semGrana { filter: grayscale(.55) brightness(.75); } .lojaCarta.semGrana .preco { background: #444; color: #aaa; }
+.lojaCarta.vendida { opacity: .35; filter: grayscale(1); pointer-events: none; } .lojaCarta.vendida .preco { background: #333; color: #888; }
+#lojaBotoes { display: flex; gap: 10px; width: min(94vw, 860px); margin-top: 12px; } #lojaBotoes .btn { flex: 1; }
+
+/* ───────── PAISAGEM (o jogo é sempre deitado: alturas pequenas) ───────── */
+@media (orientation: landscape) {
+  #xpBarra { height: 12px; } #xpTexto { font-size: 9px; line-height: 12px; }
+  #topo { top: calc(var(--topo) + 16px); gap: 5px; justify-content: center; }
+  .pilula { padding: 3px 9px; font-size: 13px; } #boxOnda b { font-size: 16px; } #boxOnda { min-width: 84px; }
+  .btnIcone { width: 34px; }
+  #vidaBox { top: calc(var(--topo) + 18px); left: calc(10px + env(safe-area-inset-left, 0px)); width: 160px; }
+  #habs { top: calc(var(--topo) + 52px); left: calc(10px + env(safe-area-inset-left, 0px)); flex-direction: row; flex-wrap: wrap; width: 150px; gap: 3px; }
+  .habIc { padding: 1px 4px; font-size: 12px; }
+  #chefeBox { top: calc(var(--topo) + 50px); left: 28%; right: 28%; } #chefeNome { font-size: 10px; }
+  #aliados { top: calc(var(--topo) + 18px); right: calc(8px + env(safe-area-inset-right, 0px)); }
+  #btnDash { right: calc(26px + env(safe-area-inset-right, 0px)); bottom: calc(var(--base) + 22px); width: 70px; height: 70px; }
+  #banner { top: 22%; } #banner b { font-size: 28px; }
+  #aviso { bottom: 90px; }
+  #contagem { font-size: 90px; }
+  .tela { padding: 8px 14px; }
+  .cartasTitulo { margin-bottom: 8px; } .cartasTitulo b { font-size: 22px; }
+  #cartasLista { flex-direction: row; width: min(94vw, 860px); gap: 12px; }
+  .carta { flex: 1; flex-direction: column; text-align: center; padding: 12px 10px; min-width: 0; }
+  .carta .ic { margin: 0 auto; } .carta p { font-size: 11px; }
+  #cartasTempo { width: min(94vw, 860px); margin-top: 10px; }
+  #lojaTopo b { font-size: 20px; } #lojaLista .carta p { font-size: 10px; } #lojaLista .ic { width: 42px; height: 42px; font-size: 26px; }
+  .painel { padding: 14px 16px; gap: 9px; } .painel h2 { font-size: 20px; }
+  .painel.largo { width: min(94vw, 720px); } #resGrade { grid-template-columns: repeat(4, 1fr); } #resOnda b { font-size: 30px; }
+  .painel.largo .botoes { flex-direction: row; } .painel.largo .botoes .btn { flex: 1; }
+  #carregando { gap: 8px; } .logoCar { font-size: 26px; }
+}
+@media (orientation: landscape) and (max-height: 420px) { #btnDash { width: 62px; height: 62px; } #resExtra { display: none; } }

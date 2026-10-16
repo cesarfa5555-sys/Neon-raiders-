@@ -1,0 +1,60 @@
+/* ══════════════════════════════════════════════════════════════
+   BASE.CSS — visual compartilhado do menu, hangar (loja) e sala online.
+   Para mudar as cores do jogo todo nessas telas: variáveis abaixo.
+   ══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --ciano: #2ee6ff; --rosa: #ff3da6; --amarelo: #ffd23d; --verde: #39ff88; --roxo: #b04dff; --vermelho: #ff3344;
+  --vidro: rgba(10, 14, 34, 0.58); --borda: rgba(46, 230, 255, 0.5);
+  --topo: env(safe-area-inset-top, 0px); --base: env(safe-area-inset-bottom, 0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #05050c; color: #e8f6ff; font-family: 'Orbitron', 'Share Tech Mono', monospace; overscroll-behavior: none; }
+.oculto { display: none !important; }
+
+/* fundo: vídeo + véu escuro + linhas de varredura */
+#fundo { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse at 50% 30%, #1a0b3d 0%, #07061a 60%, #03030a 100%); }
+#fundo video { width: 100%; height: 100%; object-fit: cover; opacity: .55; }
+#fundo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 5, 14, .55), rgba(5, 5, 14, .1) 40%, rgba(5, 5, 14, .85)); }
+#scan { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; }
+#chuvaCss { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .25; background: repeating-linear-gradient(105deg, transparent 0 18px, rgba(140, 210, 255, .18) 18px 19px); animation: chuva 0.7s linear infinite; }
+@keyframes chuva { to { background-position: -40px 120px; } }
+
+.pagina { position: fixed; inset: 0; z-index: 2; display: flex; flex-direction: column; padding: calc(var(--topo) + 10px) 12px calc(var(--base) + 10px); }
+
+/* barra do topo (moedas, config) */
+.barraTopo { display: flex; justify-content: flex-end; align-items: center; gap: 8px; min-height: 44px; }
+.pilula { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: var(--vidro); border: 1px solid var(--borda); font-weight: 900; font-size: 14px; letter-spacing: 1px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); backdrop-filter: blur(4px); }
+.pilula .am { color: var(--amarelo); text-shadow: 0 0 10px var(--amarelo); }
+.btnIcone { width: 42px; height: 38px; background: var(--vidro); border: 1px solid var(--borda); color: #fff; font-size: 17px; cursor: pointer; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); touch-action: manipulation; }
+.btnIcone:active { filter: brightness(1.6); }
+
+/* botões */
+.btn { display: block; width: 100%; padding: 14px 16px; font: 900 14px 'Orbitron'; letter-spacing: 3px; color: #031018; text-align: center; background: linear-gradient(180deg, #b6f8ff, var(--ciano)); border: none; cursor: pointer; clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); box-shadow: 0 0 22px rgba(46, 230, 255, .45); touch-action: manipulation; position: relative; overflow: hidden; }
+.btn:active { transform: scale(.97); filter: brightness(.85); }
+.btn.sec { background: var(--vidro); color: #fff; border: 1px solid var(--borda); box-shadow: none; clip-path: none; }
+.btn.rosa { background: linear-gradient(180deg, #ff9ad0, var(--rosa)); color: #240312; box-shadow: 0 0 22px rgba(255, 61, 166, .5); }
+.btn.ouro { background: linear-gradient(180deg, #ffe58a, var(--amarelo)); color: #241a00; box-shadow: 0 0 22px rgba(255, 210, 61, .45); }
+.btn.perigo { background: linear-gradient(180deg, #ff8a96, var(--vermelho)); color: #1a0308; }
+.btn[disabled] { opacity: .45; filter: grayscale(.7); pointer-events: none; }
+.btn::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent); transform: skewX(-20deg); animation: brilho 3.2s infinite; }
+.btn.sec::after, .btn[disabled]::after { display: none; }
+@keyframes brilho { 0%, 55% { left: -60%; } 100% { left: 140%; } }
+
+/* painéis e cartões */
+.painel { background: var(--vidro); border: 1px solid var(--borda); padding: 14px; backdrop-filter: blur(5px); clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); box-shadow: inset 0 0 30px rgba(46, 230, 255, .06); }
+.titulo { font-size: 11px; letter-spacing: 5px; color: var(--ciano); margin-bottom: 8px; }
+.mono { font-family: 'Share Tech Mono', monospace; }
+
+/* janelas modais */
+.modal { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(2, 2, 10, .82); backdrop-filter: blur(4px); }
+.modal .caixa { width: min(92vw, 380px); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.modal h2 { font-size: 18px; letter-spacing: 4px; text-align: center; text-shadow: 0 0 14px var(--ciano); }
+.linhaVol { display: flex; align-items: center; gap: 10px; font-size: 10px; letter-spacing: 2px; } .linhaVol label { width: 76px; } .linhaVol input { flex: 1; accent-color: var(--ciano); }
+
+#toast { position: fixed; left: 50%; top: calc(var(--topo) + 60px); transform: translate(-50%, -20px); z-index: 60; padding: 10px 16px; max-width: 88vw; text-align: center; background: rgba(5, 8, 20, .95); border: 1px solid var(--amarelo); color: var(--amarelo); font: 700 12px 'Share Tech Mono'; letter-spacing: 1px; opacity: 0; transition: .3s; pointer-events: none; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); } #toast.ok { border-color: var(--verde); color: var(--verde); } #toast.erro { border-color: var(--vermelho); color: #ff8a96; }
+
+#manutencao { position: fixed; inset: 0; z-index: 99; background: #05050c; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 30px; }
+#manutencao b { font-size: 24px; letter-spacing: 5px; color: var(--amarelo); text-shadow: 0 0 20px var(--amarelo); } #manutencao span { font: 700 12px 'Share Tech Mono'; color: #9fb9d4; }
