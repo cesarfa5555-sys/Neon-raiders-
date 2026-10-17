@@ -24,9 +24,9 @@
     // ── INIMIGOS COMUNS (um InstancedMesh por tipo e parte) ──
     var tipos = D.INIMIGOS.map(function (def) {
       var mod = M.INIMIGOS_MODELOS[def.id]();
-      var corpo = new T.InstancedMesh(mod.corpo, new T.MeshLambertMaterial({ vertexColors: true }), MAX_INIM);
-      var brilho = new T.InstancedMesh(mod.brilho, new T.MeshBasicMaterial({ vertexColors: true }), MAX_INIM);
-      [corpo, brilho].forEach(function (m) { m.frustumCulled = false; m.count = 0; m.setColorAt(0, cor.setRGB(1, 1, 1)); scene.add(m); });
+      var corpo = M.instanciado(mod.corpo, new T.MeshLambertMaterial({ vertexColors: true }), MAX_INIM, true);
+      var brilho = M.instanciado(mod.brilho, new T.MeshBasicMaterial({ vertexColors: true }), MAX_INIM, true);
+      scene.add(corpo); scene.add(brilho);
       return { def: def, mod: mod, corpo: corpo, brilho: brilho, n: 0 };
     });
     // sombras (um círculo escuro sob cada inimigo) e anel vermelho nos elites
@@ -40,20 +40,20 @@
 
     // ── PROJÉTEIS, GEMAS ──
     var MAXB = 500;
-    var balaN = new T.InstancedMesh(M.geoPlasma(), new T.MeshBasicMaterial({ color: 0xffffff }), MAXB);
-    var balaH = new T.InstancedMesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: glow, transparent: true, blending: T.AdditiveBlending, depthWrite: false }), MAXB);
-    [balaN, balaH].forEach(function (m) { m.frustumCulled = false; m.count = 0; m.setColorAt(0, cor.setRGB(1, 1, 1)); scene.add(m); });
-    var COR_BALA = [[0.6, 1, 1], [1, 0.35, 0.2], [1, 0.85, 0.25]], COR_HALO = [[0.1, 0.8, 1], [1, 0.2, 0.1], [1, 0.7, 0.1]];
-    var gemaM = new T.InstancedMesh(M.geoGema(), new T.MeshBasicMaterial({ color: 0xffffff }), 480);
-    var gemaH = new T.InstancedMesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: glow, transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 0.8 }), 480);
-    [gemaM, gemaH].forEach(function (m) { m.frustumCulled = false; m.count = 0; m.setColorAt(0, cor.setRGB(1, 1, 1)); scene.add(m); });
+    var balaN = M.instanciado(M.geoPlasma(), new T.MeshBasicMaterial({ color: 0xffffff }), MAXB, true);
+    var balaH = M.instanciado(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: glow, transparent: true, blending: T.AdditiveBlending, depthWrite: false }), MAXB, true);
+    scene.add(balaN); scene.add(balaH);
+    var COR_BALA = [[0.6, 1, 1], [1, 0.35, 0.2], [1, 0.85, 0.25], [1, 0.45, 0.55]], COR_HALO = [[0.1, 0.8, 1], [1, 0.2, 0.1], [1, 0.7, 0.1], [1, 0.1, 0.25]];
+    var gemaM = M.instanciado(M.geoGema(), new T.MeshBasicMaterial({ color: 0xffffff }), 480, true);
+    var gemaH = M.instanciado(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: glow, transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 0.8 }), 480, true);
+    scene.add(gemaM); scene.add(gemaH);
     var COR_GEMA = [0x2ee6ff, 0x39ff88, 0xb04dff];
 
     // ── JOGADORES (modelos 3D por slot) ──
     var jog = {};                      // slot → { modelo, x, z, vel, drones[] }
     function modeloJogador(slot) {
       var i = infoSlot[slot] || {};
-      var m = M.criarCacador({ cor: COR_SLOT[slot % 4], basico: !i.cacador, rifle: !!i.rifle });
+      var m = M.criarCacador({ cor: i.persona === 'kunoichi' ? 0xff3da6 : COR_SLOT[slot % 4], basico: i.persona === 'padrao', fem: i.persona === 'kunoichi', rifle: i.arma === 'rifle', katana: i.arma === 'katana' });
       scene.add(m.grupo);
       return (jog[slot] = { modelo: m, x: 0, z: 0, vel: 0, drones: [], inicializado: false, alt: 0, fx: 0, fz: 1 });
     }
@@ -142,9 +142,9 @@
       // ---- projéteis ----
       var nb = 0;
       for (var b = 0; b < V.projeteis.length && nb < MAXB; b++) {
-        var pr = V.projeteis[b], kk = Math.min(2, pr.kind);
+        var pr = V.projeteis[b], kk = Math.min(3, pr.kind);
         dummy.position.set(pr.x, 1.25, pr.z); dummy.rotation.set(0, Math.atan2(pr.vx, pr.vz), 0);
-        var sb = pr.kind === 1 ? 0.8 : 1.0; dummy.scale.set(sb, sb, sb); dummy.updateMatrix(); balaN.setMatrixAt(nb, dummy.matrix);
+        var sb = pr.kind === 1 ? 0.8 : pr.kind === 3 ? 2.2 : 1.0; dummy.scale.set(sb, sb, sb); dummy.updateMatrix(); balaN.setMatrixAt(nb, dummy.matrix);
         cor.setRGB(COR_BALA[kk][0], COR_BALA[kk][1], COR_BALA[kk][2]); balaN.setColorAt(nb, cor);
         dummy.quaternion.copy(cam.quaternion); var sh = pr.kind === 1 ? 1.5 : 1.3; dummy.scale.set(sh, sh, sh); dummy.updateMatrix(); balaH.setMatrixAt(nb, dummy.matrix);
         cor.setRGB(COR_HALO[kk][0], COR_HALO[kk][1], COR_HALO[kk][2]); balaH.setColorAt(nb, cor);
@@ -215,6 +215,12 @@
             fx.faiscas(e[2] + e[4] * 1.4, 1.35, e[3] + e[5] * 1.4, 4, 0x6ff6ff, 5, 0.18, 0.55, 0);
             fx.particula(e[2] + e[4] * 1.3, 1.35, e[3] + e[5] * 1.3, 0, 0, 0, 0.09, 1.5, 0xaaffff, 0, 0, 0);
             if (eu) A.tocar('tiro'); else A.tocar('tiro', { tom: -0.15 });
+            break; }
+          case EV.SLASH: {
+            var js = jog[e[1]]; if (js) js.modelo.golpear();
+            fx.corte(e[2], e[3], e[4], e[5], e[6], e[7]);
+            var lx = e[2] + e[4] * e[7] * 0.7, lz = e[3] + e[5] * e[7] * 0.7;
+            fx.faiscas(lx, 1.1, lz, e[6] > 6 ? 14 : 8, 0xff2a55, 6, 0.3, 0.5, 2); A.tocar('corte');
             break; }
           case EV.HIT: {
             var dano = e[3], crit = e[4], tp = e[5], cs = tp >= 90 ? 0xff6677 : (D.INIMIGOS[tp] ? D.INIMIGOS[tp].cor : 0xffffff);

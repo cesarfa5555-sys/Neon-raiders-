@@ -17,7 +17,8 @@
       var key = new T.DirectionalLight(0xffffff, 0.9); key.position.set(3, 6, 5); scene.add(key);
       var rimC = new T.PointLight(0x2ee6ff, 2.2, 14); rimC.position.set(-3, 2.5, -2.5); scene.add(rimC);
       var rimR = new T.PointLight(0xff3da6, 2.0, 14); rimR.position.set(3.2, 1.5, -2); scene.add(rimR);
-      var m = window.NRModelos.criarCacador({ cor: 0x2ee6ff, basico: !lo.cacador, rifle: !!lo.rifle });
+      var eq = window.NRData.resolverEquip(lo);
+      var m = window.NRModelos.criarCacador({ cor: eq.persona === 'kunoichi' ? 0xff3da6 : 0x2ee6ff, basico: eq.persona === 'padrao', fem: eq.persona === 'kunoichi', rifle: eq.arma === 'rifle', katana: eq.arma === 'katana' });
       m.grupo.scale.setScalar(1.35); scene.add(m.grupo);
       // plataforma holográfica sob os pés
       var plat = new T.Mesh(new T.CylinderGeometry(1.5, 1.7, 0.12, 36), new T.MeshPhongMaterial({ color: 0x0c1230, shininess: 90 })); plat.position.y = -0.06; scene.add(plat);

@@ -52,7 +52,8 @@
     TELEPORTE: 23, // [tipo, x0, z0, x1, z1]
     DRONE_TIRO: 24, // [tipo, pid, x, z, dx, dz]
     LOJA: 25,      // [tipo, onda]                          fim de onda: abriu a loja
-    LOJA_FIM: 26   // [tipo]                                a loja fechou, próxima onda
+    LOJA_FIM: 26,  // [tipo]                                a loja fechou, próxima onda
+    SLASH: 27      // [tipo, pid, x, z, dx, dz, arco, alcance]  corte da katana
   };
 
   // Itens do chão
@@ -78,6 +79,13 @@
         proj: 1 + (l >= 3 ? 1 : 0) + (l >= 7 ? 1 : 0),
         perfura: (l >= 5 ? 1 : 0) + (l >= 8 ? 1 : 0),
         explode: l >= 8 ? 1.7 : 0, vel: 24, vida: 0.78,
+      };
+      case 'katana': return {
+        dano: 34 * [1, 1.25, 1.25, 1.25, 1.25, 1.62, 1.62, 1.62][i],
+        intervalo: 0.55 * (l >= 4 ? 0.82 : 1),
+        alcance: [3.3, 3.3, 3.9, 3.9, 3.9, 3.9, 4.8, 4.8][i],
+        arco: l >= 8 ? 6.4 : 2.3,            // radianos totais do corte (6.4 = volta inteira)
+        duplo: l >= 5, onda: l >= 7,
       };
       case 'drones': return {
         n: [1, 2, 2, 3, 3, 4, 4, 5][i], dano: 11 * [1, 1, 1.3, 1.3, 1.3, 1.3, 1.82, 1.82][i],
@@ -177,14 +185,16 @@
         id: info.id, nome: String(info.nome || 'Raider').slice(0, 16), slot: slot, loadout: lo,
         x: Math.cos(slot * 1.7) * 1.2, z: Math.sin(slot * 1.7) * 1.2, fx: 0, fz: 1, mx: 0, mz: 0,
         hp: 1, hpMax: 1, vivo: true, fora: false, nivel: 1, xp: 0, xpProx: D.xpParaNivel(1),
-        hab: { rifle: 1 }, pas: {},
-        cd: { rifle: 0.3, emp: 2, tesla: 1, granada: 1.5, orbital: 2, dronesTiro: 1 }, empSeg: 0,
+        hab: {}, pas: {},
+        cd: { rifle: 0.3, katana: 0.3, emp: 2, tesla: 1, granada: 1.5, orbital: 2, dronesTiro: 1 }, empSeg: 0,
         droneAng: 0, dashT: 0, dashCd: 0, dashX: 0, dashZ: 1, invul: 0, regenAcc: 0,
         cartas: null, cartaT: 0, pendentes: 0, reviveProg: 0, sofreu: 0,
         abates: 0, dano: 0, moedaAcum: 0, nivelMax: 1,
         sucata: 0, lojaOfertas: null, lojaPronto: false, rerolls: 0, lojaVer: 0,
       };
-      recalcular(p); p.hp = p.hpMax;
+      recalcular(p);                                              // define persona/arma equipadas e todos os bônus
+      p.hab[p.armaTipo === 'katana' ? 'katana' : 'rifle'] = 1;     // a arma equipada é a habilidade inicial
+      p.hp = p.hpMax;
       S.jogadores.push(p);
       return p;
     }
@@ -195,15 +205,16 @@
     }
     function recalcular(p) {
       const lo = p.loadout, up = lo.up, pas = p.pas, J = CFG.jogador;
-      p.dmgMul = (1 + 0.12 * (pas.dano || 0)) * (1 + up.dano * D.LOJA.up.dano.porNivel) * (lo.rifle ? 1.2 : 1);
+      const eq = D.resolverEquip(lo); p.persona = eq.persona; p.armaTipo = eq.arma;
+      p.dmgMul = (1 + 0.12 * (pas.dano || 0)) * (1 + up.dano * D.LOJA.up.dano.porNivel) * (eq.arma === 'rifle' ? 1.2 : eq.arma === 'katana' ? 1.25 : 1);
       p.cdMul = 1 / (1 + 0.10 * (pas.cadencia || 0));
-      p.vel = J.vel * (1 + 0.08 * (pas.vel || 0)) * (1 + up.vel * D.LOJA.up.vel.porNivel) * (lo.cacador ? 1.08 : 1);
+      p.vel = J.vel * (1 + 0.08 * (pas.vel || 0)) * (1 + up.vel * D.LOJA.up.vel.porNivel) * (eq.persona === 'cacador' ? 1.08 : eq.persona === 'kunoichi' ? 1.15 : 1);
       const hpAntes = p.hpMax;
-      p.hpMax = Math.round((J.hp + 25 * (pas.vida || 0) + up.vida * D.LOJA.up.vida.porNivel) * (lo.cacador ? 1.15 : 1));
+      p.hpMax = Math.round((J.hp + 25 * (pas.vida || 0) + up.vida * D.LOJA.up.vida.porNivel) * (eq.persona === 'cacador' ? 1.15 : 1));
       if (hpAntes > 1 && p.hpMax > hpAntes) p.hp += p.hpMax - hpAntes; // ganhar vida máxima também cura essa diferença
       p.regen = 0.7 * (pas.regen || 0);
       p.ima = J.ima * (1 + 0.30 * (pas.ima || 0)) * (1 + up.ima * D.LOJA.up.ima.porNivel);
-      p.crit = J.critChance + 0.07 * (pas.critico || 0);
+      p.crit = J.critChance + 0.07 * (pas.critico || 0) + (eq.persona === 'kunoichi' ? 0.08 : 0);
       p.dashRecarga = J.dashRecarga * Math.pow(0.86, pas.dash || 0);
       p.xpMul = 1 + up.xp * D.LOJA.up.xp.porNivel;
       p.moedaMul = 1 + up.moeda * D.LOJA.up.moeda.porNivel;
@@ -225,6 +236,7 @@
       D.ORDEM_HAB.forEach(function (id) {
         const l = p.hab[id] || 0;
         if (l >= CFG.nivelMaxHab) return;
+        if (l === 0 && (id === 'rifle' || id === 'katana')) return;   // a arma inicial é a equipada no Hangar
         if (l === 0 && nHab >= CFG.maxHabilidades) return;
         op.push({ tipo: 'hab', id: id, nivel: l + 1, peso: l === 0 ? 2.2 : 3 });
       });
@@ -584,6 +596,21 @@
           } else p.cd.rifle = 0.12;
         }
       }
+      // KATANA RUBI: corte em arco em todos à frente (corpo a corpo)
+      if (H.katana) {
+        const s = statsHab('katana', H.katana);
+        p.cd.katana -= dt;
+        if (p.cd.katana <= 0) {
+          const alvo = maisProximo(p.x, p.z, s.alcance + 2.2);
+          if (alvo) {
+            const dx = alvo.x - p.x, dz = alvo.z - p.z, d = Math.hypot(dx, dz) || 1, ux = dx / d, uz = dz / d;
+            p.fx = ux; p.fz = uz; cortar(p, s, ux, uz);
+            if (s.duplo) { p.corteSeg = 0.2; p.corteDx = ux; p.corteDz = uz; }
+            p.cd.katana = s.intervalo * p.cdMul;
+          } else p.cd.katana = 0.1;
+        }
+        if (p.corteSeg > 0) { p.corteSeg -= dt; if (p.corteSeg <= 0) cortar(p, s, p.corteDx, p.corteDz, true); }
+      }
       // DRONES ORBITAIS (dano por contato)
       if (H.drones) {
         const s = statsHab('drones', H.drones);
@@ -673,6 +700,23 @@
           }
           p.cd.orbital = (escolhidos.length ? s.cd : 0.3) * p.cdMul;
         }
+      }
+    }
+    // golpe da katana: atinge todos num arco (ou 360° no nível 8); nível 7+ também lança uma onda de corte
+    function cortar(p, s, ux, uz, segundo) {
+      ev(EV.SLASH, p.slot, p.x, p.z, ux, uz, s.arco, s.alcance);
+      consulta(p.x, p.z, s.alcance);
+      const alvos = buf.slice(), metade = Math.cos(s.arco / 2);
+      for (let i = 0; i < alvos.length; i++) {
+        const e = alvos[i], dx = e.x - p.x, dz = e.z - p.z, d = Math.hypot(dx, dz) || 0.001;
+        if (s.arco < 6 && d > e.raio + 0.9 && (dx * ux + dz * uz) / d < metade) continue;   // fora do arco
+        const r = rolar(p, s.dano * (segundo ? 0.8 : 1));
+        danoInimigo(e, r.d, p, r.crit); empurrar(e, dx / d * 3.5, dz / d * 3.5);
+      }
+      if (s.onda && !segundo) {
+        const r = rolar(p, s.dano * 0.7);
+        atirar(3, p.id, p.x + ux * 1.2, p.z + uz * 1.2, ux, uz, 15, r.d, 0.5, { perfura: 5, r: 0.95, crit: r.crit });
+        if (s.arco > 6) { atirar(3, p.id, p.x - ux * 1.2, p.z - uz * 1.2, -ux, -uz, 15, r.d, 0.5, { perfura: 5, r: 0.95, crit: r.crit }); }
       }
     }
     function pulsoEMP(p, s) {

@@ -26,3 +26,5 @@
   #telaSala > .painel { grid-column: 1; } #slots { grid-column: 2; grid-row: 1 / span 4; } #telaSala > .btn { grid-column: 1; padding: 11px; }
   #codigo { font-size: 30px; } .slot { min-height: 46px; padding: 6px 10px; }
 }
+
+@media (orientation: landscape) { .pagina { padding-top: calc(var(--topo) + 4px); } #tituloPg { font-size: 13px; } .btn { padding: 10px 12px; font-size: 12px; } }

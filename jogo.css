@@ -152,3 +152,24 @@ canvas#overlay { pointer-events: none; z-index: 3; }
   #carregando { gap: 8px; } .logoCar { font-size: 26px; }
 }
 @media (orientation: landscape) and (max-height: 420px) { #btnDash { width: 62px; height: 62px; } #resExtra { display: none; } }
+
+/* ───────── PAISAGEM COMPACTA: cartas, loja entre ondas e resultado em ~360px de altura ───────── */
+@media (orientation: landscape) {
+  .tela { padding: 6px 10px; justify-content: center; }
+  .cartasTitulo { margin-bottom: 6px; } .cartasTitulo small { font-size: 9px; letter-spacing: 4px; } .cartasTitulo b { font-size: 20px; }
+  .carta { padding: 8px 8px; gap: 4px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+  .carta .ic { width: 38px; height: 38px; font-size: 24px; } .carta h3 { font-size: 10px; letter-spacing: 1px; } .carta p { font-size: 9.5px; line-height: 1.25; margin-top: 2px; } .carta .nv { font-size: 8.5px; margin-top: 2px; }
+  #lojaTopo { margin-bottom: 6px; } #lojaTopo b { font-size: 17px; } #lojaTopo small { font-size: 8px; letter-spacing: 3px; } #lojaTopo .pilula b { font-size: 16px; }
+  #lojaLista { gap: 6px; } .lojaCarta .preco { padding: 5px; font-size: 12px; margin-top: 4px; }
+  #lojaBotoes { margin-top: 8px; gap: 8px; } #lojaBotoes .btn { padding: 9px 6px; font-size: 11px; letter-spacing: 2px; }
+  /* tela de resultado em 2 colunas: números à esquerda, recompensa e botões à direita */
+  .painel.largo { width: min(96vw, 760px); max-height: 96vh; display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; row-gap: 5px; align-items: center; padding: 10px 16px; }
+  .painel.largo > * { grid-column: 1; min-width: 0; }
+  #resMotivo { grid-row: 1; font-size: 9px; } #resTitulo { grid-row: 2; font-size: 20px; } #resOnda { grid-row: 3; font-size: 12px; } #resOnda b { font-size: 26px; } #resGrade { grid-row: 4; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+  .resItem { padding: 4px; } .resItem small { font-size: 7px; } .resItem b { font-size: 14px; }
+  #resRecompensa { grid-column: 2; grid-row: 1 / span 2; padding: 8px; font-size: 10px; } #resRecompensa b { font-size: 20px; }
+  #resExtra { grid-column: 2; grid-row: 3; display: flex; font-size: 9.5px; } .painel.largo .botoes { grid-column: 2; grid-row: 4; flex-direction: column; gap: 6px; }
+  .painel.largo .btn { padding: 9px; font-size: 11px; }
+  .painel { padding: 10px 14px; gap: 8px; } .painel h2 { font-size: 18px; }
+}
+@media (orientation: landscape) and (max-height: 420px) { #resExtra { display: flex; max-height: 54px; overflow: hidden; } }

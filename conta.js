@@ -42,6 +42,15 @@
     return { ok: true, saldo: saldo - item.preco };
   }
 
+  // EQUIPAR (só o que já foi comprado): slot 'eqP' = personagem, 'eqA' = arma
+  async function equipar(slot, id) {
+    var lo = await loadout(true);
+    if (!lo[id]) return { ok: false, erro: 'Compre este item primeiro.' };
+    var patch = {}; patch['survivor/' + (slot === 'arma' ? 'eqA' : 'eqP')] = id;
+    await window.NRDados.atualizarUsuario(patch);
+    return { ok: true };
+  }
+
   // MELHORIA permanente (vida, dano, velocidade...) — também atômica
   async function melhorar(id) {
     var def = D.LOJA.up[id]; if (!def) return { ok: false, erro: 'Melhoria inválida.' };
@@ -91,17 +100,23 @@
     return { novoRecorde: false, subiuNivel: subiu };
   }
 
-  // TOP N do ranking global (público)
+  // TOP N do ranking global (público).
+  // Se o Firebase ainda não tiver o índice ".indexOn": ["score"] nas regras, o jogo busca tudo e ordena aqui mesmo
+  // (funciona igual; só fica mais lento quando o ranking tiver milhares de jogadores).
   async function ranking(n) {
-    var fb = await window.NRDados._getFirebase();
-    var q = fb.dbMod.query(fb.dbMod.ref(fb.db, 'ranking'), fb.dbMod.orderByChild('score'), fb.dbMod.limitToLast(n || 10));
-    var snap = await fb.dbMod.get(q), lista = [];
-    snap.forEach(function (c) { lista.push(c.val()); });
-    return lista.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
+    var fb = await window.NRDados._getFirebase(), ref = fb.dbMod.ref(fb.db, 'ranking'), lista = [];
+    try {
+      var snap = await fb.dbMod.get(fb.dbMod.query(ref, fb.dbMod.orderByChild('score'), fb.dbMod.limitToLast(n || 10)));
+      snap.forEach(function (c) { lista.push(c.val()); });
+    } catch (e) {
+      var todos = await fb.dbMod.get(ref); lista = [];
+      todos.forEach(function (c) { lista.push(c.val()); });
+    }
+    return lista.filter(Boolean).sort(function (a, b) { return (b.score || 0) - (a.score || 0); }).slice(0, n || 10);
   }
 
   // token do Firebase para entrar nas salas online (o servidor confere quem você é)
   async function token() { var f = await window.NRDados._getFirebase(); await window.NRDados.uid(); return f.auth.currentUser.getIdToken(); }
 
-  window.NRConta = { token: token, perfil: perfil, loadout: loadout, moedas: moedas, nome: nome, comprar: comprar, melhorar: melhorar, pagarPartida: pagarPartida, ranking: ranking };
+  window.NRConta = { token: token, perfil: perfil, loadout: loadout, moedas: moedas, nome: nome, comprar: comprar, equipar: equipar, melhorar: melhorar, pagarPartida: pagarPartida, ranking: ranking };
 })();

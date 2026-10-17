@@ -307,7 +307,7 @@
   async function bootSolo() {
     ui.carregando(15, 'Carregando conta…');
     nomeLocal = await window.NRConta.nome(); loadout = await window.NRConta.loadout(true);
-    infoSlot[0] = { cacador: loadout.cacador, rifle: loadout.rifle, nome: nomeLocal };
+    var eq = D.resolverEquip(loadout); infoSlot[0] = { persona: eq.persona, arma: eq.arma, nome: nomeLocal };
     sim = Sim.criar({ seed: (Math.random() * 2147483647) | 0, coop: false });
     sim.adicionarJogador({ id: meuId, nome: nomeLocal, loadout: loadout });
     await construirCena();
@@ -323,7 +323,7 @@
     var timeout = setTimeout(function () { ui.aviso('Não foi possível voltar à sala. Voltando ao menu…', 3000); setTimeout(irMenu, 3000); }, 20000);
     window.NRRede.on('iniciar', async function (info) {
       clearTimeout(timeout);
-      slotLocal = info.eu; info.jogadores.forEach(function (j) { infoSlot[j.slot] = { cacador: j.cacador, rifle: j.rifle, nome: j.nome }; });
+      slotLocal = info.eu; info.jogadores.forEach(function (j) { infoSlot[j.slot] = { persona: j.persona || 'padrao', arma: j.arma || 'base', nome: j.nome }; });
       if (!des) { await construirCena(); iniciarLoop(); ui.carregando(100, 'Esperando os outros jogadores…'); }
       window.NRRede.marcarPartida(location.pathname.split('/').pop() + '?online=1');
       window.NRRede.carregado();

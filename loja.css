@@ -24,3 +24,19 @@
   .pagina > .barraTopo { grid-area: topo; min-height: 36px; } #tituloPg { grid-area: tit; font-size: 16px; margin: -6px 0 2px; } #vitrine { grid-area: vit; flex: none; margin: 0; min-height: 0; } #abas { grid-area: abas; margin: 0 0 6px; } #conteudo { grid-area: cont; min-height: 0; }
   .item, .up { padding: 8px 10px; margin-bottom: 6px; } .item p { font-size: 10px; } .item .btn, .up .btn { width: 96px; padding: 9px 4px; } .nota { font-size: 9px; padding: 2px; }
 }
+
+/* grupos de itens (personagem / arma) e botão EQUIPAR */
+.grupoTit { font-size: 10px; letter-spacing: 5px; color: var(--rosa); margin: 6px 2px 4px; }
+.item h3 em { color: var(--verde); font-style: normal; }
+.item { cursor: pointer; }
+
+/* ───────── PAISAGEM COMPACTA ───────── */
+@media (orientation: landscape) {
+  .pagina { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); row-gap: 2px; padding-top: calc(var(--topo) + 4px); padding-bottom: calc(var(--base) + 4px); }
+  .pagina > .barraTopo { min-height: 34px; } #tituloPg { font-size: 14px; letter-spacing: 6px; margin: -4px 0 0; } .aba { padding: 7px; font-size: 10px; letter-spacing: 2px; } #abas { margin-bottom: 4px; }
+  #conteudo { padding-bottom: 28px; }
+  .item, .up { gap: 8px; padding: 6px 8px; margin-bottom: 5px; } .item .ic, .up .ic { width: 38px; height: 38px; font-size: 22px; }
+  .item h3, .up h3 { font-size: 10.5px; letter-spacing: 2px; } .item p { font-size: 9.5px; margin: 1px 0; } .bonus { font-size: 8px; } .pips { margin: 3px 0 2px; } .pips i { height: 5px; } .up .info { font-size: 9px; }
+  .item .btn, .up .btn { width: 92px; padding: 8px 2px; font-size: 10px; } .grupoTit { margin: 3px 2px 3px; font-size: 9px; } .nota { font-size: 8.5px; line-height: 1.35; }
+}
+.grupoTit { margin-top: 8px; position: relative; z-index: 1; }

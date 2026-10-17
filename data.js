@@ -73,6 +73,8 @@
   // Cada habilidade tem 8 níveis. 'niveis' descreve o que muda em cada um
   // (texto mostrado na carta). Os números reais ficam em sim.js → statsHab().
   const HABILIDADES = {
+    katana: { nome: 'KATANA RUBI',      icone: '🗡️', cor: '#ff2a55', desc: 'Corta em arco todos os inimigos à sua frente.',
+      niveis: ['Corte em arco à frente', 'Dano +25%', 'Alcance +20%', 'Cadência +18%', 'Corte duplo', 'Dano +30%', 'Alcance +25% e onda de corte que perfura', 'Corte dimensional: golpe em 360°'] },
     rifle:  { nome: 'RIFLE PLASMA',     icone: '🔫', cor: '#2ee6ff', desc: 'Dispara plasma no inimigo mais próximo.',
       niveis: ['Dispara plasma automático', 'Dano +25%', '+1 projétil', 'Cadência +18%', 'Perfura +1 inimigo', 'Dano +30%', '+1 projétil', 'Plasma explosivo + perfura +1'] },
     drones: { nome: 'DRONES ORBITAIS',  icone: '🛸', cor: '#ffd23d', desc: 'Drones giram ao seu redor e cortam quem chegar perto.',
@@ -86,7 +88,7 @@
     orbital:{ nome: 'ATAQUE ORBITAL',   icone: '🛰️', cor: '#ff3da6', desc: 'Satélite dispara raios do céu em inimigos aleatórios.',
       niveis: ['1 raio orbital', '+1 raio', 'Dano +35%', 'Recarga -20%', '+1 raio', 'Dano +40%', 'Raio mais largo', '+2 raios'] },
   };
-  const ORDEM_HAB = ['rifle', 'drones', 'emp', 'tesla', 'granada', 'orbital'];
+  const ORDEM_HAB = ['rifle', 'katana', 'drones', 'emp', 'tesla', 'granada', 'orbital'];
 
   // ── PASSIVAS (5 níveis) ─────────────────────────────────────────
   const PASSIVAS = {
@@ -106,8 +108,11 @@
     // O jogo só vende 1 persona e 1 arma. Sem comprar, o jogador usa o
     // "Operador Padrão" (mesmo modelo em cinza, sem os bônus) — assim
     // ninguém fica sem poder jogar.
-    cacador: { id: 'cacador', nome: 'CAÇADOR CYBER', preco: 25000, desc: 'Caçador de elite com visor tático e armadura neon. +15% de vida e +8% de velocidade.' },
-    rifle:   { id: 'rifle',   nome: 'RIFLE PLASMA',  preco: 30000, desc: 'Rifle de plasma de alta energia. +20% de dano e brilho plasma exclusivo.' },
+    // PERSONAGENS (equipa 1 por vez) e ARMAS (equipa 1 por vez). O jogador pode comprar todos.
+    cacador:  { id: 'cacador',  grupo: 'personagem', icone: '🛡️', nome: 'CAÇADOR CYBER',  preco: 25000, bonus: '+15% VIDA · +8% VELOCIDADE', desc: 'Caçador de elite com visor tático e armadura neon.' },
+    kunoichi: { id: 'kunoichi', grupo: 'personagem', icone: '🥷', nome: 'KUNOICHI NEON',  preco: 25000, bonus: '+15% VELOCIDADE · +8% CRÍTICO', desc: 'Guerreira ágil de cabelo longo preso em rabo de cavalo.' },
+    rifle:    { id: 'rifle',    grupo: 'arma',       icone: '🔫', nome: 'RIFLE PLASMA',   preco: 30000, bonus: '+20% DANO · TIRO À DISTÂNCIA', desc: 'Rifle de plasma de alta energia, atira sozinho no alvo mais próximo.' },
+    katana:   { id: 'katana',   grupo: 'arma',       icone: '🗡️', nome: 'KATANA RUBI',    preco: 30000, bonus: '+25% DANO · CORTE EM ARCO', desc: 'Lâmina de rubi que corta todos à sua frente. Arma corpo a corpo.' },
     melhorias: true,          // false esconde a aba de melhorias permanentes
     // melhorias permanentes pagas com moedas
     up: {
@@ -121,7 +126,7 @@
   };
   function precoMelhoria(id, nivelAtual) { return Math.round(LOJA.up[id].base * Math.pow(1.55, nivelAtual)); }
 
-  // normaliza o "loadout" (o que o jogador possui) vindo do Firebase/cliente
+  // normaliza o "loadout" (o que o jogador possui e equipou) vindo do Firebase/cliente
   function sanearLoadout(l) {
     l = l || {};
     const up = {};
@@ -129,13 +134,32 @@
       const v = Math.floor(Number(l.up && l.up[k]) || 0);
       up[k] = Math.max(0, Math.min(LOJA.up[k].max, v));
     });
-    return { cacador: !!l.cacador, rifle: !!l.rifle, up: up };
+    return {
+      cacador: !!l.cacador, kunoichi: !!l.kunoichi, rifle: !!l.rifle, katana: !!l.katana,
+      eqP: (l.eqP === 'cacador' || l.eqP === 'kunoichi') ? l.eqP : '', eqA: (l.eqA === 'rifle' || l.eqA === 'katana') ? l.eqA : '',
+      up: up,
+    };
+  }
+  // Decide o que realmente está em uso: persona 'cacador' | 'kunoichi' | 'padrao' e arma 'rifle' | 'katana' | 'base'.
+  // (sem comprar nada = Operador Padrão com a arma base, que é o mesmo rifle sem bônus)
+  function resolverEquip(lo) {
+    lo = lo || {};
+    let p = 'padrao', a = 'base';
+    if (lo.eqP === 'kunoichi' && lo.kunoichi) p = 'kunoichi';
+    else if (lo.eqP === 'cacador' && lo.cacador) p = 'cacador';
+    else if (lo.cacador) p = 'cacador';
+    else if (lo.kunoichi) p = 'kunoichi';
+    if (lo.eqA === 'katana' && lo.katana) a = 'katana';
+    else if (lo.eqA === 'rifle' && lo.rifle) a = 'rifle';
+    else if (lo.rifle) a = 'rifle';
+    else if (lo.katana) a = 'katana';
+    return { persona: p, arma: a };
   }
 
   return {
     CFG: CFG, INIMIGOS: INIMIGOS, TIPO: TIPO, CHEFES: CHEFES,
     HABILIDADES: HABILIDADES, ORDEM_HAB: ORDEM_HAB, PASSIVAS: PASSIVAS, ORDEM_PAS: ORDEM_PAS,
     LOJA: LOJA, xpParaNivel: xpParaNivel, hpMulOnda: hpMulOnda, danoMulOnda: danoMulOnda,
-    spawnPorSeg: spawnPorSeg, precoMelhoria: precoMelhoria, sanearLoadout: sanearLoadout,
+    spawnPorSeg: spawnPorSeg, precoMelhoria: precoMelhoria, sanearLoadout: sanearLoadout, resolverEquip: resolverEquip,
   };
 });

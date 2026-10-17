@@ -18,10 +18,9 @@
 
     // ── PARTÍCULAS (um único InstancedMesh de quadrados que olham pra câmera) ──
     var MAXP = 900;
-    var pm = new T.InstancedMesh(new T.PlaneGeometry(1, 1),
-      new T.MeshBasicMaterial({ map: mundo.glowTex, transparent: true, blending: T.AdditiveBlending, depthWrite: false }), MAXP);
-    pm.frustumCulled = false; pm.count = 0; scene.add(pm);
-    pm.setColorAt(0, cor.setRGB(1, 1, 1));          // garante o buffer de cor criado
+    var pm = window.NRModelos.instanciado(new T.PlaneGeometry(1, 1),
+      new T.MeshBasicMaterial({ map: mundo.glowTex, transparent: true, blending: T.AdditiveBlending, depthWrite: false }), MAXP, true);
+    scene.add(pm);
     var P = [];                                       // partículas vivas
     function particula(x, y, z, vx, vy, vz, vida, tam, c, grav, arrasto, cresce) {
       if (P.length >= MAXP) P.shift();
@@ -58,6 +57,23 @@
     function disco(x, z, r, dur, c, op) {
       var a = null; for (var i = 0; i < discos.length; i++) if (!discos[i].ativo) { a = discos[i]; break; } if (!a) a = discos[0];
       a.ativo = true; a.t = 0; a.dur = dur; a.r = r; a.op = op || 0.6; a.m.material.color.setHex(c); a.m.position.set(x, 0.06, z); a.m.visible = true;
+    }
+
+    // ── CORTES DA KATANA (crescente rubi no chão; nível 8 = círculo completo) ──
+    var cortes = [];
+    for (var cq = 0; cq < 8; cq++) {
+      var cheio = cq >= 6;
+      var cg = new T.RingGeometry(0.45, 1, cheio ? 48 : 24, 1, cheio ? 0 : -1.15, cheio ? Math.PI * 2 : 2.3);
+      var cm = new T.Mesh(cg, new T.MeshBasicMaterial({ color: 0xff2a55, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, opacity: 0 }));
+      var ci2 = new T.Mesh(new T.RingGeometry(0.78, 1, cheio ? 48 : 24, 1, cheio ? 0 : -1.15, cheio ? Math.PI * 2 : 2.3), new T.MeshBasicMaterial({ color: 0xffe0e6, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, opacity: 0 }));
+      var cgp = new T.Group(); cgp.add(cm); cgp.add(ci2); cgp.visible = false; cgp.rotation.order = 'YXZ'; cm.rotation.x = ci2.rotation.x = -Math.PI / 2; ci2.position.y = 0.02;
+      scene.add(cgp); cortes.push({ g: cgp, a: cm, b: ci2, t: 0, dur: 0.22, r: 1, ativo: false, cheio: cheio });
+    }
+    function corte(x, z, ux, uz, arco, alcance) {
+      var cheio = arco > 6, a = null;
+      for (var i = 0; i < cortes.length; i++) if (!cortes[i].ativo && cortes[i].cheio === cheio) { a = cortes[i]; break; }
+      if (!a) return;
+      a.ativo = true; a.t = 0; a.r = alcance; a.g.visible = true; a.g.position.set(x, 0.12, z); a.g.rotation.y = -Math.atan2(uz, ux);
     }
 
     // ── FEIXES VERTICAIS (ataque orbital) ──
@@ -137,6 +153,7 @@
       // anéis, discos, feixes, linhas
       for (var a = 0; a < rings.length; a++) { var r = rings[a]; if (!r.ativo) continue; r.t += dt; var u2 = r.t / r.dur; if (u2 >= 1) { r.ativo = false; r.m.visible = false; continue; } var e = 1 - Math.pow(1 - u2, 3), rr = r.r0 + (r.r1 - r.r0) * e; r.m.scale.set(rr, rr, 1); r.m.material.opacity = r.op * (1 - u2); }
       for (var b = 0; b < discos.length; b++) { var di = discos[b]; if (!di.ativo) continue; di.t += dt; var u3 = di.t / di.dur; if (u3 >= 1) { di.ativo = false; di.m.visible = false; continue; } di.m.scale.set(di.r * (0.5 + u3 * 0.5), di.r * (0.5 + u3 * 0.5), 1); di.m.material.opacity = di.op * (1 - u3) * (1 - u3); }
+      for (var cz = 0; cz < cortes.length; cz++) { var ct = cortes[cz]; if (!ct.ativo) continue; ct.t += dt; var uc = ct.t / ct.dur; if (uc >= 1) { ct.ativo = false; ct.g.visible = false; continue; } var rc = ct.r * (0.55 + 0.45 * (1 - Math.pow(1 - uc, 3))); ct.g.scale.set(rc, 1, rc); ct.a.material.opacity = 0.85 * (1 - uc); ct.b.material.opacity = 1 - uc * uc; }
       for (var c = 0; c < feixes.length; c++) { var fx = feixes[c]; if (!fx.ativo) continue; fx.t += dt; var u4 = fx.t / fx.dur; if (u4 >= 1) { fx.ativo = false; fx.m.visible = false; continue; } var w = fx.r * (1 - u4 * 0.7); fx.m.scale.set(w, 1, w); fx.m.material.opacity = 0.85 * (1 - u4); }
       for (var d = 0; d < linhas.length; d++) { var li = linhas[d]; if (!li.ativo) continue; li.t += dt; var u5 = li.t / li.dur; if (u5 >= 1) { li.ativo = false; li.m.visible = false; continue; } li.m.material.opacity = 0.25 + 0.45 * Math.abs(Math.sin(li.t * 14)); }
       // raios
@@ -172,7 +189,7 @@
     }
 
     return {
-      faiscas: faiscas, fumaca: fumaca, particula: particula, anel: anel, disco: disco, feixe: feixe, raio: raio, linha: linha,
+      corte: corte, faiscas: faiscas, fumaca: fumaca, particula: particula, anel: anel, disco: disco, feixe: feixe, raio: raio, linha: linha,
       numero: numero, atualizar: atualizar, desenharOverlay: desenharOverlay,
     };
   }

@@ -158,9 +158,9 @@
   //           rifle: true = arma plasma comprada }
   function criarCacador(op) {
     op = op || {};
-    var basico = !!op.basico;
-    var neon = basico ? 0x7d8794 : (op.cor || 0x2ee6ff), acento = basico ? 0x59616c : 0xff3da6;
-    var armadura = basico ? 0x4b5360 : 0x141a2e, armadura2 = basico ? 0x626b78 : 0x1e2742, junta = 0x0c0f1a;
+    var basico = !!op.basico, fem = !!op.fem;
+    var neon = basico ? 0x7d8794 : (op.cor || 0x2ee6ff), acento = basico ? 0x59616c : (fem ? 0xff2a55 : 0xff3da6);
+    var armadura = basico ? 0x4b5360 : (fem ? 0x1c0f22 : 0x141a2e), armadura2 = basico ? 0x626b78 : (fem ? 0x341a3c : 0x1e2742), junta = 0x0c0f1a;
     var mArm = new T.MeshPhongMaterial({ color: armadura, shininess: 70, specular: 0x556677 });
     var mArm2 = new T.MeshPhongMaterial({ color: armadura2, shininess: 60, specular: 0x445566 });
     var mJunta = new T.MeshPhongMaterial({ color: junta, shininess: 10 });
@@ -198,14 +198,32 @@
     caixa(0.1, 0.4, 0.06, mNeon, -0.12, 0.55, -0.46, tronco); caixa(0.1, 0.4, 0.06, mNeon, 0.12, 0.55, -0.46, tronco);
     caixa(0.06, 0.2, 0.06, mAcento, -0.2, 0.9, -0.34, tronco); caixa(0.06, 0.2, 0.06, mAcento, 0.2, 0.9, -0.34, tronco); // antenas
 
-    // cabeça com capacete e visor
+    // cabeça com capacete e visor (Caçador) ou rosto + cabelo + rabo de cavalo (Kunoichi)
     var cabeca = new T.Group(); cabeca.position.set(0, 0.98 + 0.9, 0); corpo.add(cabeca);
-    caixa(0.4, 0.4, 0.42, mArm, 0, 0.12, 0, cabeca);
-    caixa(0.36, 0.13, 0.06, mVisor, 0, 0.14, 0.22, cabeca);
-    caixa(0.42, 0.04, 0.3, mNeon, 0, 0.3, 0.02, cabeca);
-    caixa(0.07, 0.2, 0.34, mNeon, 0, 0.36, -0.04, cabeca);            // crista neon
-    caixa(0.06, 0.3, 0.06, mAcento, -0.24, 0.1, -0.06, cabeca); caixa(0.06, 0.3, 0.06, mAcento, 0.24, 0.1, -0.06, cabeca); // fones
-    if (!basico) { caixa(0.05, 0.4, 0.05, mNeon, 0.26, 0.4, -0.12, cabeca); } // antena longa do caçador
+    var cola = [];                                                     // segmentos do rabo de cavalo (balançam)
+    if (fem) {
+      var mPele = new T.MeshPhongMaterial({ color: 0xf0c8a6, shininess: 20 }), mCabelo = new T.MeshPhongMaterial({ color: 0x24102c, shininess: 70, specular: 0x6a3a8a }), mCabelo2 = new T.MeshBasicMaterial({ color: 0x7a2a8a });
+      caixa(0.34, 0.34, 0.34, mPele, 0, 0.12, 0.02, cabeca);                       // rosto
+      caixa(0.38, 0.2, 0.4, mCabelo, 0, 0.27, -0.03, cabeca);                      // topo do cabelo
+      caixa(0.38, 0.14, 0.1, mCabelo, 0, 0.2, 0.2, cabeca);                        // franja
+      caixa(0.08, 0.3, 0.3, mCabelo, -0.2, 0.12, -0.04, cabeca); caixa(0.08, 0.3, 0.3, mCabelo, 0.2, 0.12, -0.04, cabeca); // laterais
+      caixa(0.3, 0.07, 0.04, mNeon, 0, 0.21, 0.23, cabeca);                        // tiara neon
+      caixa(0.28, 0.06, 0.04, mVisor, 0, 0.1, 0.2, cabeca);                        // olhos/visor fino
+      caixa(0.12, 0.12, 0.1, mAcento, 0, 0.3, -0.24, cabeca);                      // laço do rabo
+      var prevC = cabeca;
+      for (var ci = 0; ci < 6; ci++) {                                             // rabo de cavalo LONGO: 6 segmentos encadeados
+        var sg = new T.Group(); sg.position.set(0, ci === 0 ? 0.28 : -0.2, ci === 0 ? -0.3 : -0.04); prevC.add(sg);
+        caixa(0.16 - ci * 0.015, 0.24, 0.14 - ci * 0.012, ci % 2 ? mCabelo : mCabelo2, 0, -0.1, 0, sg);
+        cola.push(sg); prevC = sg;
+      }
+    } else {
+      caixa(0.4, 0.4, 0.42, mArm, 0, 0.12, 0, cabeca);
+      caixa(0.36, 0.13, 0.06, mVisor, 0, 0.14, 0.22, cabeca);
+      caixa(0.42, 0.04, 0.3, mNeon, 0, 0.3, 0.02, cabeca);
+      caixa(0.07, 0.2, 0.34, mNeon, 0, 0.36, -0.04, cabeca);            // crista neon
+      caixa(0.06, 0.3, 0.06, mAcento, -0.24, 0.1, -0.06, cabeca); caixa(0.06, 0.3, 0.06, mAcento, 0.24, 0.1, -0.06, cabeca); // fones
+      if (!basico) { caixa(0.05, 0.4, 0.05, mNeon, 0.26, 0.4, -0.12, cabeca); } // antena longa do caçador
+    }
 
     // ombreiras
     function ombro(lado) {
@@ -227,25 +245,38 @@
     }
     var bE = braco(-1), bD = braco(1);
 
-    // RIFLE PLASMA: comprado = cano duplo com célula de plasma brilhante; padrão = rifle simples
+    // ARMA: KATANA RUBI (lâmina de rubi) | RIFLE PLASMA (comprado = cano duplo com célula brilhante; padrão = rifle simples)
     var arma = new T.Group(); arma.position.set(0.1, 1.32, 0.52); corpo.add(arma);
-    caixa(0.13, 0.2, 0.9, mArm2, 0, 0, 0.1, arma);
-    caixa(0.1, 0.1, 0.5, mJunta, 0, 0.0, 0.7, arma);
-    caixa(0.06, 0.06, 0.18, mNeon, 0, 0.0, 1.05, arma);
-    caixa(0.1, 0.14, 0.22, mJunta, 0, -0.14, -0.1, arma);
-    var celula = null;
-    if (op.rifle) {
-      celula = caixa(0.17, 0.24, 0.28, mAcento, 0, 0.0, 0.18, arma);
-      caixa(0.04, 0.04, 0.8, mNeon, -0.09, 0.07, 0.62, arma); caixa(0.04, 0.04, 0.8, mNeon, 0.09, 0.07, 0.62, arma);
-      caixa(0.12, 0.1, 0.16, mNeon, 0, 0.17, 0.3, arma);
+    var celula = null, katana = !!op.katana;
+    if (katana) {
+      var mRubi = new T.MeshBasicMaterial({ color: 0xff2a55 }), mFio = new T.MeshBasicMaterial({ color: 0xffd0da }), mOuro = new T.MeshPhongMaterial({ color: 0xd4a017, shininess: 100, specular: 0xffee99 });
+      arma.position.set(0.32, 1.22, 0.4);
+      caixa(0.07, 0.07, 0.36, mJunta, 0, 0, -0.08, arma);                         // cabo
+      caixa(0.075, 0.075, 0.07, mRubi, 0, 0, -0.14, arma); caixa(0.075, 0.075, 0.07, mRubi, 0, 0, 0.02, arma); // fitas vermelhas
+      caixa(0.22, 0.04, 0.2, mOuro, 0, 0, 0.14, arma);                             // tsuba (guarda)
+      var lam = caixa(0.05, 0.11, 1.55, mRubi, 0, 0, 0.98, arma);                  // lâmina de rubi
+      caixa(0.02, 0.02, 1.55, mFio, 0, 0.05, 0.98, arma);                          // fio brilhante
+      var pta = caixa(0.04, 0.09, 0.14, mRubi, 0, 0, 1.8, arma); pta.rotation.x = 0.5;
+      arma.rotation.y = 0.25;
     } else {
-      caixa(0.1, 0.08, 0.1, mNeon, 0, 0.12, 0.3, arma);
+      caixa(0.13, 0.2, 0.9, mArm2, 0, 0, 0.1, arma);
+      caixa(0.1, 0.1, 0.5, mJunta, 0, 0.0, 0.7, arma);
+      caixa(0.06, 0.06, 0.18, mNeon, 0, 0.0, 1.05, arma);
+      caixa(0.1, 0.14, 0.22, mJunta, 0, -0.14, -0.1, arma);
+      if (op.rifle) {
+        celula = caixa(0.17, 0.24, 0.28, mAcento, 0, 0.0, 0.18, arma);
+        caixa(0.04, 0.04, 0.8, mNeon, -0.09, 0.07, 0.62, arma); caixa(0.04, 0.04, 0.8, mNeon, 0.09, 0.07, 0.62, arma);
+        caixa(0.12, 0.1, 0.16, mNeon, 0, 0.17, 0.3, arma);
+      } else {
+        caixa(0.1, 0.08, 0.1, mNeon, 0, 0.12, 0.3, arma);
+      }
+      caixa(0.06, 0.1, 0.1, mAcento, 0, 0.14, 0.52, arma);
     }
-    var mira = caixa(0.06, 0.1, 0.1, mAcento, 0, 0.14, 0.52, arma);
+    if (fem) { caixa(0.1, 0.5, 0.1, mJunta, -0.34, 0.1, -0.1, tronco).rotation.z = 0.5; }   // bainha nas costas/quadril
 
     // CACHECOL neon (só do Caçador): segmentos que balançam atrás do corpo
     var cachecol = [];
-    if (!basico) {
+    if (!basico && !fem) {
       var prev = tronco;
       for (var i = 0; i < 4; i++) {
         var seg = new T.Group(); seg.position.set(0, i === 0 ? 0.88 : 0, i === 0 ? -0.3 : -0.2); prev.add(seg);
@@ -260,6 +291,7 @@
     var sombra = new T.Mesh(new T.CircleGeometry(0.8, 16), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45, depthWrite: false }));
     sombra.rotation.x = -Math.PI / 2; sombra.position.y = 0.03; raiz.add(sombra);
 
+    if (fem) { tronco.scale.x = 0.86; pE.q.position.x = -0.16; pD.q.position.x = 0.16; }
     raiz.scale.setScalar(1.18);
     var est = { fase: 0, giro: 0, recuo: 0, andar: 0, inclina: 0, fantasmas: [], neon: neon };
 
@@ -278,13 +310,19 @@
       tronco.rotation.y = s * 0.12 * A; tronco.rotation.x = 0.1 * A + (dashando ? 0.45 : 0);
       cabeca.rotation.y = -s * 0.08 * A;
       est.recuo = Math.max(0, est.recuo - dt * 9);
-      arma.position.z = 0.52 - est.recuo * 0.16; arma.rotation.x = -est.recuo * 0.1;
+      if (katana) {   // katana: golpe varre da direita para a esquerda
+        est.golpe = Math.max(0, (est.golpe || 0) - dt * 6);
+        arma.rotation.y = 0.25 + (est.golpe > 0 ? (est.golpe - 0.5) * 2.6 * (est.lado || 1) : 0);
+        arma.rotation.z = est.golpe * 0.5; tronco.rotation.y += est.golpe * 0.5 * (est.lado || 1);
+      } else { arma.position.z = 0.52 - est.recuo * 0.16; arma.rotation.x = -est.recuo * 0.1; }
+      for (var q = 0; q < cola.length; q++) { cola[q].rotation.x = 0.3 + Math.sin(t * 7 - q * 0.8) * 0.16 * (0.5 + A) + (dashando ? 0.5 : 0); cola[q].rotation.y = Math.sin(t * 4.5 - q * 0.9) * 0.2 * (0.4 + A); }
       nucleo.scale.setScalar(1 + Math.sin(t * 5) * 0.25);
       if (celula) celula.scale.set(1, 1 + Math.sin(t * 9) * 0.2, 1 + Math.sin(t * 9) * 0.2);
       for (var i = 0; i < cachecol.length; i++) { cachecol[i].rotation.x = 0.25 + Math.sin(t * 6 - i * 0.9) * 0.2 * (0.4 + A) + (dashando ? 0.4 : 0); cachecol[i].rotation.y = Math.sin(t * 4 - i) * 0.15; }
       anel.rotation.z = t * 0.8; anel.material.opacity = 0.4 + Math.sin(t * 3) * 0.12;
     }
-    return { grupo: raiz, animar: animar, estado: est, recuar: function () { est.recuo = 1; }, anel: anel, cor: neon,
+    return { grupo: raiz, animar: animar, estado: est, recuar: function () { est.recuo = 1; },
+      golpear: function () { est.golpe = 1; est.lado = -(est.lado || 1); }, anel: anel, cor: neon,
       materiais: [mArm, mArm2, mJunta, mNeon, mAcento, mVisor] };
   }
 
@@ -400,8 +438,17 @@
     return g;
   }
 
+  // InstancedMesh com cor por instância. ATENÇÃO: o buffer de cores precisa nascer com o tamanho MÁXIMO
+  // (se criado depois de count=0, ele nasce vazio e tudo sai preto/invisível — foi o bug dos inimigos/balas/gemas).
+  function instanciado(geo, mat, max, comCor) {
+    var m = new T.InstancedMesh(geo, mat, max);
+    if (comCor) m.instanceColor = new T.InstancedBufferAttribute(new Float32Array(max * 3).fill(1), 3);
+    m.frustumCulled = false; m.count = 0;
+    return m;
+  }
+
   window.NRModelos = {
-    Construtor: Construtor, INIMIGOS_MODELOS: INIMIGOS_MODELOS, geoGema: geoGema, geoPlasma: geoPlasma,
+    instanciado: instanciado, Construtor: Construtor, INIMIGOS_MODELOS: INIMIGOS_MODELOS, geoGema: geoGema, geoPlasma: geoPlasma,
     criarCacador: criarCacador, criarChefe: criarChefe, criarDrone: criarDrone, criarItem: criarItem, texturaGlow: texturaGlow,
   };
 })();

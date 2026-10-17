@@ -89,7 +89,7 @@
 
   // ── EFEITOS SONOROS ─────────────────────────────────────────────
   var ultimo = {};                 // limita sons muito repetidos (não vira ruído)
-  var ESPERA = { tiro: 0.045, hit: 0.035, morte: 0.04, gema: 0.03, tiroInimigo: 0.08, drone: 0.08, tesla: 0.08, dano: 0.1 };
+  var ESPERA = { corte: 0.05, tiro: 0.045, hit: 0.035, morte: 0.04, gema: 0.03, tiroInimigo: 0.08, drone: 0.08, tesla: 0.08, dano: 0.1 };
   var comboGema = 0, tComboGema = 0;
 
   var SFX = {
@@ -99,6 +99,10 @@
       osc('sawtooth', 1500 * p, 240 * p, 0.14, 0.16, t);
       osc('square', 820 * p, 160 * p, 0.09, 0.07, t);
       ruido(0.03, 0.12, 'highpass', 4000, 4000, t);
+    },
+    // corte de katana: "shing" metálico + sopro de vento
+    corte: function (t) {
+      ruido(0.22, 0.2, 'bandpass', 1500, 6500, t, null, 2.5); osc('sawtooth', 2400, 900, 0.12, 0.07, t); osc('triangle', 3200, 1800, 0.18, 0.05, t + 0.02); ruido(0.08, 0.12, 'highpass', 6000, 6000, t);
     },
     tiroInimigo: function (t) { osc('triangle', 520, 190, 0.18, 0.1, t); },
     drone: function (t) { osc('square', 1200, 700, 0.07, 0.05, t); },
