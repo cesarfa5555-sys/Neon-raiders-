@@ -19,6 +19,8 @@
 // ══════════════════════════════════════════════════════════════════
 
 (function () {
+  const _I = function (n) { return window.NRIcones ? window.NRIcones.svg(n) : ""; }; // ícone SVG (icones.js)
+
 
   // ── injeta estilos uma única vez ──────────────────────────────────
   function _injetarEstilos() {
@@ -130,16 +132,16 @@
   }
 
   function mostrarRecompensa(texto, icone) {
-    _toast({ icone: icone || "🎁", titulo: "Recompensa Recebida", subtitulo: texto, cor: "#fbbf24" });
+    _toast({ icone: icone || _I("presente"), titulo: "Recompensa Recebida", subtitulo: texto, cor: "#fbbf24" });
   }
 
   function mostrarDesbloqueio(tipo, nome, icone) {
     // tipo: "Avatar" | "Moldura" | "Título"
-    _toast({ icone: icone || "✨", titulo: "Novo " + tipo, subtitulo: nome, cor: "#22d3ee" });
+    _toast({ icone: icone || _I("estrela"), titulo: "Novo " + tipo, subtitulo: nome, cor: "#22d3ee" });
   }
 
   function mostrarConquista(def) {
-    _toast({ icone: def.icone || "🏆", titulo: "Conquista Desbloqueada!", subtitulo: def.titulo, cor: "#a855f7" });
+    _toast({ icone: _I("trofeu"), titulo: "Conquista Desbloqueada!", subtitulo: def.titulo, cor: "#a855f7" });
   }
 
   // Som opcional — só toca se o jogo já expuser um player de SFX global.
@@ -168,12 +170,12 @@
     try {
       (window.NRMolduras ? window.NRMolduras.LISTA : []).forEach(def => {
         if (def.requisito.tipo === "nivel" && def.requisito.valor === nivelNovo) {
-          mostrarDesbloqueio("Moldura", def.nome, "🖼️");
+          mostrarDesbloqueio("Moldura", def.nome, _I("moldura"));
         }
       });
       (window.NRTitulos ? window.NRTitulos.LISTA : []).forEach(def => {
         if (def.requisito.tipo === "nivel" && def.requisito.valor === nivelNovo) {
-          mostrarDesbloqueio("Título", def.nome, "🏷️");
+          mostrarDesbloqueio("Título", def.nome, _I("etiqueta"));
         }
       });
     } catch (err) {}
@@ -188,7 +190,7 @@
   // abrindo o perfil — isso aqui é só a notificação de que existe uma)
   window.addEventListener("nr:recompensaDisponivel", (e) => {
     const nivel = e && e.detail && e.detail.nivel;
-    if (nivel) _toast({ icone: "🎁", titulo: "Recompensa disponível", subtitulo: "Nível " + nivel + " — abra o perfil", cor: "#fbbf24" });
+    if (nivel) _toast({ icone: _I("presente"), titulo: "Recompensa disponível", subtitulo: "Nível " + nivel + " — abra o perfil", cor: "#fbbf24" });
   });
 
   window.NRAnimacoes = {

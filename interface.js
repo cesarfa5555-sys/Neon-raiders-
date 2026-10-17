@@ -32,8 +32,8 @@
       var chave = JSON.stringify([est.hab, est.pas]);
       if (chave === cacheKey.v) return; cacheKey.v = chave;
       var h = '';
-      D.ORDEM_HAB.forEach(function (id) { var l = est.hab[id]; if (l) { var d = D.HABILIDADES[id]; h += '<div class="habIc" style="border-color:' + d.cor + '"><span>' + d.icone + '</span><b style="color:' + d.cor + '">' + l + '</b></div>'; } });
-      D.ORDEM_PAS.forEach(function (id) { var l = est.pas[id]; if (l) { var d = D.PASSIVAS[id]; h += '<div class="habIc pas" style="border-color:' + d.cor + '"><span>' + d.icone + '</span><b style="color:' + d.cor + '">' + l + '</b></div>'; } });
+      D.ORDEM_HAB.forEach(function (id) { var l = est.hab[id]; if (l) { var d = D.HABILIDADES[id]; h += '<div class="habIc" style="border-color:' + d.cor + '"><span>' + window.NRIcones.svg(d.icone) + '</span><b style="color:' + d.cor + '">' + l + '</b></div>'; } });
+      D.ORDEM_PAS.forEach(function (id) { var l = est.pas[id]; if (l) { var d = D.PASSIVAS[id]; h += '<div class="habIc pas" style="border-color:' + d.cor + '"><span>' + window.NRIcones.svg(d.icone) + '</span><b style="color:' + d.cor + '">' + l + '</b></div>'; } });
       $('habs').innerHTML = h;
     }
     var cacheHab = { v: '' };
@@ -77,10 +77,10 @@
 
     // ── CARTAS DE LEVEL UP ──
     function textoCarta(c) {
-      if (c.tipo === 'hab') { var d = D.HABILIDADES[c.id]; return { ic: d.icone, nome: d.nome, cor: d.cor, desc: c.nivel === 1 ? d.desc + ' ' + d.niveis[0] + '.' : d.niveis[c.nivel - 1], nv: c.nivel === 1 ? 'NOVA HABILIDADE' : 'NÍVEL ' + (c.nivel - 1) + ' → ' + c.nivel + (c.nivel === D.CFG.nivelMaxHab ? ' (MÁX)' : ''), nova: c.nivel === 1 }; }
-      if (c.tipo === 'pas') { var p = D.PASSIVAS[c.id]; return { ic: p.icone, nome: p.nome, cor: p.cor, desc: p.desc, nv: c.nivel === 1 ? 'NOVA PASSIVA' : 'NÍVEL ' + (c.nivel - 1) + ' → ' + c.nivel + (c.nivel === D.CFG.nivelMaxPas ? ' (MÁX)' : ''), nova: c.nivel === 1 }; }
-      if (c.tipo === 'cura') return { ic: '💊', nome: 'KIT DE REPARO', cor: '#39ff88', desc: 'Recupera 40% da vida máxima.', nv: 'INSTANTÂNEO', nova: true };
-      return { ic: '◈', nome: 'BÔNUS DE CRÉDITOS', cor: '#ffd23d', desc: '+150 moedas ao final da partida.', nv: 'INSTANTÂNEO', nova: true };
+      if (c.tipo === 'hab') { var d = D.HABILIDADES[c.id]; return { ic: d.icone, nome: d.nome, cor: d.cor, desc: c.nivel === 1 ? d.desc + ' ' + d.niveis[0] + '.' : d.niveis[c.nivel - 1], nv: c.nivel === 1 ? 'NOVA HABILIDADE' : 'SOBE PARA O NÍVEL ' + c.nivel + (c.nivel === D.CFG.nivelMaxHab ? ' (MÁX)' : ''), nova: c.nivel === 1 }; }
+      if (c.tipo === 'pas') { var p = D.PASSIVAS[c.id]; return { ic: p.icone, nome: p.nome, cor: p.cor, desc: p.desc, nv: c.nivel === 1 ? 'NOVA PASSIVA' : 'SOBE PARA O NÍVEL ' + c.nivel + (c.nivel === D.CFG.nivelMaxPas ? ' (MÁX)' : ''), nova: c.nivel === 1 }; }
+      if (c.tipo === 'cura') return { ic: 'cura', nome: 'KIT DE REPARO', cor: '#39ff88', desc: 'Recupera 40% da vida máxima.', nv: 'INSTANTÂNEO', nova: true };
+      return { ic: 'moeda', nome: 'BÔNUS DE CRÉDITOS', cor: '#ffd23d', desc: '+150 moedas ao final da partida.', nv: 'INSTANTÂNEO', nova: true };
     }
     // tempoLimite > 0 = online (some sozinho e o servidor escolhe); 0 = solo (o jogo fica pausado)
     function cartas(lista, nivel, tempoLimite) {
@@ -89,7 +89,7 @@
       lista.forEach(function (c, i) {
         var t = textoCarta(c), d = document.createElement('div');
         d.className = 'carta'; d.style.setProperty('--c', t.cor);
-        d.innerHTML = '<div class="ic">' + t.ic + '</div><div class="tx"><h3>' + t.nome + '</h3><p>' + t.desc + '</p><div class="nv' + (t.nova ? ' nova' : '') + '">' + t.nv + '</div></div>';
+        d.innerHTML = '<div class="ic">' + window.NRIcones.svg(t.ic) + '</div><div class="tx"><h3>' + t.nome + '</h3><p>' + t.desc + '</p><div class="nv' + (t.nova ? ' nova' : '') + '">' + t.nv + '</div></div>';
         var escolhido = false;
         function escolher(ev) { ev.preventDefault(); if (escolhido) return; escolhido = true; fecharCartas(); if (cbs.carta) cbs.carta(i); }
         d.addEventListener('touchend', escolher); d.addEventListener('click', escolher);
@@ -111,19 +111,19 @@
     // d = { ofertas:[{tipo,id,nivel,preco,vendida}], sucata, reroll, pronto, onda, tempo (online) }
     function loja(d) {
       var el = $('lojaLista'), h = '';
-      $('lojaOnda').textContent = 'ONDA ' + (d.onda - 1) + ' ✔'; $('lojaSucata').textContent = Math.floor(d.sucata);
+      $('lojaOnda').innerHTML = 'ONDA ' + (d.onda - 1) + ' ' + window.NRIcones.svg('check'); $('lojaSucata').textContent = Math.floor(d.sucata);
       d.ofertas.forEach(function (c, i) {
         var t = textoCarta(c), pode = !c.vendida && d.sucata >= c.preco && !d.pronto;
-        h += '<div class="carta lojaCarta' + (c.vendida ? ' vendida' : pode ? '' : ' semGrana') + '" data-i="' + i + '" style="--c:' + t.cor + '"><div class="ic">' + t.ic + '</div><div class="tx"><h3>' + t.nome + '</h3><p>' + t.desc + '</p><div class="nv' + (t.nova ? ' nova' : '') + '">' + t.nv + '</div></div>' +
-          '<div class="preco">' + (c.vendida ? 'COMPRADO' : '⚙ ' + c.preco) + '</div></div>';
+        h += '<div class="carta lojaCarta' + (c.vendida ? ' vendida' : pode ? '' : ' semGrana') + '" data-i="' + i + '" style="--c:' + t.cor + '"><div class="ic">' + window.NRIcones.svg(t.ic) + '</div><div class="tx"><h3>' + t.nome + '</h3><p>' + t.desc + '</p><div class="nv' + (t.nova ? ' nova' : '') + '">' + t.nv + '</div></div>' +
+          '<div class="preco">' + (c.vendida ? 'COMPRADO' : window.NRIcones.svg('sucata') + ' ' + c.preco) + '</div></div>';
       });
       el.innerHTML = h;
       el.querySelectorAll('.lojaCarta').forEach(function (n) {
         function comprar(ev) { ev.preventDefault(); if (n.classList.contains('vendida') || n.classList.contains('semGrana')) { if (cbs.erroLoja) cbs.erroLoja(); return; } if (cbs.comprar) cbs.comprar(parseInt(n.dataset.i, 10)); }
         n.addEventListener('click', comprar);
       });
-      var rr = $('lojaReroll'); rr.textContent = 'REROLAR  ⚙ ' + d.reroll; rr.disabled = d.pronto || d.sucata < d.reroll;
-      var pr = $('lojaPronto'); pr.textContent = d.pronto ? 'AGUARDANDO OS OUTROS…' : 'PRÓXIMA ONDA ▶'; pr.disabled = !!d.pronto;
+      var rr = $('lojaReroll'); rr.innerHTML = window.NRIcones.svg('reroll') + ' REROLAR &nbsp;' + window.NRIcones.svg('sucata') + ' ' + d.reroll; rr.disabled = d.pronto || d.sucata < d.reroll;
+      var pr = $('lojaPronto'); pr.innerHTML = d.pronto ? 'AGUARDANDO OS OUTROS…' : 'PRÓXIMA ONDA ' + window.NRIcones.svg('play'); pr.disabled = !!d.pronto;
       var tp = $('lojaTempo'); if (d.tempo !== undefined && d.tempo !== null && d.online) { tp.classList.remove('oculto'); tp.textContent = Math.ceil(d.tempo) + 's'; } else tp.classList.add('oculto');
       $('lojaTela').classList.remove('oculto');
     }
@@ -158,7 +158,7 @@
       $('resOnda').innerHTML = 'ONDA <b>' + res.onda + '</b>';
       var itens = [['TEMPO', fmtTempo(res.tempo)], ['ABATES', res.abates], ['CHEFES', res.chefes], ['NÍVEL', eu ? eu.nivel : '-']];
       $('resGrade').innerHTML = itens.map(function (i) { return '<div class="resItem"><small>' + i[0] + '</small><b>' + i[1] + '</b></div>'; }).join('');
-      $('resRecompensa').innerHTML = eu ? 'RECOMPENSA<b>◈ ' + eu.moedas + '</b><span style="font-size:10px;color:#9fb9d4">+' + eu.xpConta + ' XP de conta</span>' : '';
+      $('resRecompensa').innerHTML = eu ? 'RECOMPENSA<b>' + window.NRIcones.svg('moeda') + ' ' + eu.moedas + '</b><span style="font-size:10px;color:#9fb9d4">+' + eu.xpConta + ' XP de conta</span>' : '';
       $('resExtra').innerHTML = (extra || []).map(function (l) { return '<div>' + l + '</div>'; }).join('');
       $('resultadoTela').classList.remove('oculto');
     }

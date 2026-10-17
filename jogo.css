@@ -173,3 +173,5 @@ canvas#overlay { pointer-events: none; z-index: 3; }
   .painel { padding: 10px 14px; gap: 8px; } .painel h2 { font-size: 18px; }
 }
 @media (orientation: landscape) and (max-height: 420px) { #resExtra { display: flex; max-height: 54px; overflow: hidden; } }
+#btnPausa { font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.pilula .ic { display: inline-flex; } .habIc span { display: inline-flex; font-size: 15px; } .carta .ic { color: var(--c); }

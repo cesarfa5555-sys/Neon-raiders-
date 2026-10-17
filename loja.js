@@ -59,8 +59,8 @@
       h += '<div class="grupoTit">' + g[1] + '</div>';
       ITENS.filter(function (id) { return D.LOJA[id].grupo === g[0]; }).forEach(function (id) {
         var it = D.LOJA[id], tem = lo[id], eq = tem && equipado(id);
-        var rotulo = !tem ? '◈ ' + fmt(it.preco) : eq ? 'EQUIPADO ✔' : 'EQUIPAR';
-        h += '<div class="item' + (foco === id ? ' sel' : '') + '" data-id="' + id + '"><div class="ic">' + it.icone + '</div><div class="tx"><h3>' + it.nome + (tem ? ' <em>' + (eq ? '●' : '') + '</em>' : '') + '</h3><p>' + it.desc + '</p><div class="bonus">' + it.bonus + '</div></div>' +
+        var rotulo = !tem ? NRIcones.svg('moeda') + ' ' + fmt(it.preco) : eq ? 'EQUIPADO ' + NRIcones.svg('check') : 'EQUIPAR';
+        h += '<div class="item' + (foco === id ? ' sel' : '') + '" data-id="' + id + '"><div class="ic">' + NRIcones.svg(it.icone) + '</div><div class="tx"><h3>' + it.nome + (tem ? ' <em>' + (eq ? NRIcones.svg('ponto') : '') + '</em>' : '') + '</h3><p>' + it.desc + '</p><div class="bonus">' + it.bonus + '</div></div>' +
           '<button class="btn ' + (!tem ? 'ouro' : eq ? 'sec' : '') + '" data-acao="' + id + '"' + (eq ? ' disabled' : '') + '>' + rotulo + '</button></div>';
       });
     });
@@ -96,8 +96,8 @@
       var d = D.LOJA.up[id], n = lo.up[id], max = n >= d.max, preco = max ? 0 : D.precoMelhoria(id, n), pips = '';
       for (var i = 0; i < d.max; i++) pips += '<i class="' + (i < n ? 'on' : '') + '"></i>';
       var bonus = id === 'vida' ? '+' + (n * d.porNivel) + ' vida' : '+' + Math.round(n * d.porNivel * 100) + '% ' + d.unidade;
-      h += '<div class="up"><div class="ic">' + d.icone + '</div><div class="tx"><h3>' + d.nome + ' <span style="color:#ffd23d">' + n + '/' + d.max + '</span></h3><div class="pips">' + pips + '</div><div class="info">' + bonus + '</div></div>' +
-        '<button class="btn ' + (max ? 'sec' : 'ouro') + '" data-up="' + id + '"' + (max ? ' disabled' : '') + '>' + (max ? 'MÁXIMO' : '◈ ' + fmt(preco)) + '</button></div>';
+      h += '<div class="up"><div class="ic">' + NRIcones.svg(d.icone) + '</div><div class="tx"><h3>' + d.nome + ' <span style="color:#ffd23d">' + n + '/' + d.max + '</span></h3><div class="pips">' + pips + '</div><div class="info">' + bonus + '</div></div>' +
+        '<button class="btn ' + (max ? 'sec' : 'ouro') + '" data-up="' + id + '"' + (max ? ' disabled' : '') + '>' + (max ? 'MÁXIMO' : NRIcones.svg('moeda') + ' ' + fmt(preco)) + '</button></div>';
     });
     $('abaUp').innerHTML = h;
     $('abaUp').querySelectorAll('button[data-up]').forEach(function (b) { b.onclick = function () { melhorar(b.dataset.up); }; });

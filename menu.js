@@ -18,8 +18,17 @@
     return lo;
   }
 
+  // Garante que TODOS os botões caibam na altura do celular (qualquer aparelho/zoom do navegador):
+  // se o conteúdo passar da tela, reduz a escala do menu aos poucos até caber.
+  function ajustarMenu() {
+    var pag = document.getElementById('pagMenu'); if (!pag) return;
+    pag.style.zoom = 1; var z = 1;
+    while (z > 0.55 && pag.scrollHeight > pag.clientHeight + 1) { z -= 0.03; pag.style.zoom = z; }
+  }
+
   async function iniciar() {
     var lo = await atualizarDados(true);
+    ajustarMenu(); window.addEventListener('resize', ajustarMenu); window.addEventListener('orientationchange', function () { setTimeout(ajustarMenu, 200); }); setTimeout(ajustarMenu, 600);
     if (window.NRHudPerfil) { try { window.NRHudPerfil.iniciar(); } catch (e) { console.warn('hud perfil:', e); } }
     if (window.NRMenuHeroi) window.NRMenuHeroi.iniciar(lo);
 

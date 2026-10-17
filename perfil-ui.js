@@ -24,6 +24,8 @@
 // ══════════════════════════════════════════════════════════════════
 
 (function () {
+  const _I = function (n) { return window.NRIcones ? window.NRIcones.svg(n) : ""; }; // ícone SVG (icones.js)
+
   let _overlay = null;
   let _abaAtual = "stats";
 
@@ -398,7 +400,7 @@
     inputEl.value = ""; // permite escolher o mesmo arquivo de novo depois
     if (!file) return;
     if (!file.type || file.type.indexOf("image/") !== 0) {
-      _mostrarAviso("ARQUIVO INVÁLIDO", "Escolhe um arquivo de imagem.", "✕");
+      _mostrarAviso("ARQUIVO INVÁLIDO", "Escolhe um arquivo de imagem.", _I("fechar"));
       return;
     }
     try {
@@ -406,7 +408,7 @@
       await window.NRAvatares.definirFotoPersonalizada(dataUrl);
       _render();
     } catch (e) {
-      _mostrarAviso("ERRO AO CARREGAR", "Não deu pra carregar essa imagem. Tenta outra.", "✕");
+      _mostrarAviso("ERRO AO CARREGAR", "Não deu pra carregar essa imagem. Tenta outra.", _I("fechar"));
     }
   }
 
@@ -417,7 +419,7 @@
   _mostrarAviso(
     "MOEDAS INSUFICIENTES",
     "Trocar o nome custa " + CUSTO_RENOMEAR + " moedas.",
-    "◈"
+    _I("moeda")
   );
   return;
 }
@@ -502,7 +504,7 @@
     }
     return pendentes.map(r => `
       <div class="nr-p-achcard desbloqueada" data-resgatar="${r.nivel}" style="cursor:pointer;">
-        <span style="font-size:22px">🎁</span>
+        <span style="font-size:22px">${_I("presente")}</span>
         <div><div class="nr-p-achtitulo">Nível ${r.nivel}</div><div class="nr-p-achdesc">${_descricaoRecompensa(r)} — toque pra resgatar</div></div>
       </div>`).join("");
   }
@@ -513,11 +515,11 @@
     const temFoto = window.NRAvatares.temFotoPersonalizada && window.NRAvatares.temFotoPersonalizada();
     const cardFoto = `
       <div class="nr-p-item equipado" id="nrPerfilCardFoto">
-        <span class="ic"><img src="galeria.png" width="34px"></span><span class="nm">${temFoto ? "Trocar foto" : "Escolher foto"}</span>
+        <span class="ic">${_I("moldura")}</span><span class="nm">${temFoto ? "Trocar foto" : "Escolher foto"}</span>
       </div>`;
     const cardRemoverFoto = temFoto ? `
       <div class="nr-p-item" id="nrPerfilCardRemoverFoto">
-        <span class="ic">✕</span><span class="nm">Remover foto</span>
+        <span class="ic">${_I("fechar")}</span><span class="nm">Remover foto</span>
       </div>` : "";
     return `<div class="nr-p-itemgrid">${cardFoto}${cardRemoverFoto}</div>`;
   }
@@ -527,10 +529,10 @@
     const atualId = window.NRMolduras.molduraAtualId();
     return `<div class="nr-p-itemgrid">${window.NRMolduras.listar().map(m => `
       <div class="nr-p-item ${m.id === atualId ? "equipado" : ""} ${!m.desbloqueada ? "bloqueado" : ""}" data-moldura="${m.id}">
-        ${!m.desbloqueada ? '<span class="lock">🔒</span>' : ""}
+        ${!m.desbloqueada ? '<span class="lock">' + _I('cadeado') + '</span>' : ""}
         ${m.arquivo
           ? `<img src="molduras/${m.arquivo}" class="nr-p-molduraThumb" alt="${m.nome}">`
-          : '<span class="ic">◯</span>'}
+          : '<span class="ic">' + _I('circulo') + '</span>'}
         <span class="nm">${m.nome}</span>
       </div>`).join("")}</div>`;
   }
@@ -540,8 +542,8 @@
     const atualId = window.NRTitulos.tituloAtualId();
     return `<div class="nr-p-itemgrid">${window.NRTitulos.listar().map(t => `
       <div class="nr-p-item ${t.id === atualId ? "equipado" : ""} ${!t.desbloqueado ? "bloqueado" : ""}" data-titulo="${t.id}">
-        ${!t.desbloqueado ? '<span class="lock">🔒</span>' : ""}
-        <span class="ic" style="font-size:13px;">🏷️</span><span class="nm">${t.nome}</span>
+        ${!t.desbloqueado ? '<span class="lock">' + _I('cadeado') + '</span>' : ""}
+        <span class="ic" style="font-size:13px;">${_I("etiqueta")}</span><span class="nm">${t.nome}</span>
       </div>`).join("")}</div>`;
   }
 
@@ -570,20 +572,20 @@
     const janela = document.getElementById("nrPerfilJanela");
     janela.innerHTML = `
       <div class="nr-p-header">
-        <div class="nr-p-fechar" id="nrPerfilFechar">✕</div>
+        <div class="nr-p-fechar" id="nrPerfilFechar">${_I("fechar")}</div>
         <div class="nr-p-avatarwrap">
           <canvas id="nrPerfilAvatarCanvas" width="168" height="168"></canvas>
-          <div class="nr-p-fotobadge" id="nrPerfilFotoBadge" title="Trocar foto"><img src="galeria-de-fotos (1).png" ></div>
+          <div class="nr-p-fotobadge" id="nrPerfilFotoBadge" title="Trocar foto">${_I("moldura")}</div>
           <input type="file" id="nrPerfilFotoInput" accept="image/*" style="display:none">
         </div>
-        <div class="nr-p-nome" id="nrPerfilNome">${nome} ✎</div>
+        <div class="nr-p-nome" id="nrPerfilNome">${nome} ${_I("lapis")}</div>
         ${tituloDef ? `<div class="nr-p-titulo">${tituloDef.nome}</div>` : ""}
         <div class="nr-p-uid">UID ${_uidCurto()}</div>
         <div class="nr-p-xpwrap">
           <div class="nr-p-xplabel"><span>NÍVEL ${nivel}</span><span>${xp} / ${xpProximo} XP</span></div>
           <div class="nr-p-xptrack"><div class="nr-p-xpfill" style="width:${pct}%"></div></div>
         </div>
-        <div class="nr-p-moedas"><span class="gold">◈ ${moedas}</span><span class="gem">✦ ${cristais}</span></div>
+        <div class="nr-p-moedas"><span class="gold">${_I("moeda")} ${moedas}</span><span class="gem">${_I("cristal")} ${cristais}</span></div>
       </div>
       <div class="nr-p-tabs">${ABAS.map(a => `<div class="nr-p-tab ${a.id === _abaAtual ? "ativa" : ""}" data-tab="${a.id}">${a.label}</div>`).join("")}</div>
       <div class="nr-p-conteudo">${_renderAba()}</div>
@@ -607,7 +609,7 @@
       el.addEventListener("click", async () => {
         const nivel = Number(el.dataset.resgatar);
         const r = await window.NRRecompensas.resgatar(nivel);
-        if (r.ok && window.NRAnimacoes) window.NRAnimacoes.mostrarRecompensa(_descricaoRecompensa(r), "🎁");
+        if (r.ok && window.NRAnimacoes) window.NRAnimacoes.mostrarRecompensa(_descricaoRecompensa(r), _I("presente"));
         _render();
       });
     });

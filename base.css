@@ -58,3 +58,5 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #05050c; c
 
 #manutencao { position: fixed; inset: 0; z-index: 99; background: #05050c; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 30px; }
 #manutencao b { font-size: 24px; letter-spacing: 5px; color: var(--amarelo); text-shadow: 0 0 20px var(--amarelo); } #manutencao span { font: 700 12px 'Share Tech Mono'; color: #9fb9d4; }
+.btnIcone { display: inline-flex; align-items: center; justify-content: center; }
+.nav i { display: inline-flex; color: var(--ciano); }

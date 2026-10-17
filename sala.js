@@ -19,7 +19,7 @@
     for (var i = 0; i < 8; i++) {
       var p = await R.medirPing(3);
       $('pingDot').className = p.qualidade;
-      if (p.ms !== null) { $('pingTxt').textContent = p.ms + ' ms'; s.innerHTML = 'Online ✔ — conexão <b>' + p.qualidade.toUpperCase() + '</b> (' + p.ms + ' ms)'; return true; }
+      if (p.ms !== null) { $('pingTxt').textContent = p.ms + ' ms'; s.innerHTML = 'Online ' + NRIcones.svg('check') + ' — conexão <b>' + p.qualidade.toUpperCase() + '</b> (' + p.ms + ' ms)'; return true; }
       $('pingTxt').textContent = '--';
       s.textContent = p.qualidade === 'acordando' ? 'Servidor acordando… isso pode levar até 1 minuto (tentativa ' + (i + 1) + ').' : 'Sem resposta do servidor. Tentando de novo…';
       await new Promise(function (r) { setTimeout(r, 4000); });
@@ -34,9 +34,9 @@
       var j = null; ordenados.forEach(function (x) { if (x.slot === s) j = x; });
       var c = CORES[s % 4];
       if (!j) { h += '<div class="slot vazio">AGUARDANDO JOGADOR…</div>'; continue; }
-      var estado = j.host ? '<div class="st host">👑 HOST</div>' : j.pronto ? '<div class="st ok">PRONTO ✔</div>' : '<div class="st nao">NÃO PRONTO</div>';
+      var estado = j.host ? '<div class="st host">' + NRIcones.svg('coroa') + ' HOST</div>' : j.pronto ? '<div class="st ok">PRONTO ' + NRIcones.svg('check') + '</div>' : '<div class="st nao">NÃO PRONTO</div>';
       h += '<div class="slot" style="--c:' + c + '"><div class="av">' + (j.nome || '?').charAt(0).toUpperCase() + '</div><div class="nm"><b>' + j.nome + (j.eu ? ' (VOCÊ)' : '') + '</b><small>NÍVEL ' + j.nivel + ' · ' + (j.conectado ? (j.ping ? j.ping + ' ms' : '…') : 'RECONECTANDO') + '</small></div>' + estado +
-        (st.souHost && !j.eu ? '<button class="x" data-id="' + j.id + '">✕</button>' : '') + '</div>';
+        (st.souHost && !j.eu ? '<button class="x" data-id="' + j.id + '">' + NRIcones.svg('fechar') + '</button>' : '') + '</div>';
     }
     $('slots').innerHTML = h;
     $('slots').querySelectorAll('.x').forEach(function (b) { b.onclick = function () { R.expulsar(b.dataset.id); }; });

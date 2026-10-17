@@ -73,33 +73,33 @@
   // Cada habilidade tem 8 níveis. 'niveis' descreve o que muda em cada um
   // (texto mostrado na carta). Os números reais ficam em sim.js → statsHab().
   const HABILIDADES = {
-    katana: { nome: 'KATANA RUBI',      icone: '🗡️', cor: '#ff2a55', desc: 'Corta em arco todos os inimigos à sua frente.',
+    katana: { nome: 'KATANA RUBI',      icone: 'katana', cor: '#ff2a55', desc: 'Corta em arco todos os inimigos à sua frente.',
       niveis: ['Corte em arco à frente', 'Dano +25%', 'Alcance +20%', 'Cadência +18%', 'Corte duplo', 'Dano +30%', 'Alcance +25% e onda de corte que perfura', 'Corte dimensional: golpe em 360°'] },
-    rifle:  { nome: 'RIFLE PLASMA',     icone: '🔫', cor: '#2ee6ff', desc: 'Dispara plasma no inimigo mais próximo.',
+    rifle:  { nome: 'RIFLE PLASMA',     icone: 'rifle', cor: '#2ee6ff', desc: 'Dispara plasma no inimigo mais próximo.',
       niveis: ['Dispara plasma automático', 'Dano +25%', '+1 projétil', 'Cadência +18%', 'Perfura +1 inimigo', 'Dano +30%', '+1 projétil', 'Plasma explosivo + perfura +1'] },
-    drones: { nome: 'DRONES ORBITAIS',  icone: '🛸', cor: '#ffd23d', desc: 'Drones giram ao seu redor e cortam quem chegar perto.',
+    drones: { nome: 'DRONES ORBITAIS',  icone: 'drones', cor: '#ffd23d', desc: 'Drones giram ao seu redor e cortam quem chegar perto.',
       niveis: ['1 drone orbital', '+1 drone', 'Dano +30%', '+1 drone', 'Órbita maior e mais rápida', '+1 drone', 'Dano +40%', '+1 drone que também atira'] },
-    emp:    { nome: 'PULSO EMP',        icone: '💠', cor: '#7a5cff', desc: 'Onda de choque ao redor: dano, empurrão e lentidão.',
+    emp:    { nome: 'PULSO EMP',        icone: 'emp', cor: '#7a5cff', desc: 'Onda de choque ao redor: dano, empurrão e lentidão.',
       niveis: ['Pulso a cada 6s', 'Raio +15%', 'Dano +35%', 'Recarga -15%', 'Raio +15%', 'Dano +40%', 'Recarga -20%', 'Pulso duplo devastador'] },
-    tesla:  { nome: 'ARCO TESLA',       icone: '⚡', cor: '#e8f6ff', desc: 'Raio que salta entre vários inimigos.',
+    tesla:  { nome: 'ARCO TESLA',       icone: 'tesla', cor: '#e8f6ff', desc: 'Raio que salta entre vários inimigos.',
       niveis: ['Raio salta em 2 alvos', '+1 salto', 'Dano +35%', '+1 salto', 'Recarga -20%', 'Dano +40%', '+2 saltos', 'Tempestade: 8 saltos'] },
-    granada:{ nome: 'GRANADA PLASMA',   icone: '💣', cor: '#ff6a1a', desc: 'Lança granadas nos grupos mais densos.',
+    granada:{ nome: 'GRANADA PLASMA',   icone: 'granada', cor: '#ff6a1a', desc: 'Lança granadas nos grupos mais densos.',
       niveis: ['Granada explosiva', 'Raio +15%', 'Dano +35%', 'Recarga -20%', 'Deixa chamas no chão', 'Dano +40%', 'Raio +20%', 'Granada dupla'] },
-    orbital:{ nome: 'ATAQUE ORBITAL',   icone: '🛰️', cor: '#ff3da6', desc: 'Satélite dispara raios do céu em inimigos aleatórios.',
+    orbital:{ nome: 'ATAQUE ORBITAL',   icone: 'orbital', cor: '#ff3da6', desc: 'Satélite dispara raios do céu em inimigos aleatórios.',
       niveis: ['1 raio orbital', '+1 raio', 'Dano +35%', 'Recarga -20%', '+1 raio', 'Dano +40%', 'Raio mais largo', '+2 raios'] },
   };
   const ORDEM_HAB = ['rifle', 'katana', 'drones', 'emp', 'tesla', 'granada', 'orbital'];
 
   // ── PASSIVAS (5 níveis) ─────────────────────────────────────────
   const PASSIVAS = {
-    dano:    { nome: 'NÚCLEO DE DANO',  icone: '🔥', cor: '#ff5d3d', desc: '+12% de dano por nível.' },
-    cadencia:{ nome: 'OVERCLOCK',       icone: '⏱️', cor: '#ffd23d', desc: '+10% de cadência e -recarga por nível.' },
-    vel:     { nome: 'SERVOS CYBER',    icone: '👟', cor: '#39ff88', desc: '+8% de velocidade por nível.' },
-    vida:    { nome: 'BLINDAGEM',       icone: '🛡️', cor: '#2ee6ff', desc: '+25 de vida máxima por nível.' },
-    regen:   { nome: 'NANO-REPARO',     icone: '💚', cor: '#39ff88', desc: 'Regenera +0,7 de vida por segundo por nível.' },
-    ima:     { nome: 'ÍMÃ QUÂNTICO',    icone: '🧲', cor: '#b04dff', desc: '+30% de alcance para coletar XP por nível.' },
-    critico: { nome: 'CHIP CRÍTICO',    icone: '🎯', cor: '#ff3da6', desc: '+7% de chance de crítico por nível.' },
-    dash:    { nome: 'PROPULSORES',     icone: '💨', cor: '#e8f6ff', desc: 'Dash recarrega 14% mais rápido por nível.' },
+    dano:    { nome: 'NÚCLEO DE DANO',  icone: 'dano', cor: '#ff5d3d', desc: '+12% de dano por nível.' },
+    cadencia:{ nome: 'OVERCLOCK',       icone: 'cadencia', cor: '#ffd23d', desc: '+10% de cadência e -recarga por nível.' },
+    vel:     { nome: 'SERVOS CYBER',    icone: 'vel', cor: '#39ff88', desc: '+8% de velocidade por nível.' },
+    vida:    { nome: 'BLINDAGEM',       icone: 'escudo', cor: '#2ee6ff', desc: '+25 de vida máxima por nível.' },
+    regen:   { nome: 'NANO-REPARO',     icone: 'regen', cor: '#39ff88', desc: 'Regenera +0,7 de vida por segundo por nível.' },
+    ima:     { nome: 'ÍMÃ QUÂNTICO',    icone: 'ima', cor: '#b04dff', desc: '+30% de alcance para coletar XP por nível.' },
+    critico: { nome: 'CHIP CRÍTICO',    icone: 'critico', cor: '#ff3da6', desc: '+7% de chance de crítico por nível.' },
+    dash:    { nome: 'PROPULSORES',     icone: 'dash', cor: '#e8f6ff', desc: 'Dash recarrega 14% mais rápido por nível.' },
   };
   const ORDEM_PAS = ['dano', 'cadencia', 'vel', 'vida', 'regen', 'ima', 'critico', 'dash'];
 
@@ -109,19 +109,26 @@
     // "Operador Padrão" (mesmo modelo em cinza, sem os bônus) — assim
     // ninguém fica sem poder jogar.
     // PERSONAGENS (equipa 1 por vez) e ARMAS (equipa 1 por vez). O jogador pode comprar todos.
-    cacador:  { id: 'cacador',  grupo: 'personagem', icone: '🛡️', nome: 'CAÇADOR CYBER',  preco: 25000, bonus: '+15% VIDA · +8% VELOCIDADE', desc: 'Caçador de elite com visor tático e armadura neon.' },
-    kunoichi: { id: 'kunoichi', grupo: 'personagem', icone: '🥷', nome: 'KUNOICHI NEON',  preco: 25000, bonus: '+15% VELOCIDADE · +8% CRÍTICO', desc: 'Guerreira ágil de cabelo longo preso em rabo de cavalo.' },
-    rifle:    { id: 'rifle',    grupo: 'arma',       icone: '🔫', nome: 'RIFLE PLASMA',   preco: 30000, bonus: '+20% DANO · TIRO À DISTÂNCIA', desc: 'Rifle de plasma de alta energia, atira sozinho no alvo mais próximo.' },
-    katana:   { id: 'katana',   grupo: 'arma',       icone: '🗡️', nome: 'KATANA RUBI',    preco: 30000, bonus: '+25% DANO · CORTE EM ARCO', desc: 'Lâmina de rubi que corta todos à sua frente. Arma corpo a corpo.' },
+    cacador:  { id: 'cacador',  grupo: 'personagem', icone: 'cacador', nome: 'CAÇADOR CYBER',  preco: 25000, bonus: '+15% VIDA · +8% VELOCIDADE', desc: 'Caçador de elite com visor tático e armadura neon.' },
+    kunoichi: { id: 'kunoichi', grupo: 'personagem', icone: 'kunoichi', nome: 'KUNOICHI NEON',  preco: 25000, bonus: '+15% VELOCIDADE · +8% CRÍTICO', desc: 'Guerreira ágil de cabelo longo preso em rabo de cavalo.' },
+    rifle:    { id: 'rifle',    grupo: 'arma',       icone: 'rifle', nome: 'RIFLE PLASMA',   preco: 30000, bonus: '+20% DANO · TIRO À DISTÂNCIA', desc: 'Rifle de plasma de alta energia, atira sozinho no alvo mais próximo.' },
+    katana:   { id: 'katana',   grupo: 'arma',       icone: 'katana', nome: 'KATANA RUBI',    preco: 30000, bonus: '+25% DANO · CORTE EM ARCO', desc: 'Lâmina de rubi que corta todos à sua frente. Arma corpo a corpo.' },
+    // ══ ONDE MUDAR OS BÔNUS DO PERSONAGEM E DA ARMA ══
+    // Multiplicadores reais usados em sim.js (recalcular). Se mudar aqui, atualize também o texto "bonus" do item acima.
+    //   vida/vel/dano = multiplicador (1.15 = +15%);   crit = soma na chance de crítico (0.08 = +8 pontos)
+    efeitos: {
+      personagem: { padrao: {}, cacador: { vida: 1.15, vel: 1.08 }, kunoichi: { vel: 1.15, crit: 0.08 } },
+      arma: { base: {}, rifle: { dano: 1.2 }, katana: { dano: 1.25 } },
+    },
     melhorias: true,          // false esconde a aba de melhorias permanentes
     // melhorias permanentes pagas com moedas
     up: {
-      vida:  { nome: 'VITALIDADE',  icone: '❤️', max: 10, porNivel: 8,    unidade: 'vida máx',   base: 600 },
-      dano:  { nome: 'POTÊNCIA',    icone: '🔥', max: 10, porNivel: 0.04, unidade: 'dano',       base: 800 },
-      vel:   { nome: 'AGILIDADE',   icone: '👟', max: 8,  porNivel: 0.03, unidade: 'velocidade', base: 700 },
-      ima:   { nome: 'ALCANCE',     icone: '🧲', max: 8,  porNivel: 0.1,  unidade: 'ímã',        base: 500 },
-      xp:    { nome: 'APRENDIZ',    icone: '📈', max: 8,  porNivel: 0.05, unidade: 'XP',         base: 900 },
-      moeda: { nome: 'SAQUEADOR',   icone: '◈',  max: 8,  porNivel: 0.06, unidade: 'moedas',     base: 1000 },
+      vida:  { nome: 'VITALIDADE',  icone: 'regen', max: 10, porNivel: 8,    unidade: 'vida máx',   base: 600 },
+      dano:  { nome: 'POTÊNCIA',    icone: 'dano', max: 10, porNivel: 0.04, unidade: 'dano',       base: 800 },
+      vel:   { nome: 'AGILIDADE',   icone: 'vel', max: 8,  porNivel: 0.03, unidade: 'velocidade', base: 700 },
+      ima:   { nome: 'ALCANCE',     icone: 'ima', max: 8,  porNivel: 0.1,  unidade: 'ímã',        base: 500 },
+      xp:    { nome: 'APRENDIZ',    icone: 'xp', max: 8,  porNivel: 0.05, unidade: 'XP',         base: 900 },
+      moeda: { nome: 'SAQUEADOR',   icone: 'moeda',  max: 8,  porNivel: 0.06, unidade: 'moedas',     base: 1000 },
     },
   };
   function precoMelhoria(id, nivelAtual) { return Math.round(LOJA.up[id].base * Math.pow(1.55, nivelAtual)); }

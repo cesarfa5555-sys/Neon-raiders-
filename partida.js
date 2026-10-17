@@ -212,7 +212,7 @@
     setTimeout(function () {
       ui.resultado(res, { nivel: eu.nivel, moedas: eu.moedas, xpConta: eu.xpConta }, ['Salvando recompensa…']);
       window.NRConta.pagarPartida({ moedas: eu.moedas, xpConta: eu.xpConta, pontos: eu.pontos }, res).then(function (info) {
-        var l = ['Recompensa salva na sua conta ✔']; if (info.novoRecorde) l.push('<span style="color:#ffd23d">★ NOVO RECORDE NO RANKING ★</span>'); if (info.subiuNivel) l.push('<span style="color:#39ff88">▲ Seu nível de conta subiu!</span>');
+        var l = ['Recompensa salva na sua conta ' + window.NRIcones.svg('check')]; if (info.novoRecorde) l.push('<span style="color:#ffd23d">' + window.NRIcones.svg('estrela') + ' NOVO RECORDE NO RANKING ' + window.NRIcones.svg('estrela') + '</span>'); if (info.subiuNivel) l.push('<span style="color:#39ff88">' + window.NRIcones.svg('subir') + ' Seu nível de conta subiu!</span>');
         ui.resultadoExtra(l); A.tocar('moeda');
       }).catch(function (e) { console.error(e); ui.resultadoExtra(['<span style="color:#ff6677">Não foi possível salvar a recompensa (sem conexão?)</span>']); });
     }, 1300);
@@ -222,7 +222,7 @@
     window.NRRede.fimDaPartida(); A.parar(); A.tocar('derrota');
     var eu = null, sid = window.NRRede.sala() && window.NRRede.sala().sessionId;
     res.jogadores.forEach(function (j) { if (j.id === sid) eu = j; });
-    var extra = ['Recompensa creditada pelo servidor ✔']; res.jogadores.forEach(function (j) { extra.push(j.nome + ' — ' + j.abates + ' abates, ' + j.dano + ' de dano'); });
+    var extra = ['Recompensa creditada pelo servidor ' + window.NRIcones.svg('check')]; res.jogadores.forEach(function (j) { extra.push(j.nome + ' — ' + j.abates + ' abates, ' + j.dano + ' de dano'); });
     setTimeout(function () { ui.resultado(res, eu, extra); }, 1300);
   }
 
@@ -258,10 +258,10 @@
       if (n === ultimaOnda && n === 1) return; ultimaOnda = n;
       if (n % CFG.chefeACada !== 0) { ui.banner('ONDA ' + n, 'NOVA ONDA', '#2ee6ff'); A.tocar('ondaNova'); }
     },
-    chefe: function (idx) { chefeVivo = true; A.intensidade(3); ui.banner(D.CHEFES[idx].nome, '⚠ CHEFE ⚠', '#ff3344'); },
+    chefe: function (idx) { chefeVivo = true; A.intensidade(3); ui.banner(D.CHEFES[idx].nome, 'ALERTA: CHEFE', '#ff3344'); },
     chefeMorto: function () { chefeVivo = false; ui.flash('#ffffff'); ui.banner('CHEFE ELIMINADO', 'RECOMPENSA LIBERADA', '#39ff88'); A.tocar('vitoria'); },
     loja: function (n) { ui.flash('#39ff88'); A.intensidade(0); },
-    horda: function (k) { ui.banner(k === 1 ? 'HORDA CERCANDO!' : 'MANADA!', '⚠ ALERTA ⚠', '#ff8a2a'); },
+    horda: function (k) { ui.banner(k === 1 ? 'HORDA CERCANDO!' : 'MANADA!', 'ALERTA', '#ff8a2a'); },
     caiu: function (slot) { if (slot === slotLocal && ONLINE) ui.aviso('Você caiu! Um aliado pode te reviver ficando ao seu lado.', 4000); },
   };
 

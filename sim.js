@@ -206,15 +206,16 @@
     function recalcular(p) {
       const lo = p.loadout, up = lo.up, pas = p.pas, J = CFG.jogador;
       const eq = D.resolverEquip(lo); p.persona = eq.persona; p.armaTipo = eq.arma;
-      p.dmgMul = (1 + 0.12 * (pas.dano || 0)) * (1 + up.dano * D.LOJA.up.dano.porNivel) * (eq.arma === 'rifle' ? 1.2 : eq.arma === 'katana' ? 1.25 : 1);
+      const ep = D.LOJA.efeitos.personagem[eq.persona] || {}, ea = D.LOJA.efeitos.arma[eq.arma] || {};   // bônus de data.js (LOJA.efeitos)
+      p.dmgMul = (1 + 0.12 * (pas.dano || 0)) * (1 + up.dano * D.LOJA.up.dano.porNivel) * (ea.dano || 1);
       p.cdMul = 1 / (1 + 0.10 * (pas.cadencia || 0));
-      p.vel = J.vel * (1 + 0.08 * (pas.vel || 0)) * (1 + up.vel * D.LOJA.up.vel.porNivel) * (eq.persona === 'cacador' ? 1.08 : eq.persona === 'kunoichi' ? 1.15 : 1);
+      p.vel = J.vel * (1 + 0.08 * (pas.vel || 0)) * (1 + up.vel * D.LOJA.up.vel.porNivel) * (ep.vel || 1);
       const hpAntes = p.hpMax;
-      p.hpMax = Math.round((J.hp + 25 * (pas.vida || 0) + up.vida * D.LOJA.up.vida.porNivel) * (eq.persona === 'cacador' ? 1.15 : 1));
+      p.hpMax = Math.round((J.hp + 25 * (pas.vida || 0) + up.vida * D.LOJA.up.vida.porNivel) * (ep.vida || 1));
       if (hpAntes > 1 && p.hpMax > hpAntes) p.hp += p.hpMax - hpAntes; // ganhar vida máxima também cura essa diferença
       p.regen = 0.7 * (pas.regen || 0);
       p.ima = J.ima * (1 + 0.30 * (pas.ima || 0)) * (1 + up.ima * D.LOJA.up.ima.porNivel);
-      p.crit = J.critChance + 0.07 * (pas.critico || 0) + (eq.persona === 'kunoichi' ? 0.08 : 0);
+      p.crit = J.critChance + 0.07 * (pas.critico || 0) + (ep.crit || 0);
       p.dashRecarga = J.dashRecarga * Math.pow(0.86, pas.dash || 0);
       p.xpMul = 1 + up.xp * D.LOJA.up.xp.porNivel;
       p.moedaMul = 1 + up.moeda * D.LOJA.up.moeda.porNivel;

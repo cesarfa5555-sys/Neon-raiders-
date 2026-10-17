@@ -16,7 +16,7 @@
 
 (function () {
 
-  const EMOJI_PADRAO = "🧑‍🚀"; // usado só enquanto o jogador não escolheu nenhuma foto
+  // Avatar padrão (enquanto o jogador não escolheu nenhuma foto): silhueta desenhada em vetor, sem emoji
 
   function _perfilBranch() {
     const p = (window.NRDados && window.NRDados.perfilLocal && window.NRDados.perfilLocal()) || null;
@@ -110,10 +110,13 @@
     ctx.strokeStyle = "#a855f7";
     ctx.stroke();
 
-    ctx.font = (raio * 1.15) + "px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(EMOJI_PADRAO, cx, cy + raio * 0.05);
+    // cabeça + ombros em traço neon
+    ctx.lineWidth = Math.max(2, raio * 0.09); ctx.lineCap = "round"; ctx.strokeStyle = "#c9a2ff"; ctx.fillStyle = "rgba(201,162,255,0.18)";
+    ctx.beginPath(); ctx.arc(cx, cy - raio * 0.18, raio * 0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - raio * 0.58, cy + raio * 0.62);
+    ctx.bezierCurveTo(cx - raio * 0.58, cy + raio * 0.2, cx - raio * 0.3, cy + raio * 0.16, cx, cy + raio * 0.16);
+    ctx.bezierCurveTo(cx + raio * 0.3, cy + raio * 0.16, cx + raio * 0.58, cy + raio * 0.2, cx + raio * 0.58, cy + raio * 0.62);
+    ctx.stroke();
     ctx.restore();
   }
 

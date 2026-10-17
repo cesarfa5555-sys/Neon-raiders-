@@ -33,3 +33,17 @@ O ranking já funciona sem mudar nada, mas para ficar rápido adicione o índice
 ```
 "ranking": { ".read": true, ".indexOn": ["score"], "$uid": { ".write": "auth != null && auth.uid === $uid" } }
 ```
+
+## Atualização 3 (ícones, abertura e menu)
+- Todos os emojis foram trocados por ícones SVG próprios (`icones.js` — para mudar/criar um ícone, edite a tabela `ICONES`).
+- Abertura igual à do Neon Raiders antigo: tela azul da NEKTRA Studios (usa `nektra_logo2.png`), depois o carregamento do jogo.
+- `nektra_logo1.png` não é mais usado: pode apagar.
+- Menu com ajuste automático de tamanho: todos os botões cabem em qualquer celular.
+
+## ONDE MUDAR PREÇOS E BÔNUS (personagens e armas)
+Tudo em `data.js`, dentro de `LOJA`:
+- PREÇO: `LOJA.cacador.preco`, `LOJA.kunoichi.preco`, `LOJA.rifle.preco`, `LOJA.katana.preco`
+- BÔNUS REAIS: `LOJA.efeitos` (vida/vel = multiplicador, dano = multiplicador, crit = soma). Ex.: `cacador: { vida: 1.15, vel: 1.08 }`
+- TEXTO mostrado no Hangar: `bonus` e `desc` de cada item (atualize junto com os números)
+- Força da arma em si (dano do rifle/katana por nível): `statsHab` em `sim.js`
+Depois de mudar `data.js` ou `sim.js`, copie também para o servidor.

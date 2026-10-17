@@ -96,12 +96,12 @@ function mostrarTravaAtualizacao(dados) {
   tela.style.cssText = 'position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse at center,rgba(0,10,40,0.98) 0%,rgba(0,0,0,1) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:Orbitron,monospace;padding:24px;text-align:center;';
 
   tela.innerHTML = `
-    <div style="font-size:42px;">🚀</div>
+    <div style="font-size:46px;color:#40daf2;">${window.NRIcones ? window.NRIcones.svg("foguete") : ""}</div>
     <div style="font-size:clamp(20px,7vw,32px);font-weight:900;color:#40daf2;text-shadow:0 0 20px #40daf2,0 0 50px #40daf266;letter-spacing:3px;">NOVA ATUALIZAÇÃO</div>
     <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#ffffff88;letter-spacing:2px;">Tamanho: <span style="color:#ffd700;">${dados.tamanho || '—'}</span></div>
     <p style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#ffffff55;letter-spacing:1px;max-width:280px;line-height:1.7;">É preciso atualizar pra continuar jogando. Não demora nada!</p>
 
-    <button id="btnAtualizarAgora" style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;letter-spacing:3px;color:#000;background:linear-gradient(135deg,#40daf2,#cf54c9);border:none;border-radius:14px;padding:16px 36px;cursor:pointer;margin-top:8px;box-shadow:0 0 24px #40daf288;">⬇ ATUALIZAR</button>
+    <button id="btnAtualizarAgora" style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;letter-spacing:3px;color:#000;background:linear-gradient(135deg,#40daf2,#cf54c9);border:none;border-radius:14px;padding:16px 36px;cursor:pointer;margin-top:8px;box-shadow:0 0 24px #40daf288;"> ATUALIZAR</button>
 
     <div id="progressoWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:300px;margin-top:8px;">
       <div style="width:100%;height:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(64,218,242,0.3);border-radius:6px;overflow:hidden;">
@@ -171,18 +171,18 @@ function mostrarNovidadesSePendente() {
 
   const itensHtml = novidades.map(n => `
     <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(64,218,242,0.06);border:1px solid rgba(64,218,242,0.2);border-radius:12px;padding:12px 14px;width:100%;text-align:left;">
-      <span style="color:#40daf2;font-size:16px;flex-shrink:0;">✦</span>
+      <span style="color:#40daf2;font-size:16px;flex-shrink:0;">${window.NRIcones ? window.NRIcones.svg("cristal") : ""}</span>
       <span style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#ffffffcc;letter-spacing:0.5px;line-height:1.5;">${String(n).replace(/</g,'&lt;')}</span>
     </div>
   `).join('');
 
   tela.innerHTML = `
-    <div style="font-size:38px;">🎉</div>
+    <div style="font-size:42px;color:#40daf2;">${window.NRIcones ? window.NRIcones.svg("festa") : ""}</div>
     <div style="font-size:clamp(20px,7vw,30px);font-weight:900;color:#40daf2;text-shadow:0 0 20px #40daf2;letter-spacing:3px;">O QUE HÁ DE NOVO</div>
     <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;max-height:50vh;overflow-y:auto;margin-top:4px;">
       ${itensHtml}
     </div>
-    <button id="btnFecharNovidades" style="font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;color:#000;background:linear-gradient(135deg,#40daf2,#cf54c9);border:none;border-radius:14px;padding:14px 32px;cursor:pointer;margin-top:10px;">✓ VAMOS JOGAR</button>
+    <button id="btnFecharNovidades" style="font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;color:#000;background:linear-gradient(135deg,#40daf2,#cf54c9);border:none;border-radius:14px;padding:14px 32px;cursor:pointer;margin-top:10px;"> VAMOS JOGAR</button>
   `;
 
   document.body.appendChild(tela);

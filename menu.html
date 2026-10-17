@@ -14,8 +14,8 @@
 
 <div class="pagina" id="pagMenu">
   <div class="barraTopo">
-    <div class="pilula" id="pilMoedas"><span class="am">◈</span><b id="moedasTxt">0</b></div>
-    <button class="btnIcone" id="btnAjustes" aria-label="Ajustes">⚙</button>
+    <div class="pilula" id="pilMoedas"><span class="am" data-ico="moeda"></span><b id="moedasTxt">0</b></div>
+    <button class="btnIcone" id="btnAjustes" aria-label="Ajustes" data-ico="engrenagem"></button>
   </div>
 
   <div id="logo">
@@ -35,9 +35,9 @@
   </div>
 
   <nav id="navBaixo">
-    <button class="nav" id="btnHangar"><i>🛡️</i><span>HANGAR</span></button>
-    <button class="nav" id="btnBau"><i>📦</i><span>BAÚ</span></button>
-    <button class="nav" id="btnAjustes2"><i>🔊</i><span>SOM</span></button>
+    <button class="nav" id="btnHangar"><i data-ico="escudo"></i><span>HANGAR</span></button>
+    <button class="nav" id="btnBau"><i data-ico="bau"></i><span>BAÚ</span></button>
+    <button class="nav" id="btnAjustes2"><i data-ico="som"></i><span>SOM</span></button>
   </nav>
   <div id="versao" class="mono">NEKTRA · v2.0 SURVIVAL</div>
 </div>
@@ -57,6 +57,7 @@
 <div id="toast"></div>
 <div id="manutencao" class="oculto"><b>EM MANUTENÇÃO</b><span>Estamos melhorando o jogo. Volte em instantes.</span></div>
 
+<script src="icones.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="config-servidor.js"></script>
 <script src="data.js"></script>

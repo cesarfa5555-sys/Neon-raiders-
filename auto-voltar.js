@@ -35,7 +35,7 @@
 
   var b = document.createElement('div');
   b.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translateX(-50%);z-index:2147483000;background:#05101fee;border:1px solid #00ffff;border-radius:12px;padding:12px 16px;color:#cfeaff;font:700 13px Orbitron,monospace;letter-spacing:1px;text-align:center;box-shadow:0 0 18px #0ff6;max-width:86vw';
-  b.innerHTML = '↩ VOLTANDO PARA A PARTIDA...<div style="font-weight:400;font-size:11px;margin:6px 0 10px;opacity:.85">Você saiu sem querer? A sala guardou a sua vaga.</div>' +
+  b.innerHTML = (window.NRIcones ? window.NRIcones.svg('retornar') + ' ' : '') + 'VOLTANDO PARA A PARTIDA...<div style="font-weight:400;font-size:11px;margin:6px 0 10px;opacity:.85">Você saiu sem querer? A sala guardou a sua vaga.</div>' +
     '<button style="font:700 12px Orbitron,monospace;padding:8px 16px;border-radius:8px;border:1px solid #ff5d73;background:#ff5d7322;color:#ff9aa8">CANCELAR (não voltar)</button>';
   function mostrar() { if (document.body) document.body.appendChild(b); else document.addEventListener('DOMContentLoaded', function () { document.body.appendChild(b); }); }
   mostrar();

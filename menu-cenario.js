@@ -32,6 +32,8 @@
   function quadro(now) {
     requestAnimationFrame(quadro);
     var dt = Math.min(0.05, (now - ult) / 1000); ult = now; t += dt;
+    if (cv.clientWidth && cv.clientWidth !== W) montar();   // a tela pode ter sido mostrada depois (ex.: abertura)
+    if (!W) return;
     var gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#12062e'); gr.addColorStop(0.55, '#2a0f4a'); gr.addColorStop(1, '#06040f');
     g.fillStyle = gr; g.fillRect(0, 0, W, H);
     // lua/brilho no horizonte

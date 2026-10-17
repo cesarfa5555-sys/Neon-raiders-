@@ -948,12 +948,12 @@ canvas{
         </p>
 
         <div class="chestCount" id="startChestCount">
-            <span id="chestCountIcon">▣</span>
+            <span id="chestCountIcon" data-ico="caixa"></span>
             <span>BAÚS DISPONÍVEIS: <strong id="startChestCountValue">—</strong></span>
         </div>
 
         <div class="chestCount" id="moedasJogadorLinha">
-            <span>◈</span>
+            <span data-ico="moeda"></span>
             <span>SUAS MOEDAS: <strong id="moedasJogadorValue">—</strong></span>
         </div>
 
@@ -961,7 +961,7 @@ canvas{
             class="mainButton"
             id="startButton">
 
-            COMPRAR — 1.000 ◈
+            COMPRAR — 1.000 <span data-ico="moeda"></span>
 
         </button>
 
@@ -1026,9 +1026,7 @@ canvas{
             VOCÊ GANHOU
         </h2>
 
-        <div id="resultIcon">
-            💠
-        </div>
+        <div id="resultIcon" data-ico="moeda"></div>
 
         <div id="resultName">
             RECOMPENSA
@@ -1049,6 +1047,7 @@ canvas{
      Precisa carregar como script normal (não-módulo), ANTES do
      módulo abaixo, pra window.NRDados já existir quando o módulo
      rodar — mesmo padrão usado em loja.html/menu.html. -->
+<script src="icones.js"></script>
 <script src="dados.js"></script>
 
 <script type="module">
@@ -1463,21 +1462,21 @@ const rewards = [
     {
         id:"coins-500",
         name:"500 MOEDAS",
-        icon:"◈",
+        icon:"moeda",
         peso:75
     },
 
     {
         id:"coins-1000",
         name:"1.000 MOEDAS",
-        icon:"◈",
+        icon:"moeda",
         peso:20
     },
 
     {
         id:"coins-7500",
         name:"7.500 MOEDAS",
-        icon:"◈",
+        icon:"moeda",
         peso:5
     }
 
@@ -3148,9 +3147,9 @@ function atualizarTelaInicial(moedasAtuais){
     startButton.style.display = "";
     estoqueAcabouMsg.style.display = "none";
     startButton.disabled = semMoedas;
-    startButton.textContent = semMoedas
+    startButton.innerHTML = semMoedas
         ? "MOEDAS INSUFICIENTES"
-        : "COMPRAR — " + PRECO_BAU_MOEDAS.toLocaleString("pt-BR") + " ◈";
+        : "COMPRAR — " + PRECO_BAU_MOEDAS.toLocaleString("pt-BR") + " " + window.NRIcones.svg("moeda");
 }
 
 // Cobra o preço em moedas e desconta 1 do estoque global, cada um com
@@ -3492,7 +3491,7 @@ function buildRoulette(){
             card.innerHTML = `
 
     <div class="rewardIcon">
-        ${reward.icon}
+        ${window.NRIcones.svg(reward.icon)}
     </div>
 
     <div class="rewardName">
@@ -3739,8 +3738,7 @@ function showResult(){
        ÍCONE DA RECOMPENSA
     ========================= */
 
-    resultIcon.textContent =
-    reward.icon;
+    resultIcon.innerHTML = window.NRIcones.svg(reward.icon);
 
 
     /* =========================

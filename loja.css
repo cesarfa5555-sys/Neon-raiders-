@@ -40,3 +40,4 @@
   .item .btn, .up .btn { width: 92px; padding: 8px 2px; font-size: 10px; } .grupoTit { margin: 3px 2px 3px; font-size: 9px; } .nota { font-size: 8.5px; line-height: 1.35; }
 }
 .grupoTit { margin-top: 8px; position: relative; z-index: 1; }
+.grupoTit { margin-top: 14px; }
