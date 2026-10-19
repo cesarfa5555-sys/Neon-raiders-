@@ -1,0 +1,30 @@
+/* SALA.CSS — lobby do co-op online */
+#fundo { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+#tituloPg { text-align: center; font-size: 20px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 16px var(--rosa); margin: -2px 0 10px; }
+#telaEntrar, #telaSala { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; }
+#statusServidor { font-size: 12px; line-height: 1.5; color: #cfe3f5; }
+#linhaCodigo { display: flex; gap: 8px; } #linhaCodigo .btn { width: 110px; flex: none; }
+#inputCodigo { flex: 1; min-width: 0; padding: 12px; font: 900 22px 'Orbitron'; letter-spacing: 8px; text-align: center; text-transform: uppercase; color: #fff; background: rgba(0, 0, 0, .5); border: 1px solid var(--borda); outline: none; -webkit-user-select: text; user-select: text; }
+#codigo { font-size: 40px; font-weight: 900; letter-spacing: 12px; color: var(--amarelo); text-shadow: 0 0 20px var(--amarelo); padding-left: 12px; }
+#slots { display: flex; flex-direction: column; gap: 8px; }
+.slot { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--vidro); border: 1px solid rgba(46, 230, 255, .3); border-left: 4px solid var(--c, #444); min-height: 58px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
+.slot.vazio { opacity: .4; border-left-color: #444; justify-content: center; font: 700 11px 'Share Tech Mono'; letter-spacing: 3px; }
+.slot .av { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; background: rgba(255, 255, 255, .08); border: 2px solid var(--c); color: var(--c); flex: none; }
+.slot .nm { flex: 1; min-width: 0; } .slot .nm b { display: block; font-size: 13px; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .slot .nm small { font: 700 10px 'Share Tech Mono'; color: #9fb9d4; }
+.slot .st { font: 900 10px 'Orbitron'; letter-spacing: 2px; text-align: right; } .slot .st.ok { color: var(--verde); } .slot .st.nao { color: #7f97b3; } .slot .st.host { color: var(--amarelo); }
+.slot .x { margin-left: 6px; width: 28px; height: 28px; background: rgba(255, 51, 68, .2); border: 1px solid var(--vermelho); color: #ff8a96; font-weight: 900; cursor: pointer; }
+.nota { font-size: 10px; color: #7f97b3; text-align: center; line-height: 1.5; padding: 4px 10px; }
+#pingDot.otima { color: var(--verde); } #pingDot.boa { color: #b6ff39; } #pingDot.media { color: var(--amarelo); } #pingDot.ruim, #pingDot.offline { color: var(--vermelho); } #pingDot.acordando { color: var(--amarelo); }
+
+/* ───────── PAISAGEM ───────── */
+@media (orientation: landscape) {
+  .pagina { padding-left: calc(12px + env(safe-area-inset-left, 0px)); padding-right: calc(12px + env(safe-area-inset-right, 0px)); }
+  #tituloPg { font-size: 15px; margin: -8px 0 4px; }
+  #telaEntrar { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; gap: 8px 12px; align-content: start; }
+  #telaEntrar .painel:first-child { grid-column: 1; } #telaEntrar .nota { grid-column: 1 / -1; }
+  #telaSala { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); grid-auto-rows: min-content; gap: 8px 14px; align-content: start; }
+  #telaSala > .painel { grid-column: 1; } #slots { grid-column: 2; grid-row: 1 / span 4; } #telaSala > .btn { grid-column: 1; padding: 11px; }
+  #codigo { font-size: 30px; } .slot { min-height: 46px; padding: 6px 10px; }
+}
+
+@media (orientation: landscape) { .pagina { padding-top: calc(var(--topo) + 4px); } #tituloPg { font-size: 13px; } .btn { padding: 10px 12px; font-size: 12px; } }

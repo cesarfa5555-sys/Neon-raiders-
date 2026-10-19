@@ -1,0 +1,43 @@
+/* LOJA.CSS — hangar: vitrine 3D + itens + melhorias */
+#fundo { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+#tituloPg { text-align: center; font-size: 22px; font-weight: 900; letter-spacing: 8px; text-shadow: 0 0 16px var(--ciano); margin-top: -4px; }
+#vitrine { position: relative; flex: 0 0 34vh; margin: 0 -12px; }
+#prev { position: absolute; inset: 0; width: 100%; height: 100%; }
+#selo { position: absolute; right: 18px; top: 8px; padding: 4px 10px; background: rgba(57, 255, 136, .15); border: 1px solid var(--verde); color: var(--verde); font: 900 10px 'Orbitron'; letter-spacing: 3px; }
+#abas { display: flex; gap: 6px; margin: 6px 0; }
+.aba { flex: 1; padding: 10px; background: var(--vidro); border: 1px solid rgba(46, 230, 255, .3); color: #9fb9d4; font: 900 11px 'Orbitron'; letter-spacing: 3px; cursor: pointer; touch-action: manipulation; }
+.aba.on { color: #fff; border-color: var(--ciano); background: rgba(46, 230, 255, .18); box-shadow: 0 0 14px rgba(46, 230, 255, .3); }
+#conteudo { flex: 1; overflow-y: auto; padding-bottom: 8px; touch-action: pan-y; }
+.item, .up { display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; background: var(--vidro); border: 1px solid var(--borda); backdrop-filter: blur(4px); clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+.item.sel { border-color: var(--amarelo); box-shadow: 0 0 18px rgba(255, 210, 61, .3); }
+.item .ic, .up .ic { font-size: 30px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .06); border: 1px solid var(--borda); flex: none; }
+.item .tx, .up .tx { flex: 1; min-width: 0; } .item h3, .up h3 { font-size: 12px; letter-spacing: 3px; } .item p { font: 700 11px 'Share Tech Mono'; color: #b6cde0; margin: 3px 0; line-height: 1.3; }
+.bonus { font: 900 9px 'Orbitron'; letter-spacing: 1px; color: var(--verde); }
+.item .btn, .up .btn { width: 108px; padding: 11px 6px; font-size: 11px; letter-spacing: 1px; flex: none; }
+.pips { display: flex; gap: 3px; margin: 5px 0 3px; } .pips i { width: 100%; max-width: 14px; height: 6px; background: rgba(255, 255, 255, .15); transform: skewX(-20deg); } .pips i.on { background: var(--ciano); box-shadow: 0 0 6px var(--ciano); }
+.up .info { font: 700 10px 'Share Tech Mono'; color: #9fd8e8; }
+.nota { font-size: 10px; color: #7f97b3; text-align: center; line-height: 1.5; padding: 6px 10px; }
+
+/* ───────── PAISAGEM ───────── */
+@media (orientation: landscape) {
+  .pagina { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-rows: auto auto auto 1fr; grid-template-areas: "topo topo" "tit tit" "vit abas" "vit cont"; column-gap: 14px; padding-left: calc(12px + env(safe-area-inset-left, 0px)); padding-right: calc(12px + env(safe-area-inset-right, 0px)); }
+  .pagina > .barraTopo { grid-area: topo; min-height: 36px; } #tituloPg { grid-area: tit; font-size: 16px; margin: -6px 0 2px; } #vitrine { grid-area: vit; flex: none; margin: 0; min-height: 0; } #abas { grid-area: abas; margin: 0 0 6px; } #conteudo { grid-area: cont; min-height: 0; }
+  .item, .up { padding: 8px 10px; margin-bottom: 6px; } .item p { font-size: 10px; } .item .btn, .up .btn { width: 96px; padding: 9px 4px; } .nota { font-size: 9px; padding: 2px; }
+}
+
+/* grupos de itens (personagem / arma) e botão EQUIPAR */
+.grupoTit { font-size: 10px; letter-spacing: 5px; color: var(--rosa); margin: 6px 2px 4px; }
+.item h3 em { color: var(--verde); font-style: normal; }
+.item { cursor: pointer; }
+
+/* ───────── PAISAGEM COMPACTA ───────── */
+@media (orientation: landscape) {
+  .pagina { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); row-gap: 2px; padding-top: calc(var(--topo) + 4px); padding-bottom: calc(var(--base) + 4px); }
+  .pagina > .barraTopo { min-height: 34px; } #tituloPg { font-size: 14px; letter-spacing: 6px; margin: -4px 0 0; } .aba { padding: 7px; font-size: 10px; letter-spacing: 2px; } #abas { margin-bottom: 4px; }
+  #conteudo { padding-bottom: 28px; }
+  .item, .up { gap: 8px; padding: 6px 8px; margin-bottom: 5px; } .item .ic, .up .ic { width: 38px; height: 38px; font-size: 22px; }
+  .item h3, .up h3 { font-size: 10.5px; letter-spacing: 2px; } .item p { font-size: 9.5px; margin: 1px 0; } .bonus { font-size: 8px; } .pips { margin: 3px 0 2px; } .pips i { height: 5px; } .up .info { font-size: 9px; }
+  .item .btn, .up .btn { width: 92px; padding: 8px 2px; font-size: 10px; } .grupoTit { margin: 3px 2px 3px; font-size: 9px; } .nota { font-size: 8.5px; line-height: 1.35; }
+}
+.grupoTit { margin-top: 8px; position: relative; z-index: 1; }
+.grupoTit { margin-top: 14px; }

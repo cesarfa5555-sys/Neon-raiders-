@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0030ff">
+<title></title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Orbitron', monospace; }
+
+  /* ── TELA 1: LOGO DA EMPRESA NEKTRA (igual ao Neon Raiders antigo: fundo azul, logo, "NEKTRA Studios") ── */
+  #telaNektra { position: fixed; inset: 0; background: #0030FFA6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; opacity: 0; transition: opacity 0.8s ease; z-index: 10; }
+  #telaNektra img { width: clamp(200px, 40vw, 280px); max-height: 52vh; object-fit: contain; }
+  #telaNektra .nektra-sub { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 6px; color: #FFFFFFA8; text-transform: uppercase; }
+
+  /* ── TELA 2: CARREGAMENTO DO NEON RAIDERS (cidade cyberpunk, título e barra) ── */
+  #telaLoading { position: fixed; inset: 0; background: #02000a; opacity: 0; transition: opacity 0.8s ease; z-index: 9; display: none; }
+  #fundo { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #tituloBox { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+  #tit { font-size: clamp(28px, 9vh, 56px); font-weight: 900; letter-spacing: 8px; color: #fff; text-shadow: 0 0 12px #2ee6ff, 0 0 40px #ff3da6; }
+  #sub { font-size: 11px; letter-spacing: 10px; color: #ff3da6; padding-left: 10px; margin-top: -4px; }
+  #barra { width: min(60vw, 300px); height: 4px; background: rgba(255, 255, 255, .12); overflow: hidden; margin-top: 12px; }
+  #barra i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff3da6, #2ee6ff); }
+  #dica { font: 700 11px 'Share Tech Mono', monospace; color: #7f97b3; max-width: 70vw; min-height: 28px; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- TELA 1: LOGO DA EMPRESA NEKTRA -->
+<div id="telaNektra">
+  <img src="nektra_logo2.png" alt="NEKTRA">
+  <div class="nektra-sub">NEKTRA Studios</div>
+</div>
+
+<!-- TELA 2: CARREGAMENTO -->
+<div id="telaLoading">
+  <canvas id="fundo"></canvas>
+  <div id="tituloBox">
+    <div id="tit">NEON RAIDERS</div>
+    <div id="sub">SURVIVAL PROTOCOL</div>
+    <div id="barra"><i id="prog"></i></div>
+    <div id="dica"></div>
+  </div>
+</div>
+
+<script src="menu-cenario.js"></script>
+<script src="paisagem.js"></script>
+<script>
+  /* SEQUÊNCIA (igual ao antigo): NEKTRA → carregamento → menu.  Tempos fáceis de ajustar aqui. */
+  var TEMPO_NEKTRA_MS = 3000, TEMPO_CARREGAMENTO_MS = 2400;
+  var DICAS = ['Sobreviva a ondas infinitas de ameaças cyber.', 'Entre ondas, gaste sucata na loja e monte sua build.', 'Chame até 3 amigos para o modo CO-OP ONLINE.', 'O Dash deixa você invulnerável por um instante.'];
+
+  function fadeIn(el, display) { return new Promise(function (res) { el.style.opacity = '0'; el.style.display = display || 'flex'; setTimeout(function () { el.style.opacity = '1'; }, 500); setTimeout(res, 500); }); }
+  function fadeOut(el) { return new Promise(function (res) { el.style.opacity = '0'; setTimeout(function () { el.style.display = 'none'; res(); }, 900); }); }
+
+  async function rodarSplash() {
+    var telaNektra = document.getElementById('telaNektra'), telaLoading = document.getElementById('telaLoading');
+    // 1) NEKTRA: fade in → espera → fade out
+    await fadeIn(telaNektra);
+    await new Promise(function (r) { setTimeout(r, TEMPO_NEKTRA_MS); });
+    await fadeOut(telaNektra);
+    // 2) Carregamento do jogo: cidade animada + barra
+    document.getElementById('dica').textContent = DICAS[Math.floor(Math.random() * DICAS.length)];
+    await fadeIn(telaLoading, 'block');
+    await new Promise(function (resolve) {
+      var t0 = performance.now(), barra = document.getElementById('prog');
+      (function passo(now) { var u = Math.min(1, (now - t0) / TEMPO_CARREGAMENTO_MS); barra.style.width = (u * 100) + '%'; if (u < 1) requestAnimationFrame(passo); else setTimeout(resolve, 250); })(t0);
+    });
+    await fadeOut(telaLoading);
+    // 3) menu (que manda para o login se não houver conta)
+    window.location.href = 'menu.html';
+  }
+  window.addEventListener('load', rodarSplash);
+</script>
+<script type="module" src="atualizacao.js"></script>
+</body>
+</html>
