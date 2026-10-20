@@ -36,7 +36,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #05050c; c
 .btn.sec { background: var(--vidro); color: #fff; border: 1px solid var(--borda); box-shadow: none; clip-path: none; }
 .btn.rosa { background: linear-gradient(180deg, #ff9ad0, var(--rosa)); color: #240312; box-shadow: 0 0 22px rgba(255, 61, 166, .5); }
 .btn.ouro { background: linear-gradient(180deg, #ffe58a, var(--amarelo)); color: #241a00; box-shadow: 0 0 22px rgba(255, 210, 61, .45); }
-.btn.perigo { background: linear-gradient(180deg, #ff8a96, var(--vermelho)); color: #1a0308; }
+.btn.perigo { background:#FF0000;
+color: #fff; }
 .btn[disabled] { opacity: .45; filter: grayscale(.7); pointer-events: none; }
 .btn::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent); transform: skewX(-20deg); animation: brilho 3.2s infinite; }
 .btn.sec::after, .btn[disabled]::after { display: none; }
