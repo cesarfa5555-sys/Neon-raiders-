@@ -156,6 +156,9 @@
   //  Convenção: a arma aponta para +z; "pos" = onde ela fica em relação à cintura do personagem (unidades do herói de blocos).
   // ══════════════════════════════════════════════════════════════
   function criarArma(op, m) {
+    // arma 3D importada (.glb) configurada em heroi-config.js? usa ela; se não, cai nas peças de blocos abaixo
+    var tipoArma = op.katana ? 'katana' : 'rifle';
+    if (window.NRArmasGLB && window.NRArmasGLB.disponivel(tipoArma)) { try { return window.NRArmasGLB.criar(tipoArma); } catch (e) { console.warn('[armas-glb] falhou, usando arma de blocos:', e); } }
     var g = new T.Group(), celula = null, pos = { x: 0.1, y: 0.34, z: 0.52 };
     function caixa(w, h, d, mat, x, y, z) { var o = new T.Mesh(new T.BoxGeometry(w, h, d), mat); o.position.set(x || 0, y || 0, z || 0); g.add(o); return o; }
     if (op.katana) {

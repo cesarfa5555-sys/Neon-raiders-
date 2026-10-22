@@ -43,7 +43,7 @@
     else if (/neck/.test(sem)) p = 'neck';
     else if (/head/.test(sem) && !/top|end|nub|helmet/.test(sem)) p = 'head';
     else if (/shoulder|clavicle|collar/.test(sem)) p = 'ombro';
-    else if (/fore ?arm|lower ?arm|loarm|elbow/.test(sem)) p = 'antebraco';
+    else if (/fore ?arm|lower ?arm|low ?arm|loarm|elbow/.test(sem)) p = 'antebraco';
     else if (/up(per)? ?arm|(^|\s)arm(\s|$|\d)/.test(sem)) p = 'braco';
     else if (/hand|wrist/.test(sem)) p = 'mao';
     else if (/up(per)? ?leg|thigh/.test(sem)) p = 'coxa';
@@ -62,11 +62,13 @@
 
   // Baixa os .glb configurados (chamar antes de montar a cena). Nunca rejeita: em caso de erro, o herói de blocos é usado.
   function precarregar() {
-    var c = cfgGeral(); if (!c.ativo) return Promise.resolve();
-    var preparo = Promise.resolve();
-    if (!T.GLTFLoader) preparo = carregarScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
-    if (!(T.SkeletonUtils)) preparo = preparo.then(function () { return carregarScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js'); });
-    return preparo.then(function () {
+    return Promise.race([precarregarTudo(), new Promise(function (res) { setTimeout(res, 12000); })]);       // trava de segurança: nunca espera mais que 12 s
+  }
+  function precarregarTudo() {
+    var armas = window.NRArmasGLB ? window.NRArmasGLB.precarregar() : Promise.resolve();      // as armas .glb carregam junto
+    var c = cfgGeral(); if (!c.ativo) return armas;
+    var preparo = window.NRCarregarLoader ? window.NRCarregarLoader() : Promise.resolve();
+    return Promise.all([armas, preparo.then(function () {
       var tarefas = Object.keys(c.herois || {}).filter(function (k) { return cfgDe(k); }).map(function (persona) {
         if (cache[persona] && cache[persona].promessa) return cache[persona].promessa;
         var cf = cfgDe(persona), loader = new T.GLTFLoader(), entrada = cache[persona] = { cena: null, animacoes: [], promessa: null };
@@ -77,8 +79,10 @@
         return entrada.promessa;
       });
       return Promise.all(tarefas);
-    }).catch(function (e) { console.warn('[heroi-glb] desativado:', e.message); });
+    })]).catch(function (e) { console.warn('[heroi-glb] desativado:', e.message); });
   }
+  // cada herói ganha cópia própria do material (senão tingir um tingiria todos)
+  function tingir(m, cor) { if (!m) return m; var n = m.clone(); if (n.emissive) { n.emissive.setHex(cor); if ('emissiveIntensity' in n) n.emissiveIntensity = 1; } return n; }
   function disponivel(persona) { return !!(cfgDe(persona) && cache[persona] && cache[persona].cena); }
 
   // ══════════════════════════════════════════════════════════════
@@ -86,6 +90,8 @@
     var persona = op.persona || 'cacador', cf = cfgDe(persona), dados = cache[persona];
     if (!cf || !dados || !dados.cena) return null;
     var clone = (T.SkeletonUtils && T.SkeletonUtils.clone) ? T.SkeletonUtils.clone(dados.cena) : dados.cena.clone(true);
+    // clima neon: tinge levemente todos os materiais de ciano/rosa (cf.emissivo = cor hexadecimal) para o visual "cyber"
+    if (cf.emissivo) clone.traverse(function (o) { if (!o.isMesh) return; var ms = Array.isArray(o.material) ? o.material : [o.material]; o.material = Array.isArray(o.material) ? ms.map(function (m) { return tingir(m, cf.emissivo); }) : tingir(ms[0], cf.emissivo); });
 
     // ── hierarquia: raiz (yaw + escala) → cont → modelo (alinhado nos pés) ──
     var raiz = new T.Group(), cont = new T.Group(), modelo = new T.Group(); raiz.add(cont); cont.add(modelo); modelo.add(clone);

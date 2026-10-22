@@ -50,10 +50,18 @@
     <div class="linhaVol"><label>EFEITOS</label><input type="range" id="volSfx" min="0" max="1" step="0.05"></div>
     <button class="btn sec" id="btnMudo">SOM: LIGADO</button>
     <button class="btn perigo" id="btnSair">SAIR DA CONTA</button>
+    <button class="btn sec" id="btnCreditos">CRÉDITOS</button>
     <button class="btn sec" id="btnFecharAjustes">FECHAR</button>
   </div>
 </div>
 
+<div class="modal oculto" id="modalCreditos">
+  <div class="caixa painel">
+    <h2>CRÉDITOS</h2>
+    <div id="listaCreditos" class="mono" style="font-size:11px;line-height:1.5"></div>
+    <button class="btn sec" id="btnFecharCreditos">FECHAR</button>
+  </div>
+</div>
 <div id="toast"></div>
 <div id="manutencao" class="oculto"><b>EM MANUTENÇÃO</b><span>Estamos melhorando o jogo. Volte em instantes.</span></div>
 
@@ -79,10 +87,12 @@
 <script src="animador.js"></script>
 <script src="modelos.js"></script>
 <script src="heroi-config.js"></script>
+<script src="armas-glb.js"></script>
 <script src="heroi-glb.js"></script>
 <script src="menu-cenario.js"></script>
 <script src="menu-heroi.js"></script>
 <script src="auto-voltar.js"></script>
+<script src="creditos.js"></script>
 <script src="menu.js"></script>
 <script type="module" src="atualizacao.js"></script>
 <script src="paisagem.js"></script>

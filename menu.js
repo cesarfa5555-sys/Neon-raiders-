@@ -46,6 +46,11 @@
     // ajustes
     function abrirAjustes() { A.tocar('clique'); $('volMusica').value = A.volumeMusica(); $('volSfx').value = A.volumeSfx(); $('btnMudo').textContent = 'SOM: ' + (A.mudo() ? 'DESLIGADO' : 'LIGADO'); $('modalAjustes').classList.remove('oculto'); }
     $('btnAjustes').onclick = abrirAjustes; $('btnAjustes2').onclick = abrirAjustes;
+    $('btnCreditos').onclick = function () {
+      A.tocar('clique'); var l = (window.NR_CREDITOS || []).map(function (c) { return '<div style="margin-bottom:8px"><b style="color:#2ee6ff">' + c.nome + '</b><br>' + c.autor + (c.licenca && c.licenca !== '—' ? ' · ' + c.licenca : '') + (c.url ? '<br>' + c.url : '') + '</div>'; }).join('');
+      $('listaCreditos').innerHTML = l; $('modalCreditos').classList.remove('oculto');
+    };
+    $('btnFecharCreditos').onclick = function () { A.tocar('voltar'); $('modalCreditos').classList.add('oculto'); };
     $('btnFecharAjustes').onclick = function () { A.tocar('voltar'); $('modalAjustes').classList.add('oculto'); };
     $('volMusica').oninput = function (e) { A.volumeMusica(parseFloat(e.target.value)); };
     $('volSfx').oninput = function (e) { A.volumeSfx(parseFloat(e.target.value)); A.tocar('clique'); };

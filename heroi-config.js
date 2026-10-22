@@ -1,25 +1,38 @@
 // ══════════════════════════════════════════════════════════════════
-// HEROI-CONFIG.JS — liga o modelo 3D do Sketchfab (.glb) no lugar do herói de blocos.
+// HEROI-CONFIG.JS — liga os modelos 3D (.glb) no lugar das peças de blocos.  (todos os arquivos na mesma pasta)
 //
-//  1) Coloque o arquivo .glb na MESMA pasta dos outros arquivos do jogo (sem pastas).
-//  2) Troque  ativo: false  por  ativo: true  e escreva o nome do arquivo em "arquivo".
-//  3) Abra o jogo e olhe o console: o adaptador mostra quais ossos reconheceu.
-//
-//  Por personagem você pode ter um modelo diferente (cacador, kunoichi, padrao). Quem não tiver
-//  "arquivo" continua com o herói de blocos.  Opções de cada herói:
-//    arquivo     nome do .glb
-//    altura      altura final do personagem no jogo (padrão 2.7; o herói de blocos tem ~2.8)
-//    rotY        gira o modelo (em radianos) se ele vier olhando para o lado errado (3.14159 = de costas)
-//    armaEscala  tamanho da arma (1 = padrão) / armaOffset { x, y, z } = ajuste fino da posição da arma
-//    ossos       (opcional) forçar o nome exato de um osso se o reconhecimento automático errar:
-//                { hips:'Pelvis', head:'Head', coxaL:'thigh_L', canelaL:'calf_L', peL:'foot_L', ... }
-//                chaves: hips, neck, head, ombroL/R, bracoL/R, antebracoL/R, maoL/R, coxaL/R, canelaL/R, peL/R, dedoL/R
+//  HERÓIS (NR_HEROI_GLB): um .glb por personagem. Personagem sem "arquivo" continua com o herói de blocos.
+//    arquivo      nome do .glb                       altura   altura final no jogo (herói de blocos ≈ 2.8)
+//    rotY         gira o modelo (radianos) se ele vier olhando para o lado errado (3.14159 = de costas)
+//    emissivo     (opcional) cor hexadecimal de brilho neon espalhada no modelo (visual "cyber")
+//    armaEscala / armaOffset { x, y, z }   ajuste fino do tamanho/posição da arma na mão
+//    ossos        (opcional) forçar o nome exato de um osso se o reconhecimento automático errar:
+//                 { hips:'Pelvis', head:'Head', coxaL:'thigh_L', ... }  chaves: hips, neck, head, ombroL/R, bracoL/R,
+//                 antebracoL/R, maoL/R, coxaL/R, canelaL/R, peL/R, dedoL/R
+//  ARMAS (NR_ARMAS_GLB): katana e rifle 3D. Vale para todos os personagens.
+//    arquivo      nome do .glb          comprimento   tamanho da arma no jogo
+//    giro         { x, y, z } em radianos para a PONTA/CANO apontar para +z (frente)
+//    empunhadura  (katana) onde fica a mão, de 0 a 1 a partir do cabo (0.17 = 17% do comprimento)
+//    pos          { x, y, z } posição da arma em relação à cintura do personagem
+//  Para desligar tudo e voltar aos blocos: ativo: false.
 // ══════════════════════════════════════════════════════════════════
 window.NR_HEROI_GLB = {
-  ativo: false,
+  ativo: true,
   herois: {
-    cacador:  { arquivo: '', altura: 2.7, rotY: 0, armaEscala: 1, armaOffset: { x: 0, y: 0, z: 0 }, ossos: {} },
+    // CAÇADOR CYBER → soldado tático low poly (rosto, colete, botas, dedos e clavículas) com brilho ciano
+    cacador:  { arquivo: 'heroi-cyber.glb', altura: 2.7, rotY: 0, emissivo: 0x0a3340, armaEscala: 1, armaOffset: { x: 0, y: 0, z: 0 }, ossos: {} },
+    // OPERADOR PADRÃO (caçador normal) → soldado de capacete com visor
+    padrao:   { arquivo: 'heroi-padrao.glb', altura: 2.7, rotY: 0, armaEscala: 1, armaOffset: { x: 0, y: 0, z: 0 }, ossos: {} },
+    // KUNOICHI continua com o modelo de blocos (sem "arquivo")
     kunoichi: { arquivo: '', altura: 2.7, rotY: 0, armaEscala: 1, armaOffset: { x: 0, y: 0, z: 0 }, ossos: {} },
-    padrao:   { arquivo: '', altura: 2.7, rotY: 0, armaEscala: 1, armaOffset: { x: 0, y: 0, z: 0 }, ossos: {} },
+  },
+};
+window.NR_ARMAS_GLB = {
+  ativo: true,
+  armas: {
+    // KATANA: no arquivo ela está deitada no eixo X com a ponta para -X → gira 90° em Y para a ponta ir para a frente
+    katana: { arquivo: 'arma-katana.glb', comprimento: 2.0, giro: { x: 0, y: Math.PI / 2, z: 0 }, empunhadura: 0.17, pos: { x: -0.3, y: 0.28, z: 0.5 } },
+    // RIFLE (AK ciberpunk): já vem com o cano para +z; fica centrada no peito
+    rifle:  { arquivo: 'arma-rifle.glb', comprimento: 1.45, giro: { x: 0, y: 0, z: 0 }, pos: { x: 0.1, y: 0.34, z: 0.9 } },
   },
 };
