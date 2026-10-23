@@ -97,10 +97,6 @@
     var raiz = new T.Group(), cont = new T.Group(), modelo = new T.Group(); raiz.add(cont); cont.add(modelo); modelo.add(clone);
     modelo.rotation.y = cf.rotY || 0;
     raiz.updateMatrixWorld(true);
-    var caixa = new T.Box3().setFromObject(clone), tamanho = new T.Vector3(); caixa.getSize(tamanho);
-    var alvoAltura = cf.altura || 2.7, fit = tamanho.y > 0.001 ? alvoAltura / tamanho.y : 1;
-    var cx = (caixa.min.x + caixa.max.x) / 2, cz = (caixa.min.z + caixa.max.z) / 2;
-    modelo.position.set(-cx, -caixa.min.y, -cz);
     raiz.updateMatrixWorld(true);
 
     // ── ossos ──
@@ -117,6 +113,22 @@
     function prof(o) { var d = 0; while (o.parent) { d++; o = o.parent; } return d; }
     espinhas.sort(function (a, b) { return prof(a) - prof(b); });
     var temEsq = ossos.hips && ossos.head && ossos.coxaL && ossos.coxaR && ossos.canelaL && ossos.canelaR && ossos.peL && ossos.peR && ossos.bracoL && ossos.bracoR && ossos.antebracoL && ossos.antebracoR;
+
+    // ── TAMANHO: medido pelos OSSOS (não pela malha). Em modelos com esqueleto a caixa da malha pode estar em outra
+    //    unidade (cm × m) e o herói saía GIGANTE. Os ossos sempre descrevem o tamanho real do corpo na tela. ──
+    var caixa = new T.Box3().setFromObject(clone), tamanho = new T.Vector3(); caixa.getSize(tamanho);
+    var alvoAltura = cf.altura || 2.7, fit = 1, soleY = caixa.min.y, centroX = (caixa.min.x + caixa.max.x) / 2, centroZ = (caixa.min.z + caixa.max.z) / 2;
+    if (temEsq) {
+      var Pw = function (o) { return o.getWorldPosition(new T.Vector3()); };
+      var yCab = Pw(ossos.head).y, yPeE = Pw(ossos.peL).y, yPeD = Pw(ossos.peR).y, yPe = Math.min(yPeE, yPeD);
+      var yDedo = (ossos.dedoL && ossos.dedoR) ? Math.min(Pw(ossos.dedoL).y, Pw(ossos.dedoR).y) : null;
+      soleY = yDedo !== null ? Math.min(yDedo, yPe) : yPe - 0.045 * (yCab - yPe);          // sola = dedo do pé, ou tornozelo − 4,5% da altura
+      var alturaModelo = (yCab - soleY) / 0.88;                                            // o osso da cabeça fica a ~88% da altura total
+      fit = alturaModelo > 1e-6 ? alvoAltura / alturaModelo : 1;
+      var pq = Pw(ossos.hips); centroX = pq.x; centroZ = pq.z;
+    } else { fit = tamanho.y > 0.001 ? alvoAltura / tamanho.y : 1; }
+    modelo.position.set(-centroX, -soleY, -centroZ);
+    raiz.updateMatrixWorld(true);
 
     // ── escala da perna em relação ao esqueleto padrão do jogo (perna = 1.0) ──
     var wp = new T.Vector3(), wp2 = new T.Vector3();

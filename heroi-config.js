@@ -33,6 +33,6 @@ window.NR_ARMAS_GLB = {
     // KATANA: no arquivo ela está deitada no eixo X com a ponta para -X → gira 90° em Y para a ponta ir para a frente
     katana: { arquivo: 'arma-katana.glb', comprimento: 2.0, giro: { x: 0, y: Math.PI / 2, z: 0 }, empunhadura: 0.17, pos: { x: -0.3, y: 0.28, z: 0.5 } },
     // RIFLE (AK ciberpunk): já vem com o cano para +z; fica centrada no peito
-    rifle:  { arquivo: 'arma-rifle.glb', comprimento: 1.45, giro: { x: 0, y: 0, z: 0 }, pos: { x: 0.1, y: 0.34, z: 0.9 } },
+    rifle:  { arquivo: 'arma-rifle.glb', comprimento: 1.05, giro: { x: 0, y: 0, z: 0 }, pos: { x: -0.1, y: 0.45, z: 0.5 } },
   },
 };
