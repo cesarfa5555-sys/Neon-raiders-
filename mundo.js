@@ -13,6 +13,7 @@
   var T = window.THREE, D = window.NRData, R = D.CFG.arenaRaio;
 
   var AJUSTES = {
+    ambiente: 'natural',    // 'natural' = campo de dia (padrão)  |  'cyberpunk' = cidade neon com chuva
     camAngulo: 62,          // inclinação da câmera em graus (90 = totalmente de cima)
     camLarguraVista: 26,    // quantas unidades cabem na LARGURA da tela (zoom) — o jogo é sempre deitado
     camDistMin: 17, camDistMax: 36,
@@ -91,22 +92,27 @@
     var glowTex = window.NRModelos.texturaGlow(64);
     var r = rng(2026);
 
-    // ── LUZES ──
+    var natural = AJUSTES.ambiente === 'natural' && window.NRNatureza, natureza = null;
+    var luzHeroi = new T.PointLight(natural ? 0xffffff : 0x2ee6ff, natural ? 0 : 1.35, 15, 2); luzHeroi.position.set(0, 3.5, 0); scene.add(luzHeroi);
+    var luzFlash = new T.PointLight(0xffffff, 0, 24, 2); luzFlash.position.set(0, 4, 0); scene.add(luzFlash);   // clarão de explosões
+    var grade, praca, texB, letreiros = [], chuva = null, chuvaPos = null, N = 0;
+    if (natural) {
+      natureza = window.NRNatureza.construir({ scene: scene, renderer: renderer, R: R });                 // campo de dia (natureza.js)
+    } else {
+    // ═══ CENÁRIO CYBERPUNK (cidade neon com chuva) ═══
     scene.add(new T.HemisphereLight(0x6f7fff, 0x1a0630, 0.95));
     var sol = new T.DirectionalLight(0xaac6ff, 0.55); sol.position.set(-14, 34, 12); scene.add(sol);
-    var luzHeroi = new T.PointLight(0x2ee6ff, 1.35, 15, 2); luzHeroi.position.set(0, 3.5, 0); scene.add(luzHeroi);
-    var luzFlash = new T.PointLight(0xffffff, 0, 24, 2); luzFlash.position.set(0, 4, 0); scene.add(luzFlash);   // clarão de explosões
 
     // ── CHÃO ──
     var chao = new T.Mesh(new T.CircleGeometry(R + 60, 48), new T.MeshLambertMaterial({ map: texChao(), color: 0xb8bcd6 }));
     chao.rotation.x = -Math.PI / 2; scene.add(chao);
-    var grade = new T.Mesh(new T.CircleGeometry(R, 64), new T.MeshBasicMaterial({ map: texGrade(), transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 0.5 }));
+    grade = new T.Mesh(new T.CircleGeometry(R, 64), new T.MeshBasicMaterial({ map: texGrade(), transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 0.5 }));
     grade.rotation.x = -Math.PI / 2; grade.position.y = 0.02; scene.add(grade);
-    var praca = new T.Mesh(new T.PlaneGeometry(26, 26), new T.MeshBasicMaterial({ map: texPraca(), transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 0.55 }));
+    praca = new T.Mesh(new T.PlaneGeometry(26, 26), new T.MeshBasicMaterial({ map: texPraca(), transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 0.55 }));
     praca.rotation.x = -Math.PI / 2; praca.position.y = 0.03; scene.add(praca);
 
     // ── BARREIRA DE ENERGIA + PILARES NO LIMITE DA ARENA ──
-    var texB = texBarreira();
+    texB = texBarreira();
     var barreira = new T.Mesh(new T.CylinderGeometry(R + 0.5, R + 0.5, 7, 96, 1, true), new T.MeshBasicMaterial({ map: texB, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, opacity: 0.55 }));
     barreira.position.y = 3.5; scene.add(barreira);
     var pilares = new T.InstancedMesh(new T.BoxGeometry(1.2, 9, 1.2), new T.MeshLambertMaterial({ color: 0x1a1d33 }), 48);
@@ -135,7 +141,6 @@
       dm.scale.set(1, 1, 1); scene.add(m);
     });
     // letreiros de neon encostados nos prédios mais próximos
-    var letreiros = [];
     for (var s = 0; s < 14; s++) {
       var b = lista[(r() * 40) | 0]; var cx = b.x * 0.9, cz = b.z * 0.9;
       var pl = new T.Mesh(new T.PlaneGeometry(9, 3.4), new T.MeshBasicMaterial({ map: texLetreiro(s), transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, fog: false }));
@@ -168,7 +173,7 @@
     scene.add(cm); scene.add(cm2);
 
     // ── CHUVA ──
-    var chuva = null, chuvaPos = null, N = AJUSTES.chuva;
+    N = AJUSTES.chuva;
     if (N > 0) {
       chuvaPos = new Float32Array(N * 6);
       for (var d = 0; d < N; d++) { var x = (r() - 0.5) * 60, z = (r() - 0.5) * 60, y = r() * 30; chuvaPos.set([x, y, z, x - 0.12, y - 1.1, z], d * 6); }
@@ -176,6 +181,7 @@
       chuva = new T.LineSegments(cg, new T.LineBasicMaterial({ color: 0x9fdcff, transparent: true, opacity: 0.32 }));
       chuva.frustumCulled = false; scene.add(chuva);
     }
+    }   // fim do cenário cyberpunk
 
     // ── CÂMERA TOP-DOWN ──
     var cam = { foco: new T.Vector3(), dist: 30, tremor: 0, zoomExtra: 0, ang: AJUSTES.camAngulo * Math.PI / 180 };
@@ -201,6 +207,8 @@
       luzHeroi.position.set(fx, 3.5, fz);
       luzFlash.intensity *= Math.exp(-dt * 7);
       // cenário vivo
+      if (natureza) natureza.atualizar(dt, t, fx, fz);
+      else {
       grade.material.opacity = 0.42 + Math.sin(t * 1.6) * 0.1; praca.rotation.z = t * 0.05;
       texB.offset.x = t * 0.04;
       for (var i = 0; i < letreiros.length; i++) letreiros[i].material.opacity = 0.75 + Math.sin(t * 3 + i * 1.7) * 0.2 + (Math.sin(t * 13 + i * 5) > 0.97 ? -0.4 : 0);
@@ -211,6 +219,7 @@
           if (p[o + 1] < 0) { var x = fx + (Math.random() - 0.5) * 60, z = fz + (Math.random() - 0.5) * 60, y = 22 + Math.random() * 10; p[o] = x; p[o + 1] = y; p[o + 2] = z; p[o + 3] = x - 0.12; p[o + 4] = y - 1.1; p[o + 5] = z; }
         }
         chuva.geometry.attributes.position.needsUpdate = true;
+      }
       }
     }
     // converte posição do mundo em pixels da tela (para barras de vida e números de dano)

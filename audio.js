@@ -89,7 +89,7 @@
 
   // ── EFEITOS SONOROS ─────────────────────────────────────────────
   var ultimo = {};                 // limita sons muito repetidos (não vira ruído)
-  var ESPERA = { passo: 0.11, corte: 0.05, tiro: 0.045, hit: 0.035, morte: 0.04, gema: 0.03, tiroInimigo: 0.08, drone: 0.08, tesla: 0.08, dano: 0.1 };
+  var ESPERA = { agua: 0.09, passo: 0.11, corte: 0.05, tiro: 0.045, hit: 0.035, morte: 0.04, gema: 0.03, tiroInimigo: 0.08, drone: 0.08, tesla: 0.08, dano: 0.1 };
   var comboGema = 0, tComboGema = 0;
 
   var SFX = {
@@ -107,6 +107,11 @@
     // passo: batida surda e curta (volume e peso crescem com a corrida)
     passo: function (t, o) {
       var f = (o && o.forca) || 0.5; ruido(0.05, 0.05 + 0.06 * f, 'lowpass', 700 + 500 * f, 200, t); osc('sine', 110 + 30 * f, 55, 0.07, 0.06 + 0.06 * f, t);
+    },
+    // chapinhar na poça: jato de água curto + "plop" + respingos agudos
+    agua: function (t, o) {
+      var f = (o && o.forca) || 0.6;
+      ruido(0.26, 0.12 + 0.09 * f, 'bandpass', 1700 + 900 * f, 450, t, null, 1.1); osc('sine', 520 + Math.random() * 300, 170, 0.13, 0.05 + 0.05 * f, t); ruido(0.14, 0.07, 'highpass', 5200, 3200, t + 0.035);
     },
     tiroInimigo: function (t) { osc('triangle', 520, 190, 0.18, 0.1, t); },
     drone: function (t) { osc('square', 1200, 700, 0.07, 0.05, t); },

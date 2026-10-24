@@ -23,7 +23,7 @@
   var MOSTRAR_FPS = true;        // contador de FPS no canto
   var ENVIO_INPUT_MS = 50;       // online: manda seu movimento 20x por segundo
 
-  var ui, mundo, fx, des, ctrl;
+  var ui, mundo, fx, des, ctrl, pocas = null;
   var sim = null;                        // só no solo
   var infoSlot = {}, slotLocal = 0, meuId = 'eu', nomeLocal = 'Raider', loadout = null;
   var t = 0, ultimo = 0, acc = 0, hudT = 0;
@@ -198,6 +198,7 @@
     var foco = jogadorLocal(), fx0 = foco ? foco.x : 0, fz0 = foco ? foco.z : 0;
     des.sincronizar(vista, estado.pausado ? 0.0001 : dt, t, slotLocal);
     mundo.atualizar(dt, t, fx0, fz0);
+    if (pocas) pocas.atualizar(dt, t, fx0, fz0);
     fx.atualizar(estado.pausado ? 0 : dt);
     mundo.renderer.render(mundo.scene, mundo.camera);
     fx.desenharOverlay(dt, overlayExtra);
@@ -296,8 +297,9 @@
     var canvas = document.getElementById('cena');
     mundo = window.NRMundo.criar(canvas);
     fx = window.NREfeitos.criar(mundo, document.getElementById('overlay'));
+    pocas = window.NRPocas ? window.NRPocas.criar(mundo, fx) : null;                  // poças d'água no meio do mapa (pocas.js)
     ui.carregando(75, 'Montando personagens…');
-    des = window.NRDesenhista.criar(mundo, fx, { callbacks: callbacksVisuais, infoSlot: infoSlot });
+    des = window.NRDesenhista.criar(mundo, fx, { callbacks: callbacksVisuais, infoSlot: infoSlot, pocas: pocas });
     ctrl = window.NRControles.criar(document.getElementById('zonaToque'), document.getElementById('joy'), document.getElementById('joyBase'), document.getElementById('joyBot'));
     ctrl.ativar(false);
     ui.ligarDash(function () { ctrl.pedirDash(); });

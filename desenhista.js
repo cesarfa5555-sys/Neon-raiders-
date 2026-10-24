@@ -15,7 +15,7 @@
 
   function criar(mundo, fx, opcoes) {
     var scene = mundo.scene, cam = mundo.camera, A = window.NRAudio;
-    var cb = opcoes.callbacks || {};
+    var cb = opcoes.callbacks || {}, pocas = opcoes.pocas || null;
     var infoSlot = opcoes.infoSlot || {};                       // slot → { cacador, rifle, nome }
     var dummy = new T.Object3D(); dummy.rotation.order = 'YXZ';
     var cor = new T.Color(), tmp = { x: 0, y: 0, visivel: true }, pp3 = { x: 0, y: 0, z: 0 };
@@ -87,8 +87,10 @@
         // eventos da animação: passos (poeira neon + som) e pouso do dash
         for (var ei = 0; ei < pz.eventos.length; ei++) {
           var en = pz.eventos[ei];
-          if (en === 'pouso') { fx.anel(p.x, p.z, 0.3, 2.2, 0.35, j.modelo.cor, 0.7); fx.faiscas(p.x, 0.2, p.z, 10, j.modelo.cor, 4, 0.35, 0.5, 2); if (p.slot === slotLocal) A.tocar('passo', { forca: 1.6 }); }
-          else { j.modelo.posPe(en === 'passoE' ? 0 : 1, pp3); var fr = 0.25 + pz.corrida * 0.75; fx.faiscas(pp3.x, 0.08, pp3.z, Math.round(2 + 4 * fr), j.modelo.cor, 1.6 + 2 * fr, 0.28, 0.35, 0); if (p.slot === slotLocal) A.tocar('passo', { forca: fr }); }
+          if (en === 'pouso') { if (pocas && pocas.dentro(p.x, p.z) >= 0) pocas.chapinhar(p.x, p.z, 1.7, p.slot === slotLocal); else { fx.anel(p.x, p.z, 0.3, 2.2, 0.35, j.modelo.cor, 0.7); fx.faiscas(p.x, 0.2, p.z, 10, j.modelo.cor, 4, 0.35, 0.5, 2); if (p.slot === slotLocal) A.tocar('passo', { forca: 1.6 }); } }
+          else { j.modelo.posPe(en === 'passoE' ? 0 : 1, pp3); var fr = 0.25 + pz.corrida * 0.75;
+            if (pocas && pocas.dentro(pp3.x, pp3.z) >= 0) { pocas.chapinhar(pp3.x, pp3.z, 0.5 + fr * 0.8, p.slot === slotLocal); continue; }       // pisou na poça: respingo + som de água
+            fx.faiscas(pp3.x, 0.08, pp3.z, Math.round(2 + 4 * fr), j.modelo.cor, 1.6 + 2 * fr, 0.28, 0.35, 0); if (p.slot === slotLocal) A.tocar('passo', { forca: fr }); }
         }
         j.caido = caido;
         // caído = deitado no chão
@@ -109,6 +111,7 @@
           }
         }
       }
+      var foco0 = { x: 0, z: 0 }; for (var fi = 0; fi < V.jogadores.length; fi++) if (V.jogadores[fi].slot === slotLocal) foco0 = V.jogadores[fi];
       // ---- inimigos comuns + chefes ----
       for (var ti = 0; ti < tipos.length; ti++) tipos[ti].n = 0;
       var ns = 0, ne = 0;
@@ -119,6 +122,7 @@
         var mx = e.x - s.x, mz = e.z - s.z;
         if (mx * mx + mz * mz > 0.0004) { var al = Math.atan2(mx, mz), da = al - s.ang; while (da > Math.PI) da -= 6.283; while (da < -Math.PI) da += 6.283; s.ang += da * Math.min(1, dt * 12); }
         s.x = e.x; s.z = e.z; s.visto = quadro;
+        if (pocas && Math.random() < 0.004 && Math.abs(e.x - foco0.x) < 22 && Math.abs(e.z - foco0.z) < 22 && pocas.dentro(e.x, e.z) >= 0) pocas.chapinhar(e.x, e.z, 0.45, false);
         var tp = tipos[e.t]; if (!tp || tp.n >= MAX_INIM) continue;
         var def = tp.def, fr = def.comp === 'voar' ? 14 : def.id === 'corredor' ? 14 : def.id === 'bruto' ? 4.5 : def.id === 'enxame' ? 24 : 8;
         var sn = Math.sin(t * fr + s.ph), esc = tp.mod.escala * (e.elite ? 1.35 : 1) * (e.flash ? 1.12 : 1);
