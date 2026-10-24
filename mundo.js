@@ -13,7 +13,7 @@
   var T = window.THREE, D = window.NRData, R = D.CFG.arenaRaio;
 
   var AJUSTES = {
-    ambiente: 'natural',    // 'natural' = campo de dia (padrão)  |  'cyberpunk' = cidade neon com chuva
+    ambiente: 'cyberpunk',  // 'cyberpunk' = cidade neon com chuva (padrão)  |  'natural' = campo de dia (natureza.js)
     camAngulo: 62,          // inclinação da câmera em graus (90 = totalmente de cima)
     camLarguraVista: 26,    // quantas unidades cabem na LARGURA da tela (zoom) — o jogo é sempre deitado
     camDistMin: 17, camDistMax: 36,
