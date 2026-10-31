@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05050c">
+<title>NEON RAIDERS — Menu</title>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="menu.css">
+</head>
+<body>
+<canvas id="fundo"></canvas>
+<div id="chuvaCss"></div><div id="scan"></div>
+
+<div class="pagina" id="pagMenu">
+  <div class="barraTopo">
+    <div class="pilula" id="pilMoedas"><span class="am" data-ico="moeda"></span><b id="moedasTxt">0</b></div>
+    <button class="btnIcone" id="btnAjustes" aria-label="Ajustes" data-ico="engrenagem"></button>
+  </div>
+
+  <div id="logo">
+    <div id="logoTitulo">NEON RAIDERS</div>
+    <div id="logoSub">SURVIVAL PROTOCOL</div>
+  </div>
+
+  <div id="heroiBox"><canvas id="heroi"></canvas></div>
+
+  <div id="centro">
+    <button class="btn" id="btnJogar">JOGAR</button>
+    <div id="recorde" class="mono">—</div>
+    <div id="linhaCards">
+      <button class="cartaMenu" id="btnOnline"><b>CO-OP ONLINE</b><small>ATÉ 4 JOGADORES</small></button>
+      <button class="cartaMenu rosa" id="btnRanking"><b>RANKING</b><small>TOP GLOBAL</small></button>
+    </div>
+  </div>
+
+  <nav id="navBaixo">
+    <button class="nav" id="btnHangar"><i data-ico="escudo"></i><span>HANGAR</span></button>
+    <button class="nav" id="btnBau"><i data-ico="bau"></i><span>BAÚ</span></button>
+    <button class="nav" id="btnAjustes2"><i data-ico="som"></i><span>SOM</span></button>
+  </nav>
+  <div id="versao" class="mono">NEKTRA · v2.0 SURVIVAL</div>
+</div>
+
+<!-- AJUSTES -->
+<div class="modal oculto" id="modalAjustes">
+  <div class="caixa painel">
+    <h2>AJUSTES</h2>
+    <div class="linhaVol"><label>MÚSICA</label><input type="range" id="volMusica" min="0" max="1" step="0.05"></div>
+    <div class="linhaVol"><label>EFEITOS</label><input type="range" id="volSfx" min="0" max="1" step="0.05"></div>
+    <button class="btn sec" id="btnMudo">SOM: LIGADO</button>
+    <button class="btn sec" id="btnModoTiro">TIRO: AUTOMÁTICO</button>
+    <button class="btn perigo" id="btnSair">SAIR DA CONTA</button>
+    <button class="btn sec" id="btnCreditos">CRÉDITOS</button>
+    <button class="btn sec" id="btnFecharAjustes">FECHAR</button>
+  </div>
+</div>
+
+<div class="modal oculto" id="modalCreditos">
+  <div class="caixa painel">
+    <h2>CRÉDITOS</h2>
+    <div id="listaCreditos" class="mono" style="font-size:11px;line-height:1.5"></div>
+    <button class="btn sec" id="btnFecharCreditos">FECHAR</button>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="manutencao" class="oculto"><b>EM MANUTENÇÃO</b><span>Estamos melhorando o jogo. Volte em instantes.</span></div>
+
+<script src="icones.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="config-servidor.js"></script>
+<script src="data.js"></script>
+<script src="dados.js"></script>
+<script src="guarda.js"></script>
+<script src="level.js"></script>
+<script src="perfil.js"></script>
+<script src="avatars.js"></script>
+<script src="molduras.js"></script>
+<script src="titulos.js"></script>
+<script src="xp.js"></script>
+<script src="recompensas.js"></script>
+<script src="animations.js"></script>
+<script src="hud-profile.js"></script>
+<script src="perfil-ui.js"></script>
+<script src="conta.js"></script>
+<script src="audio.js"></script>
+<script src="anim-dados.js"></script>
+<script src="animador.js"></script>
+<script src="modelos.js"></script>
+<script src="heroi-config.js"></script>
+<script src="armas-glb.js"></script>
+<script src="heroi-glb.js"></script>
+<script src="menu-cenario.js"></script>
+<script src="menu-heroi.js"></script>
+<script src="auto-voltar.js"></script>
+<script src="creditos.js"></script>
+<script src="menu.js"></script>
+<script type="module" src="atualizacao.js"></script>
+<script src="paisagem.js"></script>
+</body>
+</html>
