@@ -390,7 +390,7 @@
         velhas.forEach(function (g) { const q = vivoMaisPerto(g.x, g.z); if (q) ganharXP(q, g.v); });
       }
     }
-    function soltarItem(x, z, kind) { S.itens.push({ id: nid(), x: x, z: z, kind: kind, t: 45 }); }
+    function soltarItem(x, z, kind) { /* sem itens/baús no chão: a partida tem só waves, XP e nível */ }
 
     // ── ALVOS (jogadores) ───────────────────────────────────────────
     function vivoMaisPerto(x, z) {

@@ -143,11 +143,7 @@
     }
     if (acc > 0.2) acc = 0;
     var p = sim.jogador(meuId);
-    if (p.cartas && !ui.cartasAbertas()) { ctrl.ativar(false); A.tocar('cartaAbre'); ui.cartas(p.cartas, p.nivel, 0); }
-    // loja entre ondas (solo): abre sozinha e atualiza quando algo muda
-    if (sim.S.fase === 'loja') {
-      if (p.lojaVer !== lojaVerVista || !ui.lojaAberta()) { lojaVerVista = p.lojaVer; ctrl.ativar(false); ui.loja({ ofertas: p.lojaOfertas || [], sucata: p.sucata, reroll: sim.custoReroll(p), pronto: p.lojaPronto, onda: sim.S.onda }); }
-    } else if (ui.lojaAberta()) { ui.lojaFechar(); ctrl.ativar(true); }
+    // (sem cartas de level up e sem loja entre as ondas: só waves e nível)
     if (sim.S.fim && !estado.fim) finalizarSolo();
   }
   var lojaVerVista = -1;
@@ -362,8 +358,8 @@
       esperarToque(function () { comecarPartidaOnline(); });
     });
     window.NRRede.on('snapshot', receberSnapshot);
-    window.NRRede.on('cartas', function (d) { ctrl.ativar(false); A.tocar('cartaAbre'); var p = jogadorLocal(); ui.cartas(d.cartas, p ? p.nivel : 0, d.tempo || 12); setTimeout(function () { ctrl.ativar(true); }, (d.tempo || 12) * 1000); });
-    window.NRRede.on('loja', function (d) { if (d.aberta) { ctrl.ativar(false); d.online = true; ui.loja(d); } else { ui.lojaFechar(); ctrl.ativar(true); } });
+    window.NRRede.on('cartas', function (d) { window.NRRede.enviarCarta(0); });      // servidor antigo: escolhe a 1ª carta sem mostrar nada (o servidor novo nem manda)
+    window.NRRede.on('loja', function (d) { if (d && d.aberta) window.NRRede.prontoLoja(); });      // servidor antigo: pula a loja sozinho
     window.NRRede.on('fim', finalizarOnline);
     window.NRRede.on('erro', function (m) { ui.aviso(String(m), 4000); });
     window.NRRede.on('saiu', async function (d) {
