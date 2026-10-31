@@ -91,7 +91,7 @@
     critico: { nome: 'CHIP CRÍTICO',    icone: 'critico', cor: '#ff3da6', desc: '+7% de chance de crítico por nível.' },
     dash:    { nome: 'PROPULSORES',     icone: 'dash', cor: '#e8f6ff', desc: 'Dash recarrega 14% mais rápido por nível.' },
   };
-  const ORDEM_PAS = ['dano', 'cadencia', 'vel', 'vida', 'regen', 'ima', 'critico', 'dash'];
+  const ORDEM_PAS = [];       // passivas removidas (antes: dano, cadência, velocidade, vida, regen, ímã, crítico, dash) — a tabela PASSIVAS acima ficou sem uso
 
   // ── LOJA / META-PROGRESSÃO (fora da partida) ────────────────────
   const LOJA = {

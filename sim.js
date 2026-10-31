@@ -275,17 +275,18 @@
       p.lojaOfertas = gerarCartas(p, 4).map(function (c) { c.preco = precoOferta(c); return c; });
       p.lojaVer++;
     }
+    // FIM DE ONDA (antes abria a loja de passivas; agora não há loja): limpa a arena, cura um pouco, revive quem caiu e começa a próxima onda
     function abrirLoja() {
-      S.fase = 'loja'; S.lojaT = 0;
+      S.fase = 'luta'; S.lojaT = 0;
       // a arena é limpa (como no Brotato): gemas viram XP, o resto some
       S.gemas.forEach(function (g) { const q = vivoMaisPerto(g.x, g.z); if (q) ganharXP(q, g.v); });
       S.gemas.length = 0; S.inimigos.length = 0; S.projeteis.length = 0; S.zonas.length = 0; S.granadas.length = 0; S.itens.length = 0;
       S.jogadores.forEach(function (p) {
-        p.lojaPronto = !p.vivo || p.fora; p.rerolls = 0; p.cartas = null; p.pendentes = 0; p.dashT = 0;
-        if (p.vivo) { p.hp = Math.min(p.hpMax, p.hp + p.hpMax * 0.25); ofertar(p); }
-        else if (!p.fora) { p.vivo = true; p.hp = Math.round(p.hpMax * 0.4); p.reviveProg = 0; ofertar(p); p.lojaPronto = false; } // quem caiu no co-op volta para a próxima onda
+        p.cartas = null; p.pendentes = 0; p.dashT = 0; p.invul = 1.5;
+        if (p.vivo) p.hp = Math.min(p.hpMax, p.hp + p.hpMax * 0.25);
+        else if (!p.fora) { p.vivo = true; p.hp = Math.round(p.hpMax * 0.4); p.reviveProg = 0; }       // quem caiu no co-op volta para a próxima onda
       });
-      ev(EV.LOJA, S.onda);
+      aoIniciarOnda();
     }
     function fecharLoja() {
       S.fase = 'luta'; S.lojaT = 0;
@@ -311,7 +312,7 @@
       p.xp += v * p.xpMul;
       while (p.xp >= p.xpProx) {
         p.xp -= p.xpProx; p.nivel++; p.nivelMax = p.nivel; p.xpProx = D.xpParaNivel(p.nivel);
-        p.pendentes++; ev(EV.NIVEL, p.slot, p.nivel);
+        ev(EV.NIVEL, p.slot, p.nivel);      // (sem cartas/passivas: subir de nível só cura um pouco e mostra o aviso)
         if (p.vivo) p.hp = Math.min(p.hpMax, p.hp + p.hpMax * 0.10); // subir de nível cura um pouco
       }
       abrirCartas(p);
@@ -946,7 +947,7 @@
           danoInimigo(e, e.chefe ? e.hpMax * 0.05 : 140 * D.hpMulOnda(S.onda) * 0.6 + 60, p, 0);
         }
         ev(EV.EXPLO, p.x, p.z, 15, 4);
-      } else if (it.kind === ITEM.CAPSULA) { p.pendentes += 2; ev(EV.CAPSULA, p.slot); abrirCartas(p); }
+      } else if (it.kind === ITEM.CAPSULA) { p.hp = Math.min(p.hpMax, p.hp + p.hpMax * 0.3); ev(EV.CAPSULA, p.slot); }      // sem cartas: a cápsula agora cura 30%
     }
 
     function limparMortos() {
